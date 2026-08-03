@@ -44,13 +44,13 @@ function sync(){
   $("#wishCount").hidden=!w; $("#wishCount").textContent=w;
   renderDrawer();
 }
-function openDrawer(){$("#drawer").classList.add("on");$("#scrim").classList.add("on");$("#drawer").setAttribute("aria-hidden","false");}
+function openDrawer(){$("#drawer").classList.add("on");if($("#scrim"))$("#scrim").classList.add("on");$("#drawer").setAttribute("aria-hidden","false");}
 function closeAll(){document.querySelectorAll(".drawer,.scrim,.modal,.mobilenav,.filters").forEach(e=>e.classList.remove("on","open"));$("#drawer").setAttribute("aria-hidden","true");$("#menuBtn").setAttribute("aria-expanded","false");}
-$("#cartBtn").onclick=openDrawer; $("#closeDrawer").onclick=closeAll; $("#scrim").onclick=closeAll;
-$("#searchBtn").onclick=()=>{$("#searchModal").classList.add("on");$("#scrim").classList.add("on");$("#searchInput").focus();searchRender("");};
+$("#cartBtn").onclick=openDrawer; $("#closeDrawer").onclick=closeAll; if($("#scrim"))$("#scrim").onclick=closeAll;
+$("#searchBtn").onclick=()=>{$("#searchModal").classList.add("on");if($("#scrim"))$("#scrim").classList.add("on");$("#searchInput").focus();searchRender("");};
 $("#closeSearch").onclick=closeAll;
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAll();});
-$("#menuBtn").onclick=()=>{const m=$("#mobilenav");m.classList.add("open");$("#scrim").classList.add("on");$("#menuBtn").setAttribute("aria-expanded","true");};
+$("#menuBtn").onclick=()=>{const m=$("#mobilenav");m.classList.add("open");if($("#scrim"))$("#scrim").classList.add("on");$("#menuBtn").setAttribute("aria-expanded","true");};
 $("#mobilenav").innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem"><p class="brand" style="margin:0;font-size:1.6rem">Vaayan</p><button class="iconbtn" id="closeMobileNav" aria-label="Close menu">✕</button></div>`+[...document.querySelectorAll("#navlinks a")].map(a=>`<a href="${a.getAttribute("href")}">${a.textContent}</a>`).join("")+`<a href="#/wishlist">Wishlist</a><a href="#/auth">Sign in</a>`;
 $("#mobilenav").onclick=e=>{if(e.target.tagName==="A")closeAll();};
 $("#closeMobileNav").onclick=closeAll;
@@ -180,7 +180,7 @@ PAGES.shop = (q) => {
   return `<div class="wrap section" style="padding-top:2.5rem">
     <header style="max-width:38rem"><p class="eyebrow" style="color:var(--terracotta)">The collection</p><h1 style="font-size:clamp(2.2rem,5vw,3.4rem);margin-top:.75rem">${cat==="all"?"All weaves":esc(CATEGORIES.find(c=>c.id===cat)?.label||cat)}</h1><p class="muted" style="margin-top:.9rem;font-size:.9rem">${items.length} piece${items.length===1?"":"s"} · woven to order in 3–5 weeks</p></header>
     <div class="shoplay" style="margin-top:2.5rem">
-      <div class="filterbtn-wrap"><button class="btn btn-outline" style="width:100%" onclick="document.querySelector('.filters').classList.add('on');document.getElementById('scrim').classList.add('on');">Filters &amp; Search</button></div>
+      <div class="filterbtn-wrap"><button class="btn btn-outline" style="width:100%" onclick="document.querySelector('.filters').classList.add('on');if(document.getElementById('scrim'))document.getElementById('scrim').classList.add('on');">Filters &amp; Search</button></div>
       <aside class="filters" aria-label="Filters">
         <div class="filter-head"><p class="serif" style="font-size:1.5rem;margin:0">Filters</p><button class="iconbtn" onclick="closeAll()" aria-label="Close">✕</button></div>
         <div class="fgroup"><p class="eyebrow">Category</p><div style="margin-top:.6rem">
