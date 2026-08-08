@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AuthAccount {
+  id                  String    @id @default(uuid())
+  email               String?   @unique
+  phone               String?   @unique
+  passwordHash        String
+  status              String    @default("active") // active, pending, locked, deleted
+  emailVerifiedAt     DateTime?
+  phoneVerifiedAt     DateTime?
+  securityStamp       String    @default(uuid())
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  mfaEnabled          Boolean   @default(false)
+  isCompromised       Boolean   @default(false)
+  passwordChangedAt   DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  deletedAt           DateTime?
+
+  userProfile         UserProfile?
+  adminProfile        AdminProfile?
+  roles               UserRole[]
+  sessions            Session[]
+  authEvents          AuthEvent[]
+  otpCodes            OtpCode[]
+  passwordResetTokens PasswordResetToken[]
+  apiTokens           ApiToken[]
+}
+
+model UserProfile {
+  id            String    @id @default(uuid())
+  authAccountId String    @unique
+  firstName     String
+  lastName      String
+  displayName   String?
+  avatarUrl     String?
+  preferences   Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+}
+
+model AdminProfile {
+  id            String    @id @default(uuid())
+  authAccountId String    @unique
+  firstName     String
+  lastName      String
+  employeeId    String?
+  department    String?
+  jobTitle      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique // ADMIN, STAFF, CUSTOMER
+  isSystem    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  name        String           @unique // e.g., orders:read
+  resource    String? // e.g., orders
+  action      String? // e.g., read
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  roles       RolePermission[]
+}
+
+model UserRole {
+  authAccountId String
+  roleId        String
+  assignedAt    DateTime @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+  role        Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([authAccountId, roleId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model Session {
+  id               String    @id @default(uuid())
+  authAccountId    String
+  refreshTokenHash String    @unique
+  platform         String? // web, ios, android
+  deviceName       String?
+  ipAddress        String?
+  userAgent        String?
+  isCompromised    Boolean   @default(false)
+  revokedAt        DateTime?
+  expiresAt        DateTime
+  createdAt        DateTime  @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+
+  @@index([authAccountId, revokedAt])
+}
+
+model AuthEvent {
+  id            String   @id @default(uuid())
+  authAccountId String?
+  eventType     String // e.g., login, password_change
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  authAccount AuthAccount? @relation(fields: [authAccountId], references: [id], onDelete: SetNull)
+
+  @@index([authAccountId, createdAt])
+}
+
+model OtpCode {
+  id                String   @id @default(uuid())
+  authAccountId     String
+  purpose           String?  @default("verify") // login, verify_phone, 2fa
+  codeHash          String
+  attempts          Int      @default(0)
+  used              Boolean  @default(false)
+  expiresAt         DateTime
+  resendAvailableAt DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+
+  @@index([authAccountId, purpose, createdAt])
+}
+
+model PasswordResetToken {
+  id            String    @id @default(uuid())
+  authAccountId String
+  tokenHash     String    @unique
+  used          Boolean   @default(false)
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+}
+
+model ApiToken {
+  id            String    @id @default(uuid())
+  authAccountId String
+  name          String
+  tokenHash     String    @unique
+  scopes        Json?
+  active        Boolean   @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+}
