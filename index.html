@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vaayan — Handloom Atelier | Handwoven Sarees, Stoles &amp; Fabric</title>
+  <meta name="description"
+    content="Vaayan is a handloom atelier weaving Banarasi, Kanjivaram and jamdani sarees, stoles and fabric to order with 240 weaving families across India." />
+  <meta property="og:title" content="Vaayan — Handloom Atelier" />
+  <meta property="og:description" content="Handwoven sarees, stoles and fabric from nine Indian weaving clusters." />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <a href="#main" class="sr">Skip to content</a>
+  <div class="topbar">Free insured shipping in India · Woven to order in 3–5 weeks</div>
+  <header class="site">
+    <div class="wrap">
+      <div class="nav">
+        <button class="iconbtn menubtn" id="menuBtn" aria-label="Open menu" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+        <a href="#/" class="brand" aria-label="Vaayan home">Vaayan<small>Handloom Atelier</small></a>
+        <nav class="navlinks" id="navlinks" aria-label="Primary">
+          <a href="#/" data-nav="/">Home</a>
+          <a href="#/shop" data-nav="/shop">Shop</a>
+          <a href="#/shop?category=sarees" data-nav="/shop?category=sarees">Sarees</a>
+          <a href="#/shop?category=stoles" data-nav="/shop?category=stoles">Stoles</a>
+          <a href="#/shop?category=fabric" data-nav="/shop?category=fabric">Fabric</a>
+          <a href="#/orders" data-nav="/orders">Track order</a>
+        </nav>
+        <div class="icons">
+          <button class="iconbtn" id="searchBtn" aria-label="Search">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.2-3.2" />
+            </svg>
+          </button>
+          <a class="iconbtn" href="#/wishlist" aria-label="Wishlist">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 20s-7-4.5-7-9.5A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.5C19 15.5 12 20 12 20Z" />
+            </svg>
+            <span class="count" id="wishCount" hidden>0</span>
+          </a>
+          <a class="iconbtn" href="#/dashboard" aria-label="Account">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="8" r="3.2" />
+              <path d="M5 20c1.2-3.4 4-5 7-5s5.8 1.6 7 5" />
+            </svg>
+          </a>
+          <button class="iconbtn" id="cartBtn" aria-label="Open bag">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M6 8h12l-1 12H7L6 8Z" />
+              <path d="M9 8a3 3 0 0 1 6 0" />
+            </svg>
+            <span class="count" id="cartCount" hidden>0</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main"></main>
+
+  <footer class="site">
+    <div class="wrap cols">
+      <div>
+        <p class="serif" style="font-size:1.9rem">Vaayan</p>
+        <p style="margin-top:1rem;max-width:22rem;font-size:.875rem;color:rgba(248,243,232,.72)">A handloom atelier
+          working directly with 240 weaving families across nine Indian clusters. Every piece is woven to order.</p>
+      </div>
+      <nav aria-label="Shop" style="font-size:.875rem">
+        <p class="eyebrow" style="color:var(--gold)">Shop</p>
+        <ul id="footerCats" style="margin-top:1.25rem;list-style:none;display:grid;gap:.75rem"></ul>
+      </nav>
+      <div>
+        <p class="eyebrow" style="color:var(--gold)">The Loom Letter</p>
+        <p style="margin-top:1.25rem;font-size:.875rem;color:rgba(248,243,232,.72)">New weaves, cluster stories and
+          private previews. Once a month.</p>
+        <form style="margin-top:1.25rem;display:flex;gap:.75rem;flex-wrap:wrap"
+          onsubmit="event.preventDefault();toast('Subscribed to the Loom Letter')">
+          <label class="sr" for="nl">Email address</label>
+          <input id="nl" class="field" type="email" required placeholder="you@email.com"
+            style="flex:1;min-width:12rem;background:rgba(248,243,232,.1);border-color:rgba(248,243,232,.25);color:var(--primary-fg)" />
+          <button class="btn btn-gold" type="submit">Subscribe</button>
+        </form>
+      </div>
+    </div>
+    <div class="fbot">
+      <div class="wrap">
+        <p>© <span id="yr"></span> Vaayan Handloom Atelier. Woven in India.</p>
+        <p>GI-authenticated · Fair-wage certified</p>
+      </div>
+    </div>
+  </footer>
+
+
+  <nav class="mobilenav" id="mobilenav" aria-label="Mobile"></nav>
+  <aside class="drawer" id="drawer" aria-label="Shopping bag" aria-hidden="true">
+    <header>
+      <p class="serif" style="font-size:1.4rem">Your bag</p><button class="iconbtn" id="closeDrawer"
+        aria-label="Close bag">✕</button>
+    </header>
+    <div class="body" id="drawerBody"></div>
+    <footer id="drawerFoot"></footer>
+  </aside>
+
+  <div class="modal" id="searchModal" role="dialog" aria-modal="true" aria-label="Search products">
+    <div class="panel">
+      <div style="display:flex;align-items:center;gap:.6rem;padding:.9rem 1rem;border-bottom:1px solid var(--border)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.2-3.2" />
+        </svg>
+        <input id="searchInput" class="field" style="border:0;background:none;height:2.2rem;padding:0"
+          placeholder="Search weaves, clusters, fabrics…" aria-label="Search" />
+        <button class="btn btn-sm btn-ghost" id="closeSearch">Esc</button>
+      </div>
+      <div id="searchResults" style="max-height:60vh;overflow:auto;padding:.5rem"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
