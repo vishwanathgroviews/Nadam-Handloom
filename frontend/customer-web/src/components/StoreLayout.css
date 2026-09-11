@@ -1,0 +1,346 @@
+.store-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.store-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #fff;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.store-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: var(--header-height);
+}
+
+/* The shared .container class caps content at 1280px for readable body
+   copy, but that starves the 5-category nav of room on wide screens — the
+   header gets a wider budget of its own. Compound selector so this reliably
+   beats .container's max-width regardless of CSS import order. */
+.store-header-inner.container {
+  max-width: 1680px;
+}
+
+.store-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-dark);
+  cursor: pointer;
+  padding: 6px;
+}
+
+.store-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.store-brand-icon {
+  color: var(--secondary);
+}
+
+.store-brand-logo {
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.store-nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  /* Flex items default to min-width:auto, which refuses to shrink below its
+     content and forces the whole header (and page) to overflow horizontally
+     once there isn't room for every link. min-width:0 lets it actually
+     shrink to the space available; overflow-x is the fallback for widths
+     where even the compact sizing below doesn't fit everything. */
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.store-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* The sliding active-link pill (GlassTabBar's mechanism, ported to a
+   variable-width web nav) — an absolutely positioned sibling that Framer
+   Motion animates to sit behind whichever link matches the current route.
+   Sits behind the links via z-index; position/width come from JS
+   measurement in StoreLayout.jsx, not CSS. */
+.store-nav-indicator {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 0;
+  border-radius: 999px;
+  background: rgba(122, 31, 43, 0.08);
+  border: 1px solid rgba(122, 31, 43, 0.14);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.store-nav a {
+  position: relative;
+  z-index: 1;
+  text-decoration: none;
+  color: var(--text-dark);
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 999px;
+  transition: var(--transition-smooth);
+}
+
+.store-nav a:hover {
+  color: var(--primary);
+}
+
+.store-nav-mobile-only {
+  display: none;
+}
+
+.store-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-ivory);
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  padding: 8px 14px;
+  width: 170px;
+  flex-shrink: 0;
+}
+
+.store-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.85rem;
+  width: 100%;
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-dark);
+}
+
+.store-search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.store-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.store-icon-link {
+  position: relative;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  transition: var(--transition-smooth);
+}
+
+.store-icon-link:hover {
+  color: var(--primary);
+}
+
+.store-cart-badge {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+.store-main {
+  flex: 1;
+}
+
+/* Footer */
+.store-footer {
+  background: var(--text-dark);
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 40px;
+}
+
+.store-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 32px;
+  padding: 48px 24px 28px;
+}
+
+.store-footer-grid h4 {
+  color: #fff;
+  font-size: 0.9rem;
+  margin-bottom: 14px;
+  letter-spacing: 0.4px;
+}
+
+.store-footer-grid a,
+.store-footer-muted {
+  display: block;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.store-footer-grid a:hover {
+  color: var(--secondary);
+}
+
+.store-footer-grid a.store-footer-link {
+  font-weight: 600;
+  color: var(--secondary);
+}
+
+.store-footer-brand {
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.store-footer-brand .store-brand-icon {
+  color: var(--secondary);
+}
+
+.store-footer-tagline {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  max-width: 320px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.store-footer-bottom {
+  text-align: center;
+  font-size: 0.78rem;
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+@media (max-width: 1620px) {
+  .store-brand {
+    font-size: 1.3rem;
+  }
+  .store-search {
+    width: 140px;
+  }
+  .store-nav {
+    gap: 10px;
+  }
+  .store-nav a {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .store-search {
+    width: 140px;
+  }
+  .store-footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .store-menu-toggle {
+    display: flex;
+  }
+
+  .store-search {
+    display: none;
+  }
+
+  /* With the nav collapsed into the hamburger drawer, what's left in the
+     header row (hamburger + logo + wordmark + account/cart icons) still has
+     to fit the narrowest supported phone widths (~360-390px) — the full
+     wordmark at its desktop size was ~14px too wide for that, which the
+     document-level overflow-x:hidden guard (index.css) was then silently
+     clipping instead of the header actually fitting. */
+  .store-header-inner {
+    gap: 10px;
+  }
+
+  .store-brand {
+    font-size: 1.15rem;
+    gap: 6px;
+  }
+
+  .store-nav {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #fff;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px;
+    gap: 18px;
+    overflow-x: visible;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .store-nav.open {
+    transform: translateX(0);
+  }
+
+  .store-nav a {
+    font-size: 1.05rem;
+    padding: 4px 0;
+  }
+
+  /* The pill only makes sense against the desktop row's equal-baseline
+     inline links — the mobile drawer stacks full-width links vertically, so
+     the indicator is hidden rather than reworked to measure a second axis. */
+  .store-nav-indicator {
+    display: none;
+  }
+
+  .store-nav-mobile-only {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-color);
+    width: 100%;
+  }
+
+  .store-footer-grid {
+    grid-template-columns: 1fr;
+    padding: 36px 20px 20px;
+  }
+}

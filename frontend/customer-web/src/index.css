@@ -1,0 +1,63 @@
+:root {
+  --primary: #7A1F2B;      /* Deep Maroon */
+  --primary-hover: #5c141e;
+  --secondary: #C99A3E;    /* Turmeric Gold */
+  --secondary-hover: #a87e2f;
+  --bg-ivory: #F7F1E6;     /* Soft warm Ivory background */
+  --text-dark: #2B2523;
+  --text-muted: #6B615E;
+  --card-bg: rgba(255, 255, 255, 0.95);
+  --border-color: #E6DFD5;
+  --success: #2E7D32;
+  --success-bg: #E8F5E9;
+  --danger: #C0392B;
+  --danger-bg: #FCEBEA;
+  --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --shadow-premium: 0 20px 40px rgba(122, 31, 43, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 6px 18px rgba(43, 37, 35, 0.08);
+  --header-height: 76px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  width: 100%;
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-ivory);
+  color: var(--text-dark);
+  /* Guards against the mobile off-canvas nav (position:fixed + transform,
+     see StoreLayout.css) still counting toward document scrollWidth while
+     translated off-screen — a well-known cross-browser quirk with that
+     combination — which otherwise let the page rubber-band/scroll
+     horizontally by a few pixels on touch devices. */
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+

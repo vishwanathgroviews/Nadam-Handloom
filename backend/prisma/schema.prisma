@@ -1,0 +1,557 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AuthAccount {
+  id                  String    @id @default(uuid())
+  email               String?   @unique
+  phone               String?   @unique
+  passwordHash        String?
+  mpinHash            String?
+  mpinSetAt           DateTime?
+  status              String    @default("active") // active, pending, locked, deleted
+  emailVerifiedAt     DateTime?
+  phoneVerifiedAt     DateTime?
+  securityStamp       String    @default(uuid())
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  mfaEnabled          Boolean   @default(false)
+  isCompromised       Boolean   @default(false)
+  passwordChangedAt   DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  deletedAt           DateTime?
+
+  userProfile         UserProfile?
+  adminProfile        AdminProfile?
+  roles               UserRole[]
+  sessions            Session[]
+  deviceTokens        DeviceToken[]
+  authEvents          AuthEvent[]
+  otpCodes            OtpCode[]
+  passwordResetTokens PasswordResetToken[]
+  apiTokens           ApiToken[]
+  addresses           Address[]
+  orders              Order[]
+}
+
+model UserProfile {
+  id            String    @id @default(uuid())
+  authAccountId String    @unique
+  firstName     String
+  lastName      String
+  displayName   String?
+  avatarUrl     String?
+  preferences   Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+}
+
+model AdminProfile {
+  id            String    @id @default(uuid())
+  authAccountId String    @unique
+  firstName     String
+  lastName      String
+  employeeId    String?
+  department    String?
+  jobTitle      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique // ADMIN, STAFF, CUSTOMER
+  isSystem    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  name        String           @unique // e.g., orders:read
+  resource    String? // e.g., orders
+  action      String? // e.g., read
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  roles       RolePermission[]
+}
+
+model UserRole {
+  authAccountId String
+  roleId        String
+  assignedAt    DateTime @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+  role        Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([authAccountId, roleId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model Session {
+  id               String    @id @default(uuid())
+  authAccountId    String
+  refreshTokenHash String    @unique
+  platform         String? // web, ios, android
+  deviceName       String?
+  ipAddress        String?
+  userAgent        String?
+  isCompromised    Boolean   @default(false)
+  revokedAt        DateTime?
+  expiresAt        DateTime
+  createdAt        DateTime  @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+
+  @@index([authAccountId, revokedAt])
+}
+
+// Expo push tokens for the admin app — one row per device. Expo's push
+// service routes to APNs on iOS and FCM on Android from the same call, so
+// there's no separate Apple/Google credential plumbing here.
+model DeviceToken {
+  id            String      @id @default(uuid())
+  authAccountId String
+  authAccount   AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+  expoPushToken String      @unique
+  platform      String // ios | android
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([authAccountId])
+}
+
+model AuthEvent {
+  id            String   @id @default(uuid())
+  authAccountId String?
+  eventType     String // e.g., login, password_change
+  source        String   @default("staff_app") // customer_web | staff_app — which client the event originated from
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  authAccount AuthAccount? @relation(fields: [authAccountId], references: [id], onDelete: SetNull)
+
+  @@index([authAccountId, createdAt])
+}
+
+model OtpCode {
+  id                String   @id @default(uuid())
+  authAccountId     String
+  purpose           String?  @default("verify") // login, verify_phone, 2fa
+  codeHash          String
+  attempts          Int      @default(0)
+  used              Boolean  @default(false)
+  expiresAt         DateTime
+  resendAvailableAt DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+
+  @@index([authAccountId, purpose, createdAt])
+}
+
+model PasswordResetToken {
+  id            String    @id @default(uuid())
+  authAccountId String
+  tokenHash     String    @unique
+  used          Boolean   @default(false)
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+}
+
+model ApiToken {
+  id            String    @id @default(uuid())
+  authAccountId String
+  name          String
+  tokenHash     String    @unique
+  scopes        Json?
+  active        Boolean   @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+}
+
+// Postgres-backed sliding-window rate limiter (no Redis dependency).
+model RateLimitHit {
+  id        String   @id @default(uuid())
+  bucketKey String // e.g. "login:ip:1.2.3.4" or "otp-verify:mobile:9876543210"
+  createdAt DateTime @default(now())
+
+  @@index([bucketKey, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Commerce: catalog, addresses, orders, payments, shipments
+// ─────────────────────────────────────────────────────────────────
+
+model Category {
+  id          String  @id @default(uuid())
+  name        String
+  slug        String  @unique
+  description String
+  imageUrl    String?
+  storageKey  String? // object storage key for imageUrl, set only when uploaded via the admin app (not seed-time relative paths)
+  sortOrder   Int     @default(0)
+  isActive    Boolean @default(true) // kept for query-safety; no longer exposed as an admin toggle — hide/unhide is a Subcategory-level action now
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  products      Product[]
+  subcategories Subcategory[]
+
+  @@index([isActive, sortOrder])
+}
+
+// The actual pricing/description/visibility unit — every itemized entry in
+// Categories.md (e.g. "300k Ikkath Border Check Saree" under Handloom Pattu
+// Saree) is a Subcategory row. A Category no longer carries price at all;
+// every product must belong to exactly one Subcategory, and that
+// subcategory's price/description/isActive is what customers see.
+model Subcategory {
+  id          String   @id @default(uuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  imageUrl    String?
+  storageKey  String? // object storage key for imageUrl, set only when uploaded via the admin app
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true) // false = hidden from the customer web
+
+  onlinePrice Decimal  @db.Decimal(10, 2) // shown on the customer web, charged via Razorpay
+  storePrice  Decimal  @db.Decimal(10, 2) // shown only in the admin app on scan
+  mrp         Decimal? @db.Decimal(10, 2) // optional strikethrough "original" price
+
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
+  products   Product[]
+  catalogPdf SubcategoryCatalogPdf?
+
+  @@unique([categoryId, name])
+  @@index([categoryId, isActive, sortOrder])
+}
+
+model Product {
+  id            String      @id @default(uuid())
+  slug          String      @unique
+  sku           String      @unique
+  name          String
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id])
+  subcategoryId String
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])
+
+  // Filterable/display attributes (see product attribute taxonomy)
+  technique   String?
+  borderStyle String?
+  purity      String?
+  zariTier    String?
+  blouseType  String?
+  pattern     String?
+  color       String?
+  fabric      String?
+  occasion    String[] @default([])
+
+  // online_only | store_only | both | hidden
+  channelVisibility String @default("both")
+  // quantity | serialized — display-only now (see Piece model): every
+  // product can carry both legacy `stock` and individually-barcoded Piece
+  // rows at once, this just tells the staff app whether to show a flat
+  // count or an itemized per-piece list for a "serialized" listing.
+  trackingMode      String @default("quantity")
+
+  // Legacy pre-barcode-cutover backlog only — decrements as it sells,
+  // never replenished after cutover (new stock always arrives as scanned
+  // Piece rows via receivePieces). Real availability = stock + count of
+  // this product's `in_stock` Piece rows.
+  stock      Int     @default(0)
+  isFeatured Boolean @default(false)
+  isActive   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  images       ProductImage[]
+  orderItems   OrderItem[]
+  pieces       Piece[]
+  reservations Reservation[]
+  stockLedger  StockLedger[]
+
+  @@index([categoryId, isActive])
+  @@index([isFeatured])
+  @@index([subcategoryId, isActive])
+}
+
+// One row per individually-barcoded physical unit. Every physical item is
+// barcoded externally (by a dedicated device) and stuck on before it's
+// received into the app — staff scan that code in via receivePieces()
+// rather than the app inventing one. A product's real availability is
+// Product.stock (legacy, pre-barcode backlog — see comment there) plus
+// however many of its Piece rows are still `in_stock`.
+model Piece {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  barcode   String  @unique // scanned from the externally-printed tag
+
+  // in_stock | reserved | sold_online | sold_offline | damaged | returned
+  status String    @default("in_stock")
+  soldAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reservations Reservation[]
+  orderItems   OrderItem[]
+  stockLedger  StockLedger[]
+
+  @@index([productId, status])
+}
+
+// Holds stock during online checkout so two buyers can never win the same
+// unit — created inside the same row-locked transaction as the order, and
+// resolved (converted/released/expired) by payment webhook, checkout
+// failure, or the expiry sweep. Offline (in-store) sales never create a
+// reservation — they're synchronous and go straight to sold.
+model Reservation {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  pieceId   String? // set only for serialized-mode reservations
+  piece     Piece?   @relation(fields: [pieceId], references: [id])
+  quantity  Int      @default(1) // quantity mode: units held; serialized mode: always 1
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  expiresAt DateTime // ~15 minutes from creation
+
+  // active | converted | released | expired
+  status String @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId, status])
+  @@index([pieceId])
+  @@index([orderId])
+  @@index([status, expiresAt])
+}
+
+// Append-only audit trail of every stock movement — online sale, offline
+// sale, restock, correction, reserve, release. Never updated, only inserted.
+model StockLedger {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  pieceId   String?
+  piece     Piece?  @relation(fields: [pieceId], references: [id])
+  delta     Int // negative = stock leaving, positive = restock/correction
+
+  // online_sale | offline_sale | restock | correction | reserve | release
+  reason  String
+  channel String // online | store
+  actorId String? // AuthAccount id of who performed it; null = system (e.g. expiry sweep)
+  ref     String? // free-text reference, e.g. order number
+
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+}
+
+// One customer-shareable, photo-only PDF catalog per category — generating a
+// new one replaces the old (storage object deleted, row upserted), so
+// there's only ever a single live PDF per category at a time. Distinct from
+// PrintJob/LabelTemplate above, which render barcode sticker sheets, not a
+// product-photo catalog for sharing with customers.
+model SubcategoryCatalogPdf {
+  id            String      @id @default(uuid())
+  subcategoryId String      @unique
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+  storageKey    String
+  url           String
+  productCount  Int
+  generatedAt   DateTime    @default(now())
+  generatedBy   String
+}
+
+model ProductImage {
+  id         String  @id @default(uuid())
+  productId  String
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url        String
+  storageKey String? // object storage key, so a replace/delete can remove the underlying file too
+  altText    String?
+  sortOrder  Int     @default(0)
+
+  @@index([productId, sortOrder])
+}
+
+model Address {
+  id            String      @id @default(uuid())
+  authAccountId String
+  authAccount   AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+  fullName      String
+  phone         String
+  line1         String
+  line2         String?
+  city          String
+  state         String
+  pincode       String
+  country       String      @default("India")
+  isDefault     Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  orders Order[]
+
+  @@index([authAccountId])
+}
+
+model Order {
+  id            String       @id @default(uuid())
+  orderNumber   String       @unique
+  authAccountId String? // null for store-channel (offline, walk-in) sales
+  authAccount   AuthAccount? @relation(fields: [authAccountId], references: [id])
+  addressId     String?
+  address       Address?     @relation(fields: [addressId], references: [id], onDelete: SetNull)
+
+  // online | store — offline sales are recorded as lightweight store orders,
+  // no customer account, so both channels share one sales history.
+  channel String @default("online")
+
+  // active, pending_payment, paid, processing, shipped, delivered, cancelled, payment_failed
+  status          String  @default("pending_payment")
+  subtotal        Decimal @db.Decimal(10, 2)
+  // No shipping fee is ever charged — an order's total is exactly the sum of
+  // its line items, so there is no separate fee column to carry.
+  total           Decimal @db.Decimal(10, 2)
+  shippingAddress Json
+
+  placedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items        OrderItem[]
+  payment      Payment?
+  shipment     Shipment?
+  reservations Reservation[]
+  invoice      Invoice?
+
+  @@index([authAccountId, placedAt])
+  @@index([channel, placedAt])
+  @@index([status, placedAt])
+}
+
+model OrderItem {
+  id            String  @id @default(uuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product @relation(fields: [productId], references: [id])
+  pieceId       String? // exact physical piece sold, serialized mode only
+  piece         Piece?  @relation(fields: [pieceId], references: [id])
+  nameSnapshot  String
+  priceSnapshot Decimal @db.Decimal(10, 2)
+  imageSnapshot String?
+  quantity      Int
+
+  @@index([orderId])
+}
+
+model Payment {
+  id                String   @id @default(uuid())
+  orderId           String   @unique
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider          String   @default("razorpay")
+  razorpayOrderId   String   @unique
+  razorpayPaymentId String?
+  razorpaySignature String?
+  status            String   @default("created") // created, paid, failed
+  amount            Decimal  @db.Decimal(10, 2)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Shipment {
+  id        String    @id @default(uuid())
+  orderId   String    @unique
+  order     Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  carrier   String    @default("DTDC")
+  awbNumber String?
+  // not_shipped | shipped | delivered — set manually by admin/staff (mark
+  // shipped / mark delivered). No courier API: the customer tracks by hand
+  // on DTDC's own site using the AWB shown on their order.
+  status    String    @default("not_shipped")
+  // Set once, the moment AWB is entered — `updatedAt` isn't reliable for
+  // "when was this shipped" since it's overwritten again by markOrderDelivered.
+  shippedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// One GST invoice per order, generated the moment payment is received
+// (online: the order.paid event; store: synchronously when a Billing sale
+// completes). taxableValue/cgstAmount/sgstAmount are derived at generation
+// time from the order's (GST-inclusive) line prices — see utils/gst.ts —
+// and stored so the PDF never needs to be recomputed to be re-served.
+model Invoice {
+  id             String   @id @default(uuid())
+  invoiceNumber  String   @unique
+  orderId        String   @unique
+  order          Order    @relation(fields: [orderId], references: [id])
+  channel        String // online | store — snapshot, avoids joining Order for list filters
+  customerName   String?
+  customerMobile String?
+  gstRatePercent Decimal  @db.Decimal(5, 2)
+  taxableValue   Decimal  @db.Decimal(10, 2)
+  cgstAmount     Decimal  @db.Decimal(10, 2)
+  sgstAmount     Decimal  @db.Decimal(10, 2)
+  totalAmount    Decimal  @db.Decimal(10, 2)
+  storageKey     String
+  url            String
+  generatedAt    DateTime @default(now())
+  generatedBy    String // actorId, or "system" for the automatic online-payment trigger
+
+  @@index([channel, generatedAt])
+}
+
+// Transactional outbox: significant changes get written here in the same
+// transaction as the change itself, then an independent dispatcher delivers
+// them (today: push notifications). Future consumers (chatbot, analytics)
+// subscribe to the same feed without touching the modules that write it.
+model EventsOutbox {
+  id         String   @id @default(uuid())
+  eventType  String // order.placed, payment.captured, ...
+  payload    Json
+  dispatched Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([dispatched, createdAt])
+}

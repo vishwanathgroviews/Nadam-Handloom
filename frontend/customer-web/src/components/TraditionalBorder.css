@@ -1,0 +1,45 @@
+.traditional-border {
+  height: 34px;
+  width: 100%;
+  overflow: hidden;
+  background: var(--bg-ivory);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* A jaali-inspired lattice: a vertical bead-chain (small ring, diamond,
+   small ring, each with a center dot) repeating horizontally, tuned to the
+   reference site's own decorative divider — same structure (circle-diamond-
+   circle chain) and proportions, reconstructed as original vector artwork
+   rather than the reference's own file. Darker, fully-opaque espresso-brown
+   (vs. the reference's lighter, semi-transparent tone) per explicit request
+   for more visual weight. The diamond row's left/right vertices sit exactly
+   on the tile edges, so adjacent tiles' diamonds touch and form one
+   continuous zigzag lattice with no visible seams. One SVG tile, natively
+   seamless at any width; repeated across a double-width track and
+   translated by exactly -50% on a loop so the seam is never visible.
+   transform-only keeps this GPU-composited and cheap to run continuously. */
+.traditional-border-track {
+  height: 100%;
+  width: 200%;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'16'%20height%3D'40'%20viewBox%3D'0%200%2016%2040'%3E%3Ccircle%20cx%3D'8'%20cy%3D'7'%20r%3D'4.3'%20fill%3D'none'%20stroke%3D'%234A2818'%20stroke-width%3D'1.4'%2F%3E%3Ccircle%20cx%3D'8'%20cy%3D'7'%20r%3D'1'%20fill%3D'%234A2818'%2F%3E%3Cpolygon%20points%3D'0%2C20%208%2C12.5%2016%2C20%208%2C27.5'%20fill%3D'none'%20stroke%3D'%234A2818'%20stroke-width%3D'1.4'%2F%3E%3Ccircle%20cx%3D'8'%20cy%3D'20'%20r%3D'1'%20fill%3D'%234A2818'%2F%3E%3Ccircle%20cx%3D'8'%20cy%3D'33'%20r%3D'4.3'%20fill%3D'none'%20stroke%3D'%234A2818'%20stroke-width%3D'1.4'%2F%3E%3Ccircle%20cx%3D'8'%20cy%3D'33'%20r%3D'1'%20fill%3D'%234A2818'%2F%3E%3C%2Fsvg%3E");
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  animation: traditional-border-scroll 22s linear infinite;
+  will-change: transform;
+}
+
+@keyframes traditional-border-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .traditional-border-track {
+    animation: none;
+  }
+}

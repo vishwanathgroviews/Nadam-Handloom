@@ -1,0 +1,129 @@
+.store-location-card {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.store-location-info {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.store-location-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-dark);
+  font-size: 0.95rem;
+}
+
+.store-location-row svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.store-location-row a {
+  text-decoration: none;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.store-location-row a:hover {
+  color: var(--primary);
+}
+
+.store-location-name-row {
+  justify-content: space-between;
+}
+
+.store-location-name {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--primary);
+  flex: 1;
+}
+
+.store-location-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.store-location-copy:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.store-location-address {
+  color: var(--text-muted);
+  line-height: 1.7;
+  font-size: 0.92rem;
+}
+
+.store-location-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.store-location-map-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(160deg, var(--primary) 0%, var(--primary-hover) 100%);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 24px;
+  transition: var(--transition-smooth);
+}
+
+.store-location-map-preview:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 800px) {
+  .store-location-card {
+    grid-template-columns: 1fr;
+  }
+
+  .store-location-map-preview {
+    padding: 28px;
+  }
+}
+
+@media (max-width: 480px) {
+  .store-location-info {
+    padding: 24px 20px;
+  }
+
+  .store-location-actions {
+    flex-direction: column;
+  }
+
+  .store-location-actions .btn {
+    width: 100%;
+  }
+}

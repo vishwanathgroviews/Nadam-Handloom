@@ -1,0 +1,52 @@
+.order-confirmation {
+  padding: 48px 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.order-confirmation-card {
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 40px 32px;
+  box-shadow: var(--shadow-card);
+}
+
+.order-confirmation-icon {
+  color: var(--success);
+  margin-bottom: 12px;
+}
+
+.order-confirmation-icon-error {
+  color: var(--danger);
+}
+
+.order-confirmation-icon-pending {
+  color: var(--secondary);
+}
+
+.order-confirmation-card > p {
+  color: var(--text-muted);
+  margin: 10px 0 24px;
+  line-height: 1.6;
+}
+
+.order-confirmation-summary {
+  text-align: left;
+  border-top: 1px solid var(--border-color);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.order-confirmation-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}

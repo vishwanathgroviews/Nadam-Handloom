@@ -1,0 +1,152 @@
+.product-detail {
+  padding: 28px 24px 60px;
+}
+
+.product-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+}
+
+.product-gallery-main {
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-ivory);
+  box-shadow: var(--shadow-card);
+}
+
+.product-gallery-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-gallery-thumbs {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.product-gallery-thumb {
+  width: 64px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  background: var(--bg-ivory);
+}
+
+.product-gallery-thumb.active {
+  border-color: var(--primary);
+}
+
+.product-gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.product-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.3;
+}
+
+.product-price-row {
+  font-size: 1.1rem;
+}
+
+.product-price-row .price-current {
+  font-size: 1.5rem;
+}
+
+.product-description {
+  color: var(--text-muted);
+  line-height: 1.7;
+  font-size: 0.95rem;
+  margin-top: 6px;
+}
+
+.product-attributes {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.product-attributes td {
+  padding: 9px 0;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.88rem;
+}
+
+.product-attributes td:first-child {
+  color: var(--text-muted);
+  width: 40%;
+}
+
+.product-attributes td:last-child {
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+.product-quantity-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.quantity-stepper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+}
+
+.quantity-stepper button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-dark);
+  display: flex;
+}
+
+.quantity-stepper span {
+  min-width: 18px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.product-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+@media (max-width: 800px) {
+  .product-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .product-actions {
+    flex-direction: column;
+  }
+}

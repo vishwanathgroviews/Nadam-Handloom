@@ -3,3 +3,11 @@ node_modules
 .env
 
 /generated/prisma
+
+# Source photography — 208MB of full-resolution shots (20MB+ each) kept for
+# editing. Git stores every version of a binary forever, so committing these
+# would permanently bloat the repo and make every clone, the deploy server's
+# included, download all of it. What the site actually serves is already in
+# the S3 media bucket; the only code references to this folder are comments.
+# Back these up somewhere built for large files, not here.
+Images/

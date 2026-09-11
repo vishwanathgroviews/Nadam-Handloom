@@ -1,0 +1,6 @@
+node_modules
+dist
+.env
+
+# Local dev server log
+.tmp-dev.log

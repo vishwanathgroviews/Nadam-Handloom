@@ -1,1 +1,0 @@
-{"version":3,"file":"permission.service.d.ts","sourceRoot":"","sources":["../../../src/modules/auth/permission.service.ts"],"names":[],"mappings":"AAEA,MAAM,WAAW,mBAAmB;IAClC,KAAK,EAAE,MAAM,EAAE,CAAC;IAChB,WAAW,EAAE,MAAM,EAAE,CAAC;CACvB;AAED,wBAAsB,sBAAsB,CAAC,aAAa,EAAE,MAAM,GAAG,OAAO,CAAC,mBAAmB,CAAC,CA4BhG"}

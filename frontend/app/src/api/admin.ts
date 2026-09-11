@@ -1,0 +1,207 @@
+import { apiRequest } from './client';
+
+export interface AdminOrderItem {
+  id: string;
+  nameSnapshot: string;
+  quantity: number;
+  priceSnapshot: string;
+  // Captured at sale time (see the order-creation paths in the backend), so
+  // the thumbnail keeps showing what was actually bought even if the
+  // product's photo is replaced later.
+  imageSnapshot: string | null;
+  // Link to this product's page on the customer site, built server-side from
+  // FRONTEND_URL so it is right in every environment. Null only if the
+  // product row went missing.
+  productUrl: string | null;
+}
+
+export interface AdminOrderInvoice {
+  id: string;
+  invoiceNumber: string;
+  url: string;
+  totalAmount: string;
+}
+
+// Snapshot written onto the order itself. Online orders also have a linked
+// Address row; store and WhatsApp orders only ever have this.
+export interface AdminShippingAddress {
+  fullName?: string;
+  phone?: string;
+  line1?: string;
+  line2?: string | null;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  notes?: string;
+}
+
+export interface AdminShipment {
+  awbNumber: string | null;
+  carrier: string;
+  status: string;
+  shippedAt: string | null;
+}
+
+export interface AdminOrderSummary {
+  id: string;
+  orderNumber: string;
+  status: string;
+  channel: string;
+  total: string;
+  placedAt: string;
+  authAccount?: { email: string | null; phone: string | null };
+  items: AdminOrderItem[];
+  shipment: AdminShipment | null;
+  payment: { status: string } | null;
+  invoice?: AdminOrderInvoice | null;
+  shippingAddress?: AdminShippingAddress | null;
+}
+
+export interface AdminOrdersFilter {
+  status?: string[];
+  channel?: 'online' | 'store' | 'whatsapp';
+  paymentStatus?: 'created' | 'paid' | 'failed';
+  from?: string;
+  to?: string;
+  search?: string;
+  page?: number;
+}
+
+export interface AdminOrderDetail extends AdminOrderSummary {
+  address?: {
+    fullName: string;
+    phone: string;
+    line1: string;
+    line2?: string | null;
+    city: string;
+    state: string;
+    pincode: string;
+  } | null;
+}
+
+export interface MarkShippedResult {
+  orderId: string;
+  orderNumber: string;
+  channel: string;
+  carrier: string;
+  awbNumber: string;
+  status: string;
+  trackingUrl: string;
+  // Everything needed to send the shipment message + invoice in one step,
+  // without re-fetching the order.
+  customerPhone: string | null;
+  invoiceUrl: string | null;
+  invoiceNumber: string | null;
+  productLinks: { name: string; url: string }[];
+}
+
+export const listAdminOrders = (token: string, filter: AdminOrdersFilter = {}) => {
+  const qs = new URLSearchParams();
+  if (filter.status?.length) qs.set('status', filter.status.join(','));
+  if (filter.channel) qs.set('channel', filter.channel);
+  if (filter.paymentStatus) qs.set('paymentStatus', filter.paymentStatus);
+  if (filter.from) qs.set('from', filter.from);
+  if (filter.to) qs.set('to', filter.to);
+  if (filter.search) qs.set('search', filter.search);
+  if (filter.page) qs.set('page', String(filter.page));
+  const suffix = qs.toString() ? `?${qs.toString()}` : '';
+  return apiRequest<{ data: { items: AdminOrderSummary[]; total: number; page: number; pageSize: number } }>(
+    `/admin/orders${suffix}`,
+    { token }
+  );
+};
+
+export const getAdminOrder = (token: string, orderId: string) =>
+  apiRequest<{ data: AdminOrderDetail }>(`/admin/orders/${orderId}`, { token });
+
+export const markOrderShipped = (token: string, orderId: string, awbNumber: string, carrier?: string) =>
+  apiRequest<{ data: MarkShippedResult }>(`/admin/orders/${orderId}/shipment`, {
+    method: 'PATCH',
+    token,
+    body: { awbNumber, ...(carrier ? { carrier } : {}) },
+  });
+
+export interface SoldProductLine {
+  productId: string;
+  productName: string;
+  revenue: number;
+  unitsSold: number;
+}
+
+export interface DashboardStats {
+  // Omitted entirely for STAFF — today's revenue is an ADMIN-only figure
+  // (see admin.service.ts:getDashboardStats), not just hidden client-side.
+  today?: {
+    online: { count: number; total: number; products: SoldProductLine[] };
+    store: { count: number; total: number; products: SoldProductLine[] };
+    whatsapp: { count: number; total: number; products: SoldProductLine[] };
+  };
+  lowStockCount: number;
+  products: { activeCount: number; cap: number; remaining: number };
+}
+
+export const getDashboard = (token: string) => apiRequest<{ data: DashboardStats }>('/admin/dashboard', { token });
+
+export interface AdminUser {
+  id: string;
+  email: string | null;
+  phone: string | null;
+  status: string;
+  name: string | null;
+  roles: string[];
+  createdAt: string;
+}
+
+export const listUsers = (token: string) => apiRequest<{ data: AdminUser[] }>('/admin/users', { token });
+
+export const provisionUser = (
+  token: string,
+  data: { name: string; mobile: string; email: string; role: 'ADMIN' | 'STAFF' }
+) => apiRequest<{ data: { id: string; mobile: string; email: string; role: string } }>('/admin/users', {
+  method: 'POST',
+  token,
+  body: data,
+});
+
+export interface AuditLogEntry {
+  id: string;
+  eventType: string;
+  ipAddress: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  authAccount?: {
+    email: string | null;
+    phone: string | null;
+    adminProfile?: { firstName: string; lastName: string } | null;
+    userProfile?: { firstName: string; lastName: string } | null;
+  } | null;
+}
+
+export const getAuditLog = (token: string, params: { eventType?: string; page?: number } = {}) => {
+  const qs = new URLSearchParams();
+  if (params.eventType) qs.set('eventType', params.eventType);
+  if (params.page) qs.set('page', String(params.page));
+  const suffix = qs.toString() ? `?${qs.toString()}` : '';
+  return apiRequest<{ data: { items: AuditLogEntry[]; total: number } }>(`/admin/audit-log${suffix}`, { token });
+};
+
+export interface AdminSession {
+  id: string;
+  platform: string | null;
+  deviceName: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+  expiresAt: string;
+  authAccountId: string;
+  authAccount: {
+    email: string | null;
+    phone: string | null;
+    adminProfile?: { firstName: string; lastName: string } | null;
+    roles: { role: { name: string } }[];
+  };
+}
+
+export const listSessions = (token: string) => apiRequest<{ data: AdminSession[] }>('/admin/sessions', { token });
+
+export const revokeSession = (token: string, sessionId: string) =>
+  apiRequest(`/admin/sessions/${sessionId}`, { method: 'DELETE', token });
