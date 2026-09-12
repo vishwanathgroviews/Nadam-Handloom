@@ -38,10 +38,29 @@ const envSchema = z.object({
   // stays disabled (client-driven verify-payment still works on its own).
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
 
+  // console | local | s3. `local` writes to LOCAL_STORAGE_DIR and serves
+  // the files back from the API itself — that is what makes a fresh clone
+  // work with no cloud account on any machine.
   STORAGE_PROVIDER: z.string().default('console'),
   S3_BUCKET_NAME: z.string().optional(),
   S3_REGION: z.string().optional(),
   S3_PUBLIC_URL: z.string().optional(),
+  // Read explicitly rather than leaning on the AWS SDK's ambient credential
+  // chain (~/.aws/credentials, machine-level AWS_* vars, instance roles).
+  // That chain is why uploads worked on one laptop and failed with an
+  // opaque 500 on another: the bucket/region were in .env, so the provider
+  // reported itself configured, but the actual PutObject had no credentials
+  // to sign with. Keeping them in .env means the config travels with the
+  // project. The SDK's own chain is still the fallback when these are unset,
+  // which is what a deployed instance role wants.
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  // Where STORAGE_PROVIDER=local keeps uploads, relative to the backend dir.
+  LOCAL_STORAGE_DIR: z.string().default('uploads'),
+  // Absolute base URL this API is reachable at, used to build public URLs
+  // for locally-stored uploads. Defaults to localhost:PORT; set it to the
+  // dev machine's LAN address when a phone has to load those images.
+  PUBLIC_API_URL: z.string().optional(),
 
   // 10 unique letters mapping to digits 0-9, for the "coded price" label
   // option — only the owner should know this word. Default is a placeholder;

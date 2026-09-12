@@ -126,6 +126,18 @@ const seedPiece = (productId: string, overrides: Partial<Record<string, any>> = 
   return piece;
 };
 
+// One serialized product with N barcoded pieces on the shelf — the shape a
+// multi-item counter bill is actually rung up from.
+const seedSerializedProduct = async (pieceCount: number) => {
+  const category = seedCategory();
+  const subcategory = seedSubcategory(category.id);
+  const product = seedProduct(category.id, {
+    subcategoryId: subcategory.id, trackingMode: 'serialized', stock: 0,
+  });
+  const pieces = Array.from({ length: pieceCount }, () => seedPiece(product.id));
+  return { category, subcategory, product, pieces, storePrice: Number(subcategory.storePrice) };
+};
+
 const registerLoginCustomer = async (phone: string) => {
   await request(app).post('/api/v1/auth/customer/register').send({
     firstName: 'Test', lastName: 'Customer', phone, state: 'Telangana', pincode: '500001',
@@ -367,7 +379,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     expect(fake.db.product.find((p: any) => p.id === product.id).stock).toBe(2);
   });
 
-  // A single scanned sale is no less a sale than a multi-item Billing one —
+  // A single scanned sale is no less a sale than an online one —
   // staff need something to hand the customer either way.
   it('generates an invoice automatically for a counter sale', async () => {
     const staffToken = await createStaffToken('9000000112', 'STAFF');
@@ -511,6 +523,135 @@ describe('scan-to-lookup / scan-to-sell', () => {
 
     expect(fake.db.piece.find((p: any) => p.id === piece.id).status).toBe('sold_offline');
     expect(fake.db.reservation.find((r: any) => r.pieceId === piece.id).status).toBe('released');
+  });
+
+  // "Add More" on the Scan to Sell screen: several scanned products, one
+  // order number, one invoice — the customer is handed a single bill.
+  it('sells several scanned products as one order with one invoice', async () => {
+    const staffToken = await createStaffToken('9400001101');
+    const { pieces } = await seedSerializedProduct(3);
+
+    const res = await request(app)
+      .post('/api/v1/admin/inventory/scan-sell')
+      .set('Authorization', 'Bearer ' + staffToken)
+      .send({ items: [{ code: pieces[0].barcode }, { code: pieces[1].barcode }, { code: pieces[2].barcode }] });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.items).toHaveLength(3);
+
+    const orders = fake.db.order.filter((o: any) => o.channel === 'store');
+    expect(orders).toHaveLength(1);
+    const orderItems = fake.db.orderItem.filter((i: any) => i.orderId === orders[0].id);
+    expect(orderItems).toHaveLength(3);
+
+    const invoices = fake.db.invoice.filter((i: any) => i.orderId === orders[0].id);
+    expect(invoices).toHaveLength(1);
+    expect(Number(invoices[0].totalAmount)).toBe(res.body.data.total);
+
+    for (const piece of pieces) {
+      expect(fake.db.piece.find((x: any) => x.id === piece.id).status).toBe('sold_offline');
+    }
+  });
+
+  // Bargaining is per line: one saree discounted, the next at full price,
+  // on the same bill.
+  it('applies a bargained price to only the line it was set on', async () => {
+    const staffToken = await createStaffToken('9400001102');
+    const { pieces, storePrice } = await seedSerializedProduct(2);
+
+    const res = await request(app)
+      .post('/api/v1/admin/inventory/scan-sell')
+      .set('Authorization', 'Bearer ' + staffToken)
+      .send({ items: [{ code: pieces[0].barcode, salePrice: 1111 }, { code: pieces[1].barcode }] });
+
+    expect(res.status).toBe(200);
+    const [bargained, fullPrice] = res.body.data.items;
+    expect(bargained.unitPrice).toBe(1111);
+    expect(bargained.priceAdjusted).toBe(true);
+    expect(fullPrice.unitPrice).toBe(storePrice);
+    expect(fullPrice.priceAdjusted).toBe(false);
+    expect(res.body.data.total).toBe(1111 + storePrice);
+
+    // Exactly one discount is audited, not both lines.
+    const overrides = fake.db.authEvent.filter((e: any) => e.eventType === 'offline_sale_price_override');
+    expect(overrides).toHaveLength(1);
+    expect(overrides[0].metadata.salePrice).toBe(1111);
+  });
+
+  // The bargain is for this bill only — the catalogue price must not move,
+  // or every future customer inherits one shopper's haggling.
+  it('never writes a bargained price back to the subcategory', async () => {
+    const staffToken = await createStaffToken('9400001103');
+    const { pieces, subcategory, storePrice } = await seedSerializedProduct(1);
+
+    await request(app)
+      .post('/api/v1/admin/inventory/scan-sell')
+      .set('Authorization', 'Bearer ' + staffToken)
+      .send({ items: [{ code: pieces[0].barcode, salePrice: 555 }] });
+
+    const after = fake.db.subcategory.find((x: any) => x.id === subcategory.id);
+    expect(Number(after.storePrice)).toBe(storePrice);
+    expect(Number(after.onlinePrice)).toBe(Number(subcategory.onlinePrice));
+  });
+
+  // All-or-nothing: a bad line must not leave earlier lines sold.
+  it('rolls the whole bill back when one line cannot be claimed', async () => {
+    const staffToken = await createStaffToken('9400001104');
+    const { pieces } = await seedSerializedProduct(2);
+    // Second piece is already gone.
+    const sold = fake.db.piece.find((x: any) => x.id === pieces[1].id);
+    sold.status = 'sold_offline';
+
+    const res = await request(app)
+      .post('/api/v1/admin/inventory/scan-sell')
+      .set('Authorization', 'Bearer ' + staffToken)
+      .send({ items: [{ code: pieces[0].barcode }, { code: pieces[1].barcode }] });
+
+    expect(res.status).toBe(409);
+    // The first piece is still on the shelf, and no order exists.
+    expect(fake.db.piece.find((x: any) => x.id === pieces[0].id).status).toBe('in_stock');
+    expect(fake.db.order.filter((o: any) => o.channel === 'store')).toHaveLength(0);
+  });
+
+  it('rejects the same code twice on one bill', async () => {
+    const staffToken = await createStaffToken('9400001105');
+    const { pieces } = await seedSerializedProduct(1);
+
+    const res = await request(app)
+      .post('/api/v1/admin/inventory/scan-sell')
+      .set('Authorization', 'Bearer ' + staffToken)
+      .send({ items: [{ code: pieces[0].barcode }, { code: pieces[0].barcode }] });
+
+    expect(res.status).toBe(400);
+    expect(fake.db.order.filter((o: any) => o.channel === 'store')).toHaveLength(0);
+  });
+
+  it('bills a multi-item WhatsApp sale as one shippable order', async () => {
+    const staffToken = await createStaffToken('9400001106');
+    const { pieces } = await seedSerializedProduct(2);
+
+    const res = await request(app)
+      .post('/api/v1/admin/inventory/scan-sell')
+      .set('Authorization', 'Bearer ' + staffToken)
+      .send({
+        items: [{ code: pieces[0].barcode, salePrice: 900 }, { code: pieces[1].barcode }],
+        channel: 'whatsapp',
+        customer: {
+          fullName: 'Lakshmi', phone: '9876500011', line1: '2-3 Market Road',
+          city: 'Vijayawada', state: 'Andhra Pradesh', pincode: '520001',
+        },
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.channel).toBe('whatsapp');
+    expect(res.body.data.items).toHaveLength(2);
+
+    const order = fake.db.order.find((o: any) => o.channel === 'whatsapp');
+    expect(order.status).toBe('processing');
+    expect(fake.db.orderItem.filter((i: any) => i.orderId === order.id)).toHaveLength(2);
+    // One shipment, one invoice — not one per scanned product.
+    expect(fake.db.shipment.filter((sh: any) => sh.orderId === order.id)).toHaveLength(1);
+    expect(fake.db.invoice.filter((i: any) => i.orderId === order.id)).toHaveLength(1);
   });
 
   it('refuses to sell a piece that was already sold', async () => {

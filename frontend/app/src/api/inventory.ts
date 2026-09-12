@@ -25,11 +25,33 @@ export interface WhatsappCustomerInput {
   notes?: string;
 }
 
+export interface ScanSellItemInput {
+  code: string;
+  quantity?: number;
+  override?: boolean;
+  /** Bargained price for THIS line on THIS bill. Never changes the catalogue. */
+  salePrice?: number;
+}
+
+export interface ScanSellSoldLine {
+  productId: string;
+  productName: string;
+  quantity: number;
+  /** What this line actually sold for. */
+  unitPrice: number;
+  /** The subcategory price, unchanged by any bargain on this sale. */
+  storePrice: number;
+  overridden: boolean;
+  priceAdjusted: boolean;
+}
+
 export interface ScanSellResult {
   orderId: string;
   orderNumber: string;
   overridden: boolean;
   channel: 'store' | 'whatsapp';
+  items: ScanSellSoldLine[];
+  total: number;
   // Generated automatically with the sale. Null only if generation failed —
   // the sale still went through, and the invoice can be found (or retried)
   // from the Invoices screen.
@@ -67,13 +89,14 @@ export interface LowStockResult {
 export const scanLookup = (token: string, code: string) =>
   apiRequest<{ data: ScanLookupResult }>('/admin/inventory/scan-lookup', { method: 'POST', token, body: { code } });
 
+/**
+ * Completes one sale of one or more scanned products: a single order number
+ * and a single invoice, however many lines are on the bill.
+ */
 export const scanSell = (
   token: string,
-  code: string,
+  items: ScanSellItemInput[],
   options: {
-    quantity?: number;
-    override?: boolean;
-    salePrice?: number;
     // 'store' (default) closes the sale at the counter; 'whatsapp' records a
     // remote order that still has to be shipped, so it needs `customer`.
     channel?: 'store' | 'whatsapp';
@@ -83,7 +106,7 @@ export const scanSell = (
   apiRequest<{ data: ScanSellResult }>('/admin/inventory/scan-sell', {
     method: 'POST',
     token,
-    body: { code, ...options } as any,
+    body: { items, ...options } as any,
   });
 
 export const receivePieces = (token: string, productId: string, barcodes: string[]) =>

@@ -7,7 +7,23 @@ export class S3StorageProvider implements StorageProvider {
   private client: S3Client | null;
 
   constructor() {
-    this.client = env.S3_BUCKET_NAME && env.S3_REGION ? new S3Client({ region: env.S3_REGION }) : null;
+    if (!env.S3_BUCKET_NAME || !env.S3_REGION) {
+      this.client = null;
+      return;
+    }
+    // Explicit keys when .env carries them; otherwise fall through to the
+    // SDK's default chain, which is what a deployed instance role uses.
+    this.client = new S3Client({
+      region: env.S3_REGION,
+      ...(env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY
+        ? {
+            credentials: {
+              accessKeyId: env.S3_ACCESS_KEY_ID,
+              secretAccessKey: env.S3_SECRET_ACCESS_KEY,
+            },
+          }
+        : {}),
+    });
   }
 
   isConfigured(): boolean {

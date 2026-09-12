@@ -25,7 +25,11 @@ export default function SubcategoryCard({ categorySlug, subcategory }) {
         onMouseLeave={tilt.onMouseLeave}
         style={{ perspective: 900, rotateX: tilt.rotateX, rotateY: tilt.rotateY }}
       >
-        {subcategory.imageUrl && <img src={subcategory.imageUrl} alt={subcategory.name} loading="lazy" />}
+        {subcategory.imageUrl ? (
+          <img src={subcategory.imageUrl} alt={subcategory.name} loading="lazy" />
+        ) : (
+          <div className="category-card-placeholder" aria-hidden="true" />
+        )}
         <div className="category-card-overlay">
           <span>{subcategory.name}</span>
         </div>

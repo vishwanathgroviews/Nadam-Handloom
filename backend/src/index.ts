@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import app from './app';
 import { env } from './config/env';
+import { logIntegrationStatus } from './config/startupChecks';
 import { prisma } from './config/prisma';
 import { startRateLimitCleanup } from './middleware/rateLimit.middleware';
 import { startReservationExpirySweep } from './modules/inventory/inventory.service';
@@ -11,6 +12,8 @@ async function bootstrap() {
   try {
     await prisma.$connect();
     console.log('Successfully connected to the database');
+
+    logIntegrationStatus();
 
     startRateLimitCleanup();
     startReservationExpirySweep();

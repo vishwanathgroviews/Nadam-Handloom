@@ -27,7 +27,11 @@ export default function CategoryCard({ category }) {
         onMouseLeave={tilt.onMouseLeave}
         style={{ perspective: 900, rotateX: tilt.rotateX, rotateY: tilt.rotateY }}
       >
-        <img src={category.imageUrl} alt={category.name} loading="lazy" />
+        {category.imageUrl ? (
+          <img src={category.imageUrl} alt={category.name} loading="lazy" />
+        ) : (
+          <div className="category-card-placeholder" aria-hidden="true" />
+        )}
         <div className="category-card-overlay">
           <span>{category.name}</span>
         </div>

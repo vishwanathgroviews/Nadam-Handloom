@@ -31,7 +31,7 @@ const paidOrdersInRange = (start: Date, end: Date, channel: ChannelFilter = 'all
  * The one place an invoice actually gets created. Idempotent — if this
  * order already has an invoice, returns it unchanged rather than
  * generating a duplicate — safe to call from a retrying event handler
- * (online orders) or right after a Billing sale commits (store orders).
+ * (online orders) or right after a counter sale commits (store orders).
  */
 export const generateInvoiceForOrder = async (orderId: string, actorId: string) => {
   const existing = await prisma.invoice.findUnique({ where: { orderId } });

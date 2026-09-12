@@ -31,7 +31,6 @@ import AuditLogScreen from '../screens/AuditLogScreen';
 import SessionsScreen from '../screens/SessionsScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import BillingScreen from '../screens/BillingScreen';
 import InvoicesScreen from '../screens/InvoicesScreen';
 import InvoiceDetailScreen from '../screens/InvoiceDetailScreen';
 import TabBar from '../components/TabBar';
@@ -69,7 +68,6 @@ export type AppStackParamList = {
   AuditLog: undefined;
   Sessions: undefined;
   Analytics: undefined;
-  Billing: undefined;
   Invoices: undefined;
   InvoiceDetail: { invoiceId: string };
 };
@@ -156,7 +154,6 @@ export default function RootNavigator() {
           <AppStack.Screen name="AuditLog" component={AuditLogScreen} />
           <AppStack.Screen name="Sessions" component={SessionsScreen} />
           <AppStack.Screen name="Analytics" component={AnalyticsScreen} />
-          <AppStack.Screen name="Billing" component={BillingScreen} />
           <AppStack.Screen name="Invoices" component={InvoicesScreen} />
           <AppStack.Screen name="InvoiceDetail" component={InvoiceDetailScreen} />
         </AppStack.Navigator>

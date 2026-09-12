@@ -57,12 +57,17 @@ const RELATIONS: Record<string, Record<string, RelationDef>> = {
     category: { kind: 'belongsTo', table: 'category', fk: 'categoryId' },
     subcategory: { kind: 'belongsTo', table: 'subcategory', fk: 'subcategoryId' },
     images: { kind: 'hasMany', table: 'productImage', fk: 'productId' },
+    pieces: { kind: 'hasMany', table: 'piece', fk: 'productId' },
+    orderItems: { kind: 'hasMany', table: 'orderItem', fk: 'productId' },
+    reservations: { kind: 'hasMany', table: 'reservation', fk: 'productId' },
   },
   subcategory: {
     category: { kind: 'belongsTo', table: 'category', fk: 'categoryId' },
+    products: { kind: 'hasMany', table: 'product', fk: 'subcategoryId' },
   },
   orderItem: {
     product: { kind: 'belongsTo', table: 'product', fk: 'productId' },
+    order: { kind: 'belongsTo', table: 'order', fk: 'orderId' },
   },
   order: {
     items: { kind: 'hasMany', table: 'orderItem', fk: 'orderId' },

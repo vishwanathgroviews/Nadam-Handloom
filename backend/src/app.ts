@@ -1,10 +1,10 @@
+import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 
-import { env } from './config/env';
 import authRoutes from './modules/auth/auth.routes';
 import userRoutes from './modules/user/user.routes';
 import adminRoutes from './modules/admin/admin.routes';
@@ -19,8 +19,8 @@ import addressRoutes from './modules/address/address.routes';
 import ordersRoutes from './modules/orders/orders.routes';
 import webhookRoutes from './modules/webhooks/webhooks.routes';
 import invoicesRoutes from './modules/invoices/invoices.routes';
-import billingRoutes from './modules/billing/billing.routes';
 import { errorHandler } from './middleware/error.middleware';
+import { env } from './config/env';
 
 const app = express();
 
@@ -75,10 +75,15 @@ app.use('/api/v1/admin/inventory', inventoryRoutes);
 app.use('/api/v1/admin/notifications', notificationsRoutes);
 app.use('/api/v1/admin/retention', retentionRoutes);
 app.use('/api/v1/admin/invoices', invoicesRoutes);
-app.use('/api/v1/admin/billing', billingRoutes);
 app.use('/api/v1/catalog', catalogRoutes);
 app.use('/api/v1/addresses', addressRoutes);
 app.use('/api/v1/orders', ordersRoutes);
+
+// Locally-stored uploads (STORAGE_PROVIDER=local). Mounted only in that
+// mode so nothing is exposed when real object storage is in use.
+if (env.STORAGE_PROVIDER === 'local') {
+  app.use('/uploads', express.static(path.resolve(process.cwd(), env.LOCAL_STORAGE_DIR), { maxAge: '1d' }));
+}
 
 // Health check
 app.get('/health', (req, res) => {

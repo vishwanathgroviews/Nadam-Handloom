@@ -1,6 +1,7 @@
 import { prisma } from '../../config/prisma';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
-import { AppError, BadRequestError, NotFoundError } from '../../utils/errors';
+import { AppError, BadRequestError, ConflictError, NotFoundError } from '../../utils/errors';
+import { PAID_STATUSES } from '../../utils/constants';
 import { slugify } from '../../utils/slug';
 import { logAuthEvent } from '../auth/auditLog.service';
 import { storageProvider } from '../../providers/storage';
@@ -118,19 +119,15 @@ export const listSubcategories = async (categoryId: string) => {
     include: { _count: { select: { products: true } } },
   });
 
-  // A subcategory shows its own photo, and nothing else identifies it.
-  // This used to borrow the oldest product's photo when there was none,
-  // which meant listing, editing or deactivating a product silently changed
-  // the subcategory's cover image — a product photo belongs to the product.
-  // The parent category's photo is the only fallback: it is chosen by an
-  // admin and does not move when the catalog changes. `hasOwnImage` stays
-  // false for a borrowed one, so the app can label "Add photo" vs "Replace"
-  // and flag the subcategories still missing a picture.
-  return subcategories.map((s) => ({
-    ...s,
-    hasOwnImage: Boolean(s.imageUrl),
-    imageUrl: s.imageUrl ?? category.imageUrl ?? null,
-  }));
+  // Every entity shows its OWN photo and nothing else. No inheriting from
+  // the parent category, no borrowing the newest product's picture — both
+  // were tried, and both meant editing one thing silently changed the
+  // picture on others: replace a category photo and every subcategory under
+  // it changed; add a product photo and the subcategory's changed. A photo
+  // belongs to the row it was uploaded for. A subcategory with none renders
+  // a placeholder, and `hasOwnImage` drives the "Needs photo" flag so the
+  // gap is visible and fixable instead of silently papered over.
+  return subcategories.map((s) => ({ ...s, hasOwnImage: Boolean(s.imageUrl) }));
 };
 
 export const createSubcategory = async (
@@ -217,6 +214,130 @@ export const updateSubcategory = async (
   }
 
   return { ...subcategory, hasOwnImage: Boolean(subcategory.imageUrl) };
+};
+
+/**
+ * Permanently removes a subcategory, its products, their photos and their
+ * barcoded pieces.
+ *
+ * Hiding (isActive: false) remains the everyday tool — it takes something
+ * off the storefront while every record behind it stays intact. This is the
+ * other thing: for a subcategory created by mistake, or a line the shop has
+ * genuinely stopped carrying and does not want cluttering the catalogue.
+ *
+ * It refuses whenever deleting would destroy a business record:
+ *   - a product that has been part of a paid order (real sales history,
+ *     referenced by an invoice), or
+ *   - a piece that has actually been sold, or
+ *   - stock that is reserved by a checkout still in flight.
+ * In each case the admin is told to hide it instead.
+ *
+ * Abandoned checkouts are not business records. An unpaid order whose hold
+ * has already lapsed is a dead cart, and leaving it in place would make a
+ * mistyped subcategory impossible to ever clean up — those are removed
+ * along with the products, and named in the audit log.
+ */
+export const deleteSubcategory = async (subcategoryId: string, req: AuthenticatedRequest) => {
+  const subcategory = await prisma.subcategory.findUnique({
+    where: { id: subcategoryId },
+    include: {
+      products: {
+        include: {
+          images: true,
+          pieces: true,
+          orderItems: { include: { order: true } },
+        },
+      },
+    },
+  });
+  if (!subcategory) throw new NotFoundError('Subcategory not found');
+
+  const soldProducts = subcategory.products.filter(
+    (p) =>
+      p.orderItems.some((item) => PAID_STATUSES.includes(item.order.status)) ||
+      p.pieces.some((piece) => piece.status === 'sold_online' || piece.status === 'sold_offline')
+  );
+  if (soldProducts.length) {
+    throw new ConflictError(
+      `"${subcategory.name}" can't be deleted — ${soldProducts.length === 1 ? 'a product in it has' : `${soldProducts.length} products in it have`} ` +
+        'already been sold, and deleting would remove that sales history. Hide it instead.'
+    );
+  }
+
+  const productIds = subcategory.products.map((p) => p.id);
+  const heldNow = productIds.length
+    ? await prisma.reservation.count({
+        where: { productId: { in: productIds }, status: 'active', expiresAt: { gt: new Date() } },
+      })
+    : 0;
+  if (heldNow > 0) {
+    throw new ConflictError(
+      `"${subcategory.name}" can't be deleted right now — a checkout is in progress for one of its products. Try again in a few minutes.`
+    );
+  }
+
+  // Dead carts: unpaid orders that only ever contained these products.
+  const abandonedOrderIds = [
+    ...new Set(subcategory.products.flatMap((p) => p.orderItems.map((item) => item.orderId))),
+  ];
+  const abandonedOrders = abandonedOrderIds.length
+    ? await prisma.order.findMany({
+        where: { id: { in: abandonedOrderIds } },
+        select: { id: true, orderNumber: true, status: true },
+      })
+    : [];
+
+  const imageKeys = [
+    ...subcategory.products.flatMap((p) => p.images.map((img) => img.storageKey)),
+    subcategory.storageKey,
+  ].filter((key): key is string => Boolean(key));
+
+  await prisma.$transaction(async (tx) => {
+    if (productIds.length) {
+      // Order matters: every one of these has a Restrict foreign key onto
+      // Product, so nothing may still point at a product when it goes.
+      await tx.stockLedger.deleteMany({ where: { productId: { in: productIds } } });
+      await tx.reservation.deleteMany({ where: { productId: { in: productIds } } });
+      if (abandonedOrders.length) {
+        // OrderItem and Payment cascade from Order.
+        await tx.order.deleteMany({ where: { id: { in: abandonedOrders.map((o) => o.id) } } });
+      }
+      await tx.piece.deleteMany({ where: { productId: { in: productIds } } });
+      // ProductImage cascades from Product.
+      await tx.product.deleteMany({ where: { id: { in: productIds } } });
+    }
+    // SubcategoryCatalogPdf cascades from Subcategory.
+    await tx.subcategory.delete({ where: { id: subcategoryId } });
+  });
+
+  // Only once the rows are gone — an orphaned object costs pennies, a
+  // deleted object the database still points at is a broken image.
+  for (const key of imageKeys) {
+    storageProvider.deleteObject(key).catch((err) => {
+      console.error('Failed to delete stored image for a deleted subcategory:', key, err);
+    });
+  }
+
+  await logAuthEvent({
+    authAccountId: req.user!.id,
+    eventType: 'subcategory_deleted',
+    source: 'staff_app',
+    req,
+    metadata: {
+      subcategoryId,
+      name: subcategory.name,
+      categoryId: subcategory.categoryId,
+      productsDeleted: subcategory.products.map((p) => p.sku),
+      abandonedOrdersDeleted: abandonedOrders.map((o) => o.orderNumber),
+    },
+  });
+
+  return {
+    id: subcategoryId,
+    name: subcategory.name,
+    productsDeleted: productIds.length,
+    abandonedOrdersDeleted: abandonedOrders.length,
+  };
 };
 
 // ─────────────────────────────────────────────────────────────────

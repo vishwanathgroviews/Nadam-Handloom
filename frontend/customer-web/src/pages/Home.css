@@ -50,6 +50,21 @@
   transform: scale(1.07);
 }
 
+/* Shown when a category or subcategory has no photo of its own. Nothing is
+   borrowed from a parent or a product, so this is what an un-photographed
+   row looks like until someone uploads one. */
+.category-card-placeholder {
+  width: 100%;
+  height: 100%;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(122, 31, 43, 0.05) 0 12px,
+      rgba(122, 31, 43, 0.09) 12px 24px
+    ),
+    var(--color-surface, #faf6f1);
+}
+
 .category-card-overlay {
   position: absolute;
   inset: 0;

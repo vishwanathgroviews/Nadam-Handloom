@@ -9,7 +9,13 @@ vi.mock('../../config/prisma', async () => {
 
 import * as prismaModule from '../../config/prisma';
 import { seedCatalogFixture } from '../../test/fakePrisma';
-import { listProducts, getProductBySlug, listCategories, listSubcategoriesForCategory } from './catalog.service';
+import {
+  listProducts,
+  getProductBySlug,
+  listCategories,
+  listSubcategoriesForCategory,
+  getAvailabilityForProducts,
+} from './catalog.service';
 import { listProductsQuerySchema } from './catalog.schema';
 import { NotFoundError } from '../../utils/errors';
 
@@ -162,7 +168,7 @@ describe('catalog.service', () => {
     expect(result.items[0]!.slug).toBe('budget-cotton-by-id');
   });
 
-  it("shows a subcategory's own photo, and the category photo when it has none", async () => {
+  it("shows a subcategory's own photo, and nothing when it has none", async () => {
     const { category: otherCategory } = pushBudgetCategoryProduct({
       categorySlug: 'handloom-cotton-saree-2', productSlug: 'cotton-with-photo', onlinePrice: 2999,
       subCategoryName: 'Plain Cotton Saree',
@@ -172,7 +178,6 @@ describe('catalog.service', () => {
     const ownPhotoSub = fake.db.subcategory.find((x: any) => x.name === 'Plain Cotton Saree');
     ownPhotoSub.imageUrl = 'https://cdn.example.com/subcategories/plain-cotton.jpg';
 
-    // A second subcategory with no photo of its own, to exercise the fallback.
     fake.db.subcategory.push({
       id: randomUUID(), categoryId: otherCategory.id, name: 'Checks Cotton Saree', description: 'Cotton sarees',
       imageUrl: null, sortOrder: 1, isActive: true, onlinePrice: 1999, storePrice: 1499, mrp: 2499,
@@ -180,31 +185,52 @@ describe('catalog.service', () => {
     });
 
     const result = await listSubcategoriesForCategory(otherCategory.slug);
-    expect(result.category.slug).toBe(otherCategory.slug);
     expect(result.subcategories).toHaveLength(2);
 
     const withPhoto = result.subcategories.find((s: any) => s.name === 'Plain Cotton Saree');
     expect(withPhoto.imageUrl).toBe('https://cdn.example.com/subcategories/plain-cotton.jpg');
 
+    // Deliberately null, not the category's photo — see catalog.service.ts.
     const withoutPhoto = result.subcategories.find((s: any) => s.name === 'Checks Cotton Saree');
-    expect(withoutPhoto.imageUrl).toBe('https://cdn.example.com/categories/cotton.jpg');
+    expect(withoutPhoto.imageUrl).toBeNull();
+  });
+
+  // Changing a category's photo used to change the picture shown on every
+  // subcategory under it that had none of its own.
+  it("never lets the category photo become a subcategory's photo", async () => {
+    const { category: otherCategory } = pushBudgetCategoryProduct({
+      categorySlug: 'handloom-cotton-saree-4', productSlug: 'cotton-cat-photo', onlinePrice: 2999,
+      subCategoryName: 'No Photo Subcategory',
+    });
+    const sub = fake.db.subcategory.find((x: any) => x.name === 'No Photo Subcategory');
+    sub.imageUrl = null;
+
+    otherCategory.imageUrl = 'https://cdn.example.com/categories/first.jpg';
+    const before = await listSubcategoriesForCategory(otherCategory.slug);
+    expect(before.subcategories[0]!.imageUrl).toBeNull();
+
+    // Admin replaces the category photo — the subcategory must not move.
+    otherCategory.imageUrl = 'https://cdn.example.com/categories/second.jpg';
+    const after = await listSubcategoriesForCategory(otherCategory.slug);
+    expect(after.subcategories[0]!.imageUrl).toBeNull();
+    expect(after.category.imageUrl).toBe('https://cdn.example.com/categories/second.jpg');
   });
 
   // A product's photo belongs to the product. Borrowing it for the
-  // subcategory card meant listing, editing or deactivating a product
-  // silently changed the subcategory's cover image on the storefront.
+  // subcategory card meant listing or editing a product silently changed
+  // the subcategory's cover image on the storefront.
   it('never lets a product photo become the subcategory photo', async () => {
     const { category: otherCategory } = pushBudgetCategoryProduct({
       categorySlug: 'handloom-cotton-saree-3', productSlug: 'cotton-no-sub-photo', onlinePrice: 2999,
       subCategoryName: 'Screen Printed Dress Materials',
     });
     otherCategory.imageUrl = 'https://cdn.example.com/categories/cotton.jpg';
+    const sub = fake.db.subcategory.find((x: any) => x.name === 'Screen Printed Dress Materials');
+    sub.imageUrl = 'https://cdn.example.com/subcategories/screen-printed.jpg';
 
     const before = await listSubcategoriesForCategory(otherCategory.slug);
     const imageBefore = before.subcategories[0]!.imageUrl;
 
-    // List a product under it, with a photo — exactly the flow that used to
-    // move the subcategory's image.
     const listedProduct = fake.db.product.find((x: any) => x.slug === 'cotton-no-sub-photo');
     fake.db.productImage.push({
       id: randomUUID(), productId: listedProduct.id,
@@ -213,8 +239,72 @@ describe('catalog.service', () => {
 
     const after = await listSubcategoriesForCategory(otherCategory.slug);
     expect(after.subcategories[0]!.imageUrl).toBe(imageBefore);
-    expect(after.subcategories[0]!.imageUrl).toBe('https://cdn.example.com/categories/cotton.jpg');
-    expect(after.subcategories[0]!.imageUrl).not.toBe('https://cdn.example.com/products/just-listed.jpg');
+    expect(after.subcategories[0]!.imageUrl).toBe('https://cdn.example.com/subcategories/screen-printed.jpg');
+  });
+
+  // Checkout calls this before taking money. The atomic claim in
+  // reserveItemsForOrder is still the real guard, but finding out an item
+  // sold out at the Razorpay step is a bad way to learn it.
+  it('reports live availability for the products in a cart', async () => {
+    const product = fake.db.product[0];
+    product.stock = 3;
+
+    const [row] = await getAvailabilityForProducts([product.id]);
+    expect(row.productId).toBe(product.id);
+    expect(row.name).toBe(product.name);
+    expect(row.availableCount).toBe(3);
+    expect(row.isPurchasable).toBe(true);
+  });
+
+  it('counts in-stock pieces alongside the legacy stock counter', async () => {
+    const product = fake.db.product[0];
+    product.stock = 1;
+    fake.db.piece.push(
+      { id: randomUUID(), productId: product.id, barcode: 'PC-A', status: 'in_stock' },
+      { id: randomUUID(), productId: product.id, barcode: 'PC-B', status: 'in_stock' },
+      { id: randomUUID(), productId: product.id, barcode: 'PC-C', status: 'sold' },
+    );
+
+    const [row] = await getAvailabilityForProducts([product.id]);
+    expect(row.availableCount).toBe(3);
+  });
+
+  it('marks a sold-out product unpurchasable', async () => {
+    const product = fake.db.product[0];
+    product.stock = 0;
+
+    const [row] = await getAvailabilityForProducts([product.id]);
+    expect(row.availableCount).toBe(0);
+    expect(row.isPurchasable).toBe(false);
+  });
+
+  it('marks a deactivated or store-only product unpurchasable even with stock on hand', async () => {
+    const [inactive, storeOnly] = fake.db.product;
+    inactive.stock = 5;
+    inactive.isActive = false;
+    storeOnly.stock = 5;
+    storeOnly.isActive = true;
+    storeOnly.channelVisibility = 'store_only';
+
+    const rows = await getAvailabilityForProducts([inactive.id, storeOnly.id]);
+    expect(rows.every((r) => r.isPurchasable === false)).toBe(true);
+    expect(rows.every((r) => r.availableCount === 0)).toBe(true);
+  });
+
+  // A product deleted since it went into the cart must still be reported
+  // on, or the cart would quietly show one fewer line than it holds.
+  it('reports an unknown product id as unavailable rather than dropping it', async () => {
+    const missingId = randomUUID();
+    const rows = await getAvailabilityForProducts([missingId]);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toEqual({ productId: missingId, name: null, availableCount: 0, isPurchasable: false });
+  });
+
+  it('deduplicates ids and returns nothing for an empty cart', async () => {
+    const product = fake.db.product[0];
+    const rows = await getAvailabilityForProducts([product.id, product.id]);
+    expect(rows).toHaveLength(1);
+    expect(await getAvailabilityForProducts([])).toEqual([]);
   });
 
   it('throws NotFoundError listing subcategories for an unknown category', async () => {

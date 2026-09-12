@@ -22,10 +22,11 @@ export const getCategoryBySlug = async (slug: string) => {
   return category;
 };
 
-// Subcategories carry their own admin-uploaded photo when set; a
-// subcategory without one shows the parent category's photo. Nothing here
-// reads a product image: a product's photo is the product's, and borrowing
-// it made the subcategory card change every time the catalog did.
+// A subcategory shows the photo uploaded for that subcategory, or nothing.
+// It does not inherit the category's photo and does not borrow a product's:
+// both were tried, and both meant one upload silently changed the picture on
+// rows nobody had edited. The storefront card renders a placeholder when
+// there is no photo yet.
 export const listSubcategoriesForCategory = async (categorySlug: string) => {
   const category = await prisma.category.findFirst({ where: { slug: categorySlug, isActive: true } });
   if (!category) throw new NotFoundError('Category not found');
@@ -42,7 +43,7 @@ export const listSubcategoriesForCategory = async (categorySlug: string) => {
       description: s.description,
       onlinePrice: s.onlinePrice,
       mrp: s.mrp,
-      imageUrl: s.imageUrl ?? category.imageUrl ?? null,
+      imageUrl: s.imageUrl ?? null,
     })),
   };
 };
@@ -160,4 +161,43 @@ export const getProductBySlug = async (slug: string) => {
   // row and never touches `stock` — availableCount is what "in stock" must
   // mean here, not the raw counter (see catalog.availability.ts).
   return withAvailabilityOne(product);
+};
+
+/**
+ * Live availability for a set of products, for the cart and checkout.
+ *
+ * The cart lives in the browser's localStorage and can sit there for days,
+ * so what it remembers about a product is only ever a snapshot. Checkout
+ * asks this before letting the customer pay: the authoritative claim still
+ * happens atomically in reserveItemsForOrder, but failing at the Razorpay
+ * step is a bad way to learn an item sold out.
+ *
+ * Unknown ids come back as unavailable rather than being dropped, so a
+ * product deleted since it was added to the cart is still reported on.
+ */
+export const getAvailabilityForProducts = async (productIds: string[]) => {
+  const unique = [...new Set(productIds)];
+  if (unique.length === 0) return [];
+
+  const products = await prisma.product.findMany({
+    where: { id: { in: unique } },
+    select: { id: true, name: true, isActive: true, channelVisibility: true, stock: true },
+  });
+
+  const withCounts = await withAvailability(products);
+  const byId = new Map(withCounts.map((p) => [p.id, p]));
+
+  return unique.map((id) => {
+    const product = byId.get(id);
+    if (!product) {
+      return { productId: id, name: null, availableCount: 0, isPurchasable: false };
+    }
+    const sellableOnline = product.isActive && CUSTOMER_VISIBLE_CHANNELS.includes(product.channelVisibility);
+    return {
+      productId: id,
+      name: product.name,
+      availableCount: sellableOnline ? product.availableCount : 0,
+      isPurchasable: sellableOnline && product.availableCount > 0,
+    };
+  });
 };

@@ -223,6 +223,117 @@ describe('catalog admin — subcategories', () => {
     expect(productPage.status).toBe(404);
   });
 
+  // Hiding stays the everyday tool; deleting is for a subcategory created
+  // by mistake or a line the shop has stopped carrying. The two must not
+  // be confused, so both are asserted here.
+  it('lets ADMIN permanently delete an empty subcategory', async () => {
+    const adminToken = await createToken('ADMIN', '9000000041');
+    const subcategory = {
+      id: randomUUID(), categoryId: fixture.category.id, name: 'Created By Mistake',
+      description: 'oops', imageUrl: null, storageKey: null, sortOrder: 9, isActive: true,
+      onlinePrice: 1000, storePrice: 800, mrp: null, createdAt: new Date(), updatedAt: new Date(),
+    };
+    fake.db.subcategory.push(subcategory);
+
+    const res = await request(app)
+      .delete('/api/v1/admin/subcategories/' + subcategory.id)
+      .set('Authorization', 'Bearer ' + adminToken);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.productsDeleted).toBe(0);
+    expect(fake.db.subcategory.find((x: any) => x.id === subcategory.id)).toBeUndefined();
+    expect(fake.db.authEvent.some((e: any) => e.eventType === 'subcategory_deleted')).toBe(true);
+  });
+
+  it('deletes the products and photos under a subcategory it removes', async () => {
+    const adminToken = await createToken('ADMIN', '9000000042');
+    const subcategory = fake.db.subcategory[0];
+    const doomed = fake.db.product.filter((x: any) => x.subcategoryId === subcategory.id);
+    expect(doomed.length).toBeGreaterThan(0);
+    fake.db.productImage.push({
+      id: randomUUID(), productId: doomed[0].id, url: 'https://cdn.example.com/p.jpg',
+      storageKey: 'products/p.jpg', sortOrder: 0,
+    });
+
+    const res = await request(app)
+      .delete('/api/v1/admin/subcategories/' + subcategory.id)
+      .set('Authorization', 'Bearer ' + adminToken);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.productsDeleted).toBe(doomed.length);
+    expect(fake.db.product.some((x: any) => x.subcategoryId === subcategory.id)).toBe(false);
+    // The stored object goes only after the rows are gone.
+    expect(storageProvider.deleteObject).toHaveBeenCalledWith('products/p.jpg');
+  });
+
+  it('refuses to delete a subcategory whose product has already been sold', async () => {
+    const adminToken = await createToken('ADMIN', '9000000043');
+    const subcategory = fake.db.subcategory[0];
+    const product = fake.db.product.find((x: any) => x.subcategoryId === subcategory.id);
+
+    const orderId = randomUUID();
+    fake.db.order.push({
+      id: orderId, orderNumber: 'NH-SOLD-1', authAccountId: null, addressId: null,
+      channel: 'online', status: 'delivered', subtotal: 1000, total: 1000,
+      shippingAddress: {}, placedAt: new Date(), updatedAt: new Date(),
+    });
+    fake.db.orderItem.push({
+      id: randomUUID(), orderId, productId: product.id, pieceId: null,
+      nameSnapshot: product.name, priceSnapshot: 1000, imageSnapshot: null, quantity: 1,
+    });
+
+    const res = await request(app)
+      .delete('/api/v1/admin/subcategories/' + subcategory.id)
+      .set('Authorization', 'Bearer ' + adminToken);
+
+    expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/already been sold/i);
+    expect(res.body.message).toMatch(/hide it instead/i);
+    // Nothing removed.
+    expect(fake.db.subcategory.find((x: any) => x.id === subcategory.id)).toBeDefined();
+    expect(fake.db.product.find((x: any) => x.id === product.id)).toBeDefined();
+  });
+
+  it('refuses to delete while a checkout still holds stock, and keeps everything', async () => {
+    const adminToken = await createToken('ADMIN', '9000000044');
+    const subcategory = fake.db.subcategory[0];
+    const product = fake.db.product.find((x: any) => x.subcategoryId === subcategory.id);
+    fake.db.reservation.push({
+      id: randomUUID(), productId: product.id, pieceId: null, quantity: 1,
+      orderId: randomUUID(), status: 'active',
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      createdAt: new Date(), updatedAt: new Date(),
+    });
+
+    const res = await request(app)
+      .delete('/api/v1/admin/subcategories/' + subcategory.id)
+      .set('Authorization', 'Bearer ' + adminToken);
+
+    expect(res.status).toBe(409);
+    expect(res.body.message).toMatch(/checkout is in progress/i);
+    expect(fake.db.subcategory.find((x: any) => x.id === subcategory.id)).toBeDefined();
+  });
+
+  it('rejects subcategory deletion from STAFF (ADMIN only)', async () => {
+    const staffToken = await createToken('STAFF', '9000000045');
+    const subcategory = fake.db.subcategory[0];
+
+    const res = await request(app)
+      .delete('/api/v1/admin/subcategories/' + subcategory.id)
+      .set('Authorization', 'Bearer ' + staffToken);
+
+    expect(res.status).toBe(403);
+    expect(fake.db.subcategory.find((x: any) => x.id === subcategory.id)).toBeDefined();
+  });
+
+  it('returns 404 deleting an unknown subcategory', async () => {
+    const adminToken = await createToken('ADMIN', '9000000046');
+    const res = await request(app)
+      .delete('/api/v1/admin/subcategories/' + randomUUID())
+      .set('Authorization', 'Bearer ' + adminToken);
+    expect(res.status).toBe(404);
+  });
+
   it('returns 404 when updating an unknown subcategory', async () => {
     const adminToken = await createToken('ADMIN', '9000000033');
     const res = await request(app)

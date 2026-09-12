@@ -125,6 +125,15 @@ export const uploadCategoryImage = async (req: AuthenticatedRequest, res: Respon
   }
 };
 
+export const deleteSubcategory = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const result = await catalogAdminService.deleteSubcategory(req.params.subcategoryId as string, req);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const uploadSubcategoryImage = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const file = (req as any).file;

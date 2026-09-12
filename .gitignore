@@ -11,3 +11,37 @@ node_modules
 # the S3 media bucket; the only code references to this folder are comments.
 # Back these up somewhere built for large files, not here.
 Images/
+
+# ── Secrets ──────────────────────────────────────────────────────────
+# .env is already ignored above; these cover the variants a local setup
+# tends to grow (.env.local, .env.production, per-workspace copies) while
+# keeping the committed *.env.example templates visible.
+.env.*
+!.env.example
+!.env.*.example
+*.local
+
+# Keys, certificates and signing material — never belongs in the repo.
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+id_rsa*
+*service-account*.json
+.aws/
+credentials
+
+# ── Editor / tooling state ───────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# AI assistant scratch state — local to a machine, not project source.
+.claude/
+CLAUDE.md
+.mcp.json

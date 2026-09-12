@@ -60,8 +60,10 @@ const drawLetterhead = (doc: PDFKit.PDFDocument, logoBuffer: Buffer | null): num
   return y + 12;
 };
 
+// A serial number per line, as a GST invoice is expected to carry.
 const COL = {
-  name: { x: MARGIN, width: 250 },
+  sr: { x: MARGIN, width: 28 },
+  name: { x: MARGIN + 28, width: 222 },
   qty: { x: MARGIN + 250, width: 50 },
   price: { x: MARGIN + 300, width: 100 },
   subtotal: { x: MARGIN + 400, width: USABLE_WIDTH - 400 },
@@ -69,6 +71,7 @@ const COL = {
 
 const drawTableHeader = (doc: PDFKit.PDFDocument, y: number): number => {
   doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000');
+  doc.text('#', COL.sr.x, y, { width: COL.sr.width });
   doc.text('Product', COL.name.x, y, { width: COL.name.width });
   doc.text('Qty', COL.qty.x, y, { width: COL.qty.width, align: 'right' });
   doc.text('Price', COL.price.x, y, { width: COL.price.width, align: 'right' });
@@ -111,7 +114,9 @@ export const renderInvoicePdf = async (input: InvoiceRenderInput): Promise<Buffe
 
   y = drawTableHeader(doc, y);
 
+  let serial = 0;
   for (const line of input.lines) {
+    serial += 1;
     if (y + ROW_HEIGHT > PAGE_HEIGHT - MARGIN - FOOTER_RESERVE) {
       doc.addPage();
       y = drawLetterhead(doc, logoBuffer);
@@ -126,6 +131,7 @@ export const renderInvoicePdf = async (input: InvoiceRenderInput): Promise<Buffe
     const subtotalExGst = priceExGst * line.quantity;
 
     doc.fontSize(9).font('Helvetica').fillColor('#000000');
+    doc.text(String(serial), COL.sr.x, y, { width: COL.sr.width });
     // height + ellipsis together force single-line truncation ("…") instead
     // of wrapping onto a second line, which would overlap the row below at
     // this fixed ROW_HEIGHT.

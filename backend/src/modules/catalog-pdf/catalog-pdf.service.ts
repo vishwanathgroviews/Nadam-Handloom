@@ -22,7 +22,6 @@ const PAGE_WIDTH = 595.28; // A4, points
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 26;
 const CARD_RADIUS = 20;
-const LOGO_SIZE = 40;
 const FOOTER_HEIGHT = 78;
 
 const IVORY = '#FAF6F1';
@@ -40,17 +39,14 @@ export interface CatalogItem {
   imageBuffer: Buffer;
 }
 
-const getLogoBuffer = async (): Promise<Buffer | null> => {
-  try {
-    return await fetchImageBuffer(COMPANY.logoUrl);
-  } catch (error) {
-    console.error('Failed to fetch company logo for catalog PDF header, continuing without it:', error);
-    return null;
-  }
-};
-
-/** Ivory ground, gold-bordered rounded card, logo + brand + subcategory header, gold divider with a diamond accent. */
-const drawPageFrame = (doc: PDFKit.PDFDocument, logoBuffer: Buffer | null, subcategoryName: string) => {
+/**
+ * Ivory ground, gold-bordered rounded card, subcategory name as the header,
+ * gold divider with a diamond accent.
+ *
+ * No logo: the subcategory name is what a customer is being shown, and the
+ * mark above it only competed with it for the top of the page.
+ */
+const drawPageFrame = (doc: PDFKit.PDFDocument, subcategoryName: string) => {
   const cardX = MARGIN;
   const cardY = MARGIN;
   const cardW = PAGE_WIDTH - MARGIN * 2;
@@ -63,24 +59,28 @@ const drawPageFrame = (doc: PDFKit.PDFDocument, logoBuffer: Buffer | null, subca
   doc.roundedRect(cardX, cardY, cardW, cardH, CARD_RADIUS).fillAndStroke('#FFFFFF', GOLD);
   doc.lineWidth(1.2).roundedRect(cardX, cardY, cardW, cardH, CARD_RADIUS).stroke(GOLD);
 
-  let y = cardY + 26;
-  if (logoBuffer) {
-    try {
-      doc.image(logoBuffer, PAGE_WIDTH / 2 - LOGO_SIZE / 2, y, { width: LOGO_SIZE, height: LOGO_SIZE });
-    } catch (error) {
-      console.error('Failed to embed logo in catalog PDF, skipping:', error);
-    }
-    y += LOGO_SIZE + 8;
-  }
+  let y = cardY + 34;
 
-  doc.font('Times-Bold').fontSize(19).fillColor(MAROON).text(COMPANY.name, contentX, y, { width: contentWidth, align: 'center' });
-  y += 22;
+  // The subcategory name is the headline now — large, maroon, letter-spaced,
+  // and given room to wrap for the longer names in this catalog.
+  doc
+    .font('Times-Bold')
+    .fontSize(23)
+    .fillColor(MAROON)
+    .text(subcategoryName.toUpperCase(), contentX, y, {
+      width: contentWidth,
+      align: 'center',
+      characterSpacing: 1.6,
+      lineGap: 2,
+    });
+  y = doc.y + 6;
+
   doc
     .font('Helvetica')
-    .fontSize(9.5)
+    .fontSize(8.5)
     .fillColor(TEXT_MUTED)
-    .text(subcategoryName.toUpperCase(), contentX, y, { width: contentWidth, align: 'center', characterSpacing: 1.2 });
-  y += 18;
+    .text(COMPANY.name.toUpperCase(), contentX, y, { width: contentWidth, align: 'center', characterSpacing: 1.4 });
+  y += 16;
 
   const dividerY = y;
   doc.moveTo(contentX, dividerY).lineTo(contentX + contentWidth / 2 - 10, dividerY).lineWidth(0.75).strokeColor(GOLD).stroke();
@@ -106,11 +106,9 @@ export const renderCatalogPdf = async (items: CatalogItem[]): Promise<Buffer> =>
   doc.on('data', (chunk: Buffer) => chunks.push(chunk));
   const done = new Promise<Buffer>((resolve) => doc.on('end', () => resolve(Buffer.concat(chunks))));
 
-  const logoBuffer = await getLogoBuffer();
-
   items.forEach((item, index) => {
     if (index > 0) doc.addPage();
-    const { contentX, contentWidth, y: bodyTop } = drawPageFrame(doc, logoBuffer, item.name);
+    const { contentX, contentWidth, y: bodyTop } = drawPageFrame(doc, item.name);
 
     const imageBottom = MARGIN + (PAGE_HEIGHT - MARGIN * 2) - FOOTER_HEIGHT;
     const imageHeight = imageBottom - bodyTop;

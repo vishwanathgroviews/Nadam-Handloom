@@ -1,11 +1,18 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
-import { scanLookup, scanSell, ScanLookupResult, ScanSellResult, WhatsappCustomerInput } from '../api/inventory';
+import {
+  scanLookup,
+  scanSell,
+  ScanLookupResult,
+  ScanSellResult,
+  ScanSellItemInput,
+  WhatsappCustomerInput,
+} from '../api/inventory';
 import { useIsOnline } from '../utils/network';
 import KeyboardAwareScreen from '../components/KeyboardAwareScreen';
 import OfflineBanner from '../components/OfflineBanner';
@@ -21,6 +28,19 @@ import { Badge, SegmentedControl } from '../components/ui/Chip';
 type Props = NativeStackScreenProps<AppStackParamList, 'Scanner'>;
 
 type Mode = 'sell' | 'lookup';
+
+/**
+ * One product on the bill being built. `priceInput` is what staff typed for
+ * this line — blank means sell at the store price. It is per line and per
+ * bill: nothing here writes back to the subcategory's price.
+ */
+interface BillLine {
+  code: string;
+  productName: string;
+  categoryName: string;
+  storePrice: string;
+  priceInput: string;
+}
 type Phase = 'scanning' | 'processing' | 'result';
 type BadgeTone = 'neutral' | 'primary' | 'success' | 'warning' | 'error';
 // Where the sale is actually happening: handed over at the counter, or
@@ -81,6 +101,10 @@ export default function ScannerScreen({ navigation }: Props) {
   const [errorCode, setErrorCode] = useState('');
   const [scannedLock, setScannedLock] = useState(false);
   const [salePriceInput, setSalePriceInput] = useState('');
+  // The bill being built. "Add More" sends staff back to the camera with
+  // these lines intact, and Complete Sale turns the whole list into ONE
+  // order with ONE invoice.
+  const [bill, setBill] = useState<BillLine[]>([]);
   const [saleChannel, setSaleChannel] = useState<SaleChannel>('store');
   // Only used for a WhatsApp sale — it's a remote order, so it can't be
   // completed without somewhere to send the parcel.
@@ -102,8 +126,38 @@ export default function ScannerScreen({ navigation }: Props) {
     setManualCode('');
     setScannedLock(false);
     setSalePriceInput('');
+    setBill([]);
     setSaleChannel('store');
     setCustomer({ ...EMPTY_CUSTOMER });
+  }, []);
+
+  // Back to the camera with the bill kept — the "Add More" path.
+  const scanAnother = useCallback(() => {
+    setPhase('scanning');
+    setLookup(null);
+    setError('');
+    setErrorCode('');
+    setManualCode('');
+    setScannedLock(false);
+    setSalePriceInput('');
+  }, []);
+
+  const lineTotal = useCallback((line: BillLine): number => {
+    const typed = Number(line.priceInput.trim());
+    return line.priceInput.trim() && Number.isFinite(typed) && typed > 0 ? typed : Number(line.storePrice);
+  }, []);
+
+  const billTotal = useMemo(
+    () => bill.reduce((sum, line) => sum + lineTotal(line), 0),
+    [bill, lineTotal]
+  );
+
+  const updateLinePrice = useCallback((code: string, value: string) => {
+    setBill((prev) => prev.map((line) => (line.code === code ? { ...line, priceInput: value } : line)));
+  }, []);
+
+  const removeLine = useCallback((code: string) => {
+    setBill((prev) => prev.filter((line) => line.code !== code));
   }, []);
 
   const updateCustomer = useCallback(
@@ -130,8 +184,13 @@ export default function ScannerScreen({ navigation }: Props) {
   );
 
   const runSell = useCallback(
-    async (code: string, override = false, salePrice?: number) => {
+    async (lines: BillLine[], override = false) => {
       if (!accessToken) return;
+      if (lines.length === 0) {
+        setError('Add at least one product to the bill first.');
+        setPhase('result');
+        return;
+      }
 
       // A WhatsApp order is going to be couriered, so it can't be recorded
       // without a name, a number to message, and an address to ship to.
@@ -160,10 +219,24 @@ export default function ScannerScreen({ navigation }: Props) {
       setPhase('processing');
       setError('');
       setErrorCode('');
-      try {
-        const res = await scanSell(accessToken, code, {
+      // Only send a price when staff actually typed a different number —
+      // blank, or the store price re-typed, sells at the catalogue price and
+      // raises no discount audit event.
+      const items: ScanSellItemInput[] = lines.map((line) => {
+        const typed = Number(line.priceInput.trim());
+        const bargained =
+          line.priceInput.trim() && Number.isFinite(typed) && typed > 0 && typed !== Number(line.storePrice)
+            ? typed
+            : undefined;
+        return {
+          code: line.code,
           override,
-          salePrice,
+          ...(bargained !== undefined ? { salePrice: bargained } : {}),
+        };
+      });
+
+      try {
+        const res = await scanSell(accessToken, items, {
           channel: saleChannel,
           ...(customerPayload ? { customer: customerPayload } : {}),
         });
@@ -180,7 +253,7 @@ export default function ScannerScreen({ navigation }: Props) {
     [accessToken, saleChannel, customer]
   );
 
-  // Same print/share path the Billing screen uses for its multi-item bill —
+  // Same print/share path the Invoices screen uses —
   // the invoice PDF lives in object storage, so it's fetched, written to a
   // local file, and handed to the OS print/share sheet.
   const handleShareInvoice = useCallback(
@@ -205,17 +278,28 @@ export default function ScannerScreen({ navigation }: Props) {
     [sellResult]
   );
 
-  // Only send salePrice if the staff member actually typed a different
-  // number — leaving it blank sells at the category's store price, same as
-  // before this field existed, and avoids spurious audit-log noise.
-  const enteredSalePrice = useCallback((): number | undefined => {
-    const trimmed = salePriceInput.trim();
-    if (!trimmed) return undefined;
-    const parsed = Number(trimmed);
-    if (!Number.isFinite(parsed) || parsed <= 0) return undefined;
-    if (lookup && parsed === Number(lookup.storePrice)) return undefined;
-    return parsed;
-  }, [salePriceInput, lookup]);
+  // Puts the product just scanned onto the bill, carrying over whatever
+  // price was typed on the confirm step, then returns to the camera.
+  const addToBill = useCallback(() => {
+    if (!lookup) return;
+    const code = lookup.barcode || lookup.sku;
+    if (!code) return;
+    if (bill.some((line) => line.code.toUpperCase() === code.toUpperCase())) {
+      setError('That item is already on this bill.');
+      return;
+    }
+    setBill((prev) => [
+      ...prev,
+      {
+        code,
+        productName: lookup.productName,
+        categoryName: lookup.categoryName,
+        storePrice: String(lookup.storePrice),
+        priceInput: salePriceInput.trim(),
+      },
+    ]);
+    scanAnother();
+  }, [lookup, bill, salePriceInput, scanAnother]);
 
   const handleCode = useCallback(
     (code: string) => {
@@ -244,16 +328,14 @@ export default function ScannerScreen({ navigation }: Props) {
     handleCode(manualCode.trim());
   };
 
-  const confirmSale = () => {
+  const completeSale = () => {
     if (!isOnline) return setError('You are offline — selling needs a live connection.');
-    const code = lookup?.barcode || lookup?.sku;
-    if (code) runSell(code, false, enteredSalePrice());
+    runSell(bill, false);
   };
 
   const overrideSale = () => {
     if (!isOnline) return setError('You are offline — selling needs a live connection.');
-    const code = lookup?.barcode || lookup?.sku;
-    if (code) runSell(code, true, enteredSalePrice());
+    runSell(bill, true);
   };
 
   // Shares this item's details to WhatsApp — for negotiating/confirming an
@@ -426,92 +508,18 @@ export default function ScannerScreen({ navigation }: Props) {
                       value={salePriceInput}
                       onChangeText={setSalePriceInput}
                     />
+                    <Text style={styles.helper}>
+                      Applies to this item on this bill only — the catalogue price never changes.
+                    </Text>
 
-                    <Text style={styles.label}>Where is this sale happening?</Text>
-                    <SegmentedControl options={SALE_CHANNEL_OPTIONS} value={saleChannel} onChange={setSaleChannel} />
-
-                    {saleChannel === 'whatsapp' && (
-                      <View style={styles.customerForm}>
-                        <Text style={styles.helper}>
-                          A WhatsApp order still has to be packed and couriered — it goes into To Ship, and the
-                          shipment update and invoice are sent to this number once you add the AWB.
-                        </Text>
-                        <TextInput
-                          style={styles.customerInput}
-                          placeholder="Customer name *"
-                          placeholderTextColor={colors.textMuted}
-                          value={customer.fullName}
-                          onChangeText={(v) => updateCustomer('fullName', v)}
-                        />
-                        <TextInput
-                          style={styles.customerInput}
-                          placeholder="Mobile number *"
-                          placeholderTextColor={colors.textMuted}
-                          keyboardType="phone-pad"
-                          value={customer.phone}
-                          onChangeText={(v) => updateCustomer('phone', v)}
-                        />
-                        <TextInput
-                          style={styles.customerInput}
-                          placeholder="Address line 1 *"
-                          placeholderTextColor={colors.textMuted}
-                          value={customer.line1}
-                          onChangeText={(v) => updateCustomer('line1', v)}
-                        />
-                        <TextInput
-                          style={styles.customerInput}
-                          placeholder="Address line 2 (optional)"
-                          placeholderTextColor={colors.textMuted}
-                          value={customer.line2}
-                          onChangeText={(v) => updateCustomer('line2', v)}
-                        />
-                        <View style={styles.customerRow}>
-                          <TextInput
-                            style={[styles.customerInput, styles.customerRowInput]}
-                            placeholder="City *"
-                            placeholderTextColor={colors.textMuted}
-                            value={customer.city}
-                            onChangeText={(v) => updateCustomer('city', v)}
-                          />
-                          <TextInput
-                            style={[styles.customerInput, styles.customerRowInput]}
-                            placeholder="State *"
-                            placeholderTextColor={colors.textMuted}
-                            value={customer.state}
-                            onChangeText={(v) => updateCustomer('state', v)}
-                          />
-                        </View>
-                        <TextInput
-                          style={styles.customerInput}
-                          placeholder="Pincode *"
-                          placeholderTextColor={colors.textMuted}
-                          keyboardType="number-pad"
-                          value={customer.pincode}
-                          onChangeText={(v) => updateCustomer('pincode', v)}
-                        />
-                        <TextInput
-                          style={styles.customerInput}
-                          placeholder="Notes (optional)"
-                          placeholderTextColor={colors.textMuted}
-                          value={customer.notes}
-                          onChangeText={(v) => updateCustomer('notes', v)}
-                        />
-                      </View>
-                    )}
-
-                    <Button
-                      title={saleChannel === 'whatsapp' ? 'Create WhatsApp Order' : 'Mark Sold in Store'}
-                      onPress={confirmSale}
-                      style={styles.markSoldButton}
-                    />
-                    {saleChannel === 'store' && (
-                      <TouchableOpacity style={styles.whatsappButton} onPress={sellViaWhatsApp} activeOpacity={0.85}>
-                        <Ionicons name="logo-whatsapp" size={18} color={colors.success} />
-                        <Text style={styles.whatsappButtonText}>Just share this item on WhatsApp</Text>
-                      </TouchableOpacity>
-                    )}
+                    <Button title="Add to Bill" onPress={addToBill} style={styles.markSoldButton} />
+                    <TouchableOpacity style={styles.whatsappButton} onPress={sellViaWhatsApp} activeOpacity={0.85}>
+                      <Ionicons name="logo-whatsapp" size={18} color={colors.success} />
+                      <Text style={styles.whatsappButtonText}>Just share this item on WhatsApp</Text>
+                    </TouchableOpacity>
                   </>
                 )}
+
                 {mode === 'sell' && lookup.mode === 'quantity' && (lookup.availableQty ?? 0) <= 0 && (
                   <Text style={styles.helper}>No stock available to sell.</Text>
                 )}
@@ -521,6 +529,126 @@ export default function ScannerScreen({ navigation }: Props) {
                 </TouchableOpacity>
               </Card>
             ) : null}
+
+            {/* The bill under construction. Survives "Add More", and becomes
+                ONE order with ONE invoice when Complete Sale runs. */}
+            {mode === 'sell' && bill.length > 0 && !sellResult && (
+              <Card style={styles.resultCard}>
+                <Text style={styles.billHeading}>
+                  Bill — {bill.length} item{bill.length === 1 ? '' : 's'}
+                </Text>
+
+                {bill.map((line) => (
+                  <View key={line.code} style={styles.billLine}>
+                    <View style={styles.billLineInfo}>
+                      <Text style={styles.billLineName} numberOfLines={2}>{line.productName}</Text>
+                      <Text style={styles.billLineMeta}>{line.code} · store ₹{line.storePrice}</Text>
+                    </View>
+                    <TextInput
+                      style={styles.billLinePrice}
+                      placeholder={line.storePrice}
+                      placeholderTextColor={colors.textMuted}
+                      keyboardType="numeric"
+                      value={line.priceInput}
+                      onChangeText={(v) => updateLinePrice(line.code, v)}
+                    />
+                    <TouchableOpacity onPress={() => removeLine(line.code)} hitSlop={10}>
+                      <Ionicons name="close-circle" size={20} color={colors.iconMuted} />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+
+                <View style={styles.billTotalRow}>
+                  <Text style={styles.billTotalLabel}>Total</Text>
+                  <Text style={styles.billTotalValue}>₹{billTotal.toLocaleString('en-IN')}</Text>
+                </View>
+
+                <Text style={styles.label}>Where is this sale happening?</Text>
+                <SegmentedControl options={SALE_CHANNEL_OPTIONS} value={saleChannel} onChange={setSaleChannel} />
+
+          {saleChannel === 'whatsapp' && (
+            <View style={styles.customerForm}>
+              <Text style={styles.helper}>
+                A WhatsApp order still has to be packed and couriered — it goes into To Ship, and the
+                shipment update and invoice are sent to this number once you add the AWB.
+              </Text>
+              <TextInput
+                style={styles.customerInput}
+                placeholder="Customer name *"
+                placeholderTextColor={colors.textMuted}
+                value={customer.fullName}
+                onChangeText={(v) => updateCustomer('fullName', v)}
+              />
+              <TextInput
+                style={styles.customerInput}
+                placeholder="Mobile number *"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="phone-pad"
+                value={customer.phone}
+                onChangeText={(v) => updateCustomer('phone', v)}
+              />
+              <TextInput
+                style={styles.customerInput}
+                placeholder="Address line 1 *"
+                placeholderTextColor={colors.textMuted}
+                value={customer.line1}
+                onChangeText={(v) => updateCustomer('line1', v)}
+              />
+              <TextInput
+                style={styles.customerInput}
+                placeholder="Address line 2 (optional)"
+                placeholderTextColor={colors.textMuted}
+                value={customer.line2}
+                onChangeText={(v) => updateCustomer('line2', v)}
+              />
+              <View style={styles.customerRow}>
+                <TextInput
+                  style={[styles.customerInput, styles.customerRowInput]}
+                  placeholder="City *"
+                  placeholderTextColor={colors.textMuted}
+                  value={customer.city}
+                  onChangeText={(v) => updateCustomer('city', v)}
+                />
+                <TextInput
+                  style={[styles.customerInput, styles.customerRowInput]}
+                  placeholder="State *"
+                  placeholderTextColor={colors.textMuted}
+                  value={customer.state}
+                  onChangeText={(v) => updateCustomer('state', v)}
+                />
+              </View>
+              <TextInput
+                style={styles.customerInput}
+                placeholder="Pincode *"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="number-pad"
+                value={customer.pincode}
+                onChangeText={(v) => updateCustomer('pincode', v)}
+              />
+              <TextInput
+                style={styles.customerInput}
+                placeholder="Notes (optional)"
+                placeholderTextColor={colors.textMuted}
+                value={customer.notes}
+                onChangeText={(v) => updateCustomer('notes', v)}
+              />
+            </View>
+          )}
+
+                <Button
+                  title={saleChannel === 'whatsapp' ? 'Create WhatsApp Order' : 'Complete Sale'}
+                  onPress={completeSale}
+                  style={styles.markSoldButton}
+                />
+                <TouchableOpacity style={styles.addMoreButton} onPress={scanAnother} activeOpacity={0.85}>
+                  <Ionicons name="add-circle-outline" size={18} color={colors.primary} />
+                  <Text style={styles.addMoreText}>Add More</Text>
+                </TouchableOpacity>
+                <Text style={styles.helper}>
+                  One order number and one invoice for everything on this bill.
+                </Text>
+              </Card>
+            )}
           </>
         )}
       </ScrollView>
@@ -530,6 +658,30 @@ export default function ScannerScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
+  billHeading: { ...typography.bodySemibold, color: colors.text, marginBottom: spacing.sm },
+  billLine: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.divider,
+  },
+  billLineInfo: { flex: 1, minWidth: 0 },
+  billLineName: { ...typography.bodySm, color: colors.text },
+  billLineMeta: { ...typography.bodySm, fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  billLinePrice: {
+    width: 84, textAlign: 'right', backgroundColor: colors.inputBg, borderRadius: radius.md,
+    paddingHorizontal: spacing.sm, paddingVertical: spacing.sm, ...typography.bodySm, color: colors.text,
+  },
+  billTotalRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
+    marginTop: spacing.md, marginBottom: spacing.sm,
+  },
+  billTotalLabel: { ...typography.bodySemibold, color: colors.textLabel },
+  billTotalValue: { ...typography.h2, color: colors.text },
+  addMoreButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
+    marginTop: spacing.sm, paddingVertical: spacing.md,
+    borderRadius: radius.md, backgroundColor: colors.primaryBg,
+  },
+  addMoreText: { ...typography.bodySemibold, color: colors.primary },
   container: { flex: 1, paddingHorizontal: spacing.md },
   scrollContent: { paddingBottom: spacing.xxl },
   cameraWrap: {

@@ -220,8 +220,7 @@ export interface WhatsappCustomer {
   notes?: string;
 }
 
-// Shared by scanSell's single-item quick-sell (below) and the Billing
-// module's multi-item sale (billing.service.ts) — every offline sale,
+// Used by scanSell's counter/WhatsApp sale (below) — every offline sale,
 // whether one scanned piece or a whole exhibition bill, is one Order
 // created here. A 'store' sale is synchronous and payment-complete at
 // creation (no separate Payment row, unlike online/Razorpay orders) —
@@ -306,11 +305,26 @@ export const scanLookup = async (code: string) => {
   throw new NotFoundError('No product found for this code');
 };
 
+export interface ScanSellSoldLine {
+  productId: string;
+  productName: string;
+  quantity: number;
+  /** What this line actually sold for — the bargained price when one was set. */
+  unitPrice: number;
+  /** The subcategory's price, unchanged by any bargain on this sale. */
+  storePrice: number;
+  overridden: boolean;
+  priceAdjusted: boolean;
+}
+
 export interface ScanSellResult {
   orderId: string;
   orderNumber: string;
+  /** True if any line on this sale overrode an online reservation. */
   overridden: boolean;
   channel: 'store' | 'whatsapp';
+  items: ScanSellSoldLine[];
+  total: number;
   // Null only when invoice generation itself failed (storage unconfigured or
   // unreachable). The sale is committed either way — see scanSell.
   invoice: Awaited<ReturnType<typeof generateInvoiceForOrder>> | null;
@@ -325,7 +339,7 @@ export interface ClaimedSaleLine extends OfflineOrderLine {
  * Resolves one scanned code (barcode or SKU) and atomically claims its
  * stock for an offline sale, writing the same StockLedger trail either way
  * — the shared core of scanSell's single-item quick-sell (below) and the
- * Billing module's multi-item sale (billing.service.ts). Does not create
+ * counter and WhatsApp sale paths. Does not create
  * an Order itself: callers batch one or more claimed lines into a single
  * createOfflineOrder call, so a multi-item bill is one Order, not one per
  * scan. `ledgerRef` is the order number the caller has already reserved —
@@ -436,12 +450,29 @@ export const resolveAndClaimOfflineSaleItem = async (
   };
 };
 
+export interface ScanSellItemInput {
+  code: string;
+  quantity?: number;
+  override?: boolean;
+  salePrice?: number;
+}
+
+/**
+ * Completes one offline sale of one or more scanned products.
+ *
+ * Every line is claimed inside a single transaction, so a bill either goes
+ * through whole or not at all — a sold-out item on line three rolls back the
+ * stock already claimed for lines one and two rather than leaving them
+ * orphaned on a half-made order. The lines then become ONE Order with one
+ * order number and one invoice, which is what the customer is handed.
+ *
+ * A line's `salePrice` is the bargained price for that line on this bill
+ * only. It is written to OrderItem.priceSnapshot; nothing touches
+ * Subcategory.storePrice, so the next sale starts from the real price again.
+ */
 export const scanSell = async (
-  code: string,
   input: {
-    quantity?: number;
-    override?: boolean;
-    salePrice?: number;
+    items: ScanSellItemInput[];
     channel?: 'store' | 'whatsapp';
     customer?: WhatsappCustomer;
   },
@@ -450,23 +481,33 @@ export const scanSell = async (
   const channel = input.channel ?? 'store';
   const result = await prisma.$transaction(async (tx) => {
     const orderNumber = await reserveOrderNumber(tx);
-    const line = await resolveAndClaimOfflineSaleItem(tx, code, input, actorId, orderNumber);
-    const order = await createOfflineOrder(tx, orderNumber, [line], input.customer, channel);
+    const lines: ClaimedSaleLine[] = [];
+    for (const item of input.items) {
+      lines.push(await resolveAndClaimOfflineSaleItem(tx, item.code, item, actorId, orderNumber));
+    }
+    const order = await createOfflineOrder(tx, orderNumber, lines, input.customer, channel);
 
     return {
       orderId: order.id,
       orderNumber,
-      overridden: line.overridden,
-      productId: line.productId,
-      storePrice: line.storePrice,
-      unitPrice: line.unitPrice,
+      lines: lines.map((line, i) => ({
+        productId: line.productId,
+        productName: line.productName,
+        quantity: line.quantity,
+        unitPrice: Number(line.unitPrice),
+        storePrice: Number(line.storePrice),
+        overridden: line.overridden,
+        priceAdjusted:
+          input.items[i]?.salePrice != null && Number(line.unitPrice) !== Number(line.storePrice),
+      })),
     };
   });
 
-  // Bargain-dispute traceability: log a separate audit event whenever the
-  // sale went out at a price other than the category's store price, so
-  // Admin can review every staff-entered discount later.
-  if (input.salePrice != null && Number(result.unitPrice) !== Number(result.storePrice)) {
+  // Bargain-dispute traceability: one audit event per line that went out at
+  // a price other than the subcategory's store price, so Admin can review
+  // every staff-entered discount later.
+  for (const line of result.lines) {
+    if (!line.priceAdjusted) continue;
     await logAuthEvent({
       authAccountId: actorId,
       eventType: 'offline_sale_price_override',
@@ -474,14 +515,14 @@ export const scanSell = async (
       metadata: {
         orderId: result.orderId,
         orderNumber: result.orderNumber,
-        productId: result.productId,
-        categoryStorePrice: Number(result.storePrice),
-        salePrice: Number(result.unitPrice),
+        productId: line.productId,
+        categoryStorePrice: line.storePrice,
+        salePrice: line.unitPrice,
       },
     });
   }
 
-  // Every counter sale gets an invoice, exactly like the multi-item Billing
+  // Every counter sale gets an invoice, exactly like an online
   // flow — a single scanned sale is no less a sale, and staff are standing
   // there ready to print or share it, so it's generated synchronously rather
   // than through the async event pipeline online orders use.
@@ -500,8 +541,10 @@ export const scanSell = async (
   return {
     orderId: result.orderId,
     orderNumber: result.orderNumber,
-    overridden: result.overridden,
+    overridden: result.lines.some((line) => line.overridden),
     channel,
+    items: result.lines,
+    total: result.lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0),
     invoice,
   };
 };

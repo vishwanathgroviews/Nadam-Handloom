@@ -1,12 +1,19 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Switch, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Switch, Image, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
-import { listSubcategories, createSubcategory, updateSubcategory, uploadSubcategoryImage, AdminSubcategory } from '../api/catalog';
+import {
+  listSubcategories,
+  createSubcategory,
+  updateSubcategory,
+  uploadSubcategoryImage,
+  deleteSubcategory,
+  AdminSubcategory,
+} from '../api/catalog';
 import KeyboardAwareScreen from '../components/KeyboardAwareScreen';
 import PhotoSourceSheet from '../components/PhotoSourceSheet';
 import ScreenHeader from '../components/ui/ScreenHeader';
@@ -23,6 +30,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
   const canEdit = role === 'ADMIN';
 
   const [loading, setLoading] = useState(isEdit);
+  const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -164,6 +172,45 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
     }
   }, [accessToken, name, description, onlinePrice, storePrice, isActive, isEdit, categoryId, subcategoryId, navigation, pendingImage]);
 
+  // Two steps on purpose: this deletes the subcategory's products and their
+  // photos as well, and there is no undo. Hiding sits one card above for the
+  // reversible case.
+  const handleDelete = useCallback(() => {
+    if (!accessToken || !subcategoryId) return;
+    Alert.alert(
+      `Delete "${name || 'this subcategory'}"?`,
+      'This permanently removes the subcategory, every product listed under it and their photos. It cannot be undone.\n\nTo take it off the website but keep everything, use "Visible on customer web" instead.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            setError('');
+            try {
+              const res = await deleteSubcategory(accessToken, subcategoryId);
+              const { productsDeleted } = res.data;
+              Alert.alert(
+                'Deleted',
+                productsDeleted === 0
+                  ? `"${res.data.name}" was removed.`
+                  : `"${res.data.name}" and ${productsDeleted} product${productsDeleted === 1 ? '' : 's'} were removed.`
+              );
+              navigation.goBack();
+            } catch (err: any) {
+              // The server refuses when real sales history is at stake; its
+              // message names the reason and points at hiding instead.
+              setError(err.message || 'Could not delete this subcategory');
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  }, [accessToken, subcategoryId, name, navigation]);
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -263,10 +310,14 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
               </View>
             )}
             <View style={styles.imageSectionActions}>
+              {/* A subcategory only ever shows its own photo now — it no longer
+                  borrows one from a product or inherits the category's — so
+                  'no photo' means the card renders a placeholder until one is
+                  uploaded here. */}
               <Text style={styles.helper}>
-                {imageUrl && !hasOwnImage
-                  ? 'Shown on the customer website — currently a photo from one of its products, since this subcategory has no photo of its own yet. Add one below to use a specific photo instead.'
-                  : 'Shown on the category page and product listings for this subcategory on the customer website.'}
+                {hasOwnImage
+                  ? 'Shown on the category page and product listings for this subcategory on the customer website.'
+                  : 'This subcategory has no photo yet, so its card shows a placeholder on the customer website. Add one below.'}
               </Text>
               {pendingImage && <Text style={styles.pendingPhotoHint}>New photo ready — tap Save Changes to apply it.</Text>}
               <TouchableOpacity style={styles.imageButton} onPress={handlePickImage} disabled={uploadingImage}>
@@ -300,6 +351,20 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
           loading={saving}
           style={styles.saveButton}
         />
+      )}
+
+      {isEdit && canEdit && (
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={handleDelete}
+          disabled={deleting || saving}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="trash-outline" size={16} color={colors.error} />
+          <Text style={styles.deleteButtonText}>
+            {deleting ? 'Deleting…' : 'Delete subcategory'}
+          </Text>
+        </TouchableOpacity>
       )}
 
       <PhotoSourceSheet
@@ -367,4 +432,10 @@ const styles = StyleSheet.create({
   },
   imageButtonText: { ...typography.bodySmSemibold, color: colors.text },
   saveButton: { marginTop: spacing.xl },
+  deleteButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
+    marginTop: spacing.md, marginHorizontal: spacing.md,
+    paddingVertical: spacing.md, borderRadius: radius.md, backgroundColor: colors.errorBg,
+  },
+  deleteButtonText: { ...typography.bodySemibold, color: colors.error },
 });

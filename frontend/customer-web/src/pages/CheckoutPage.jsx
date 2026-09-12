@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LogIn, UserPlus, Plus, CheckCircle2 } from 'lucide-react';
+import { LogIn, UserPlus, Plus, CheckCircle2, Trash2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { api } from '../services/api';
@@ -11,7 +11,7 @@ import './CheckoutPage.css';
 
 export default function CheckoutPage() {
   const { isAuthenticated, status, user } = useAuth();
-  const { items, subtotal, clearCart } = useCart();
+  const { items, subtotal, itemCount, removeItem, clearCart } = useCart();
   const navigate = useNavigate();
 
   const [addresses, setAddresses] = useState([]);
@@ -20,6 +20,31 @@ export default function CheckoutPage() {
   const [savingAddress, setSavingAddress] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState('');
+  // productId -> { availableCount, isPurchasable }. Null until the first
+  // check returns, so the pay button isn't blocked on a slow network.
+  const [availability, setAvailability] = useState(null);
+
+  // Re-checked whenever the cart changes, so removing the sold-out line
+  // clears the block immediately.
+  useEffect(() => {
+    const productIds = items.map((i) => i.productId);
+    if (productIds.length === 0) {
+      setAvailability({});
+      return;
+    }
+    let cancelled = false;
+    api.getAvailability(productIds)
+      .then((rows) => {
+        if (cancelled) return;
+        setAvailability(Object.fromEntries(rows.map((r) => [r.productId, r])));
+      })
+      .catch(() => {
+        // A failed check must not strand the customer: the atomic claim at
+        // reservation time is still the real guard.
+        if (!cancelled) setAvailability({});
+      });
+    return () => { cancelled = true; };
+  }, [items]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -67,6 +92,15 @@ export default function CheckoutPage() {
   // Nothing is added on top of the items — no shipping fee is ever charged.
   const total = subtotal;
 
+  const stockFor = (item) => availability?.[item.productId];
+  const isShort = (item) => {
+    const row = stockFor(item);
+    if (!row) return false;
+    return !row.isPurchasable || row.availableCount < item.quantity;
+  };
+  const unavailableItems = items.filter(isShort);
+  const hasUnavailable = unavailableItems.length > 0;
+
   const handleSaveAddress = async (form) => {
     setSavingAddress(true);
     setError('');
@@ -83,6 +117,10 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
+    if (hasUnavailable) {
+      setError("Can't proceed, some of the products are out of stock");
+      return;
+    }
     if (!selectedAddressId) {
       setError('Please select or add a shipping address');
       return;
@@ -198,18 +236,47 @@ export default function CheckoutPage() {
           </section>
 
           <section className="checkout-section">
-            <h3>Order Items</h3>
-            <div className="checkout-items">
-              {items.map((item) => (
-                <div className="checkout-item" key={item.productId}>
-                  <img src={item.image} alt={item.name} />
-                  <div className="checkout-item-info">
-                    <span>{item.name}</span>
-                    <span className="checkout-item-qty">Qty: {item.quantity}</span>
-                  </div>
-                  <span className="checkout-item-price">{formatPrice(item.price * item.quantity)}</span>
+            <h3>Order Items <span className="checkout-item-count">({itemCount})</span></h3>
+            {hasUnavailable && (
+              <div className="checkout-stock-alert" role="alert">
+                <AlertTriangle size={17} />
+                <div>
+                  <strong>Can't proceed, some of the products are out of stock</strong>
+                  <p>Remove {unavailableItems.length === 1 ? 'it' : 'them'} below to continue.</p>
                 </div>
-              ))}
+              </div>
+            )}
+            <div className="checkout-items">
+              {items.map((item) => {
+                const row = stockFor(item);
+                const short = isShort(item);
+                return (
+                  <div className={`checkout-item${short ? ' checkout-item-unavailable' : ''}`} key={item.productId}>
+                    <img src={item.image} alt={item.name} />
+                    <div className="checkout-item-info">
+                      <span>{item.name}</span>
+                      <span className="checkout-item-qty">Qty: {item.quantity}</span>
+                      {short && (
+                        <span className="checkout-item-stock">
+                          {row && row.availableCount > 0
+                            ? `Only ${row.availableCount} left`
+                            : 'Out of stock'}
+                        </span>
+                      )}
+                    </div>
+                    <span className="checkout-item-price">{formatPrice(item.price * item.quantity)}</span>
+                    <button
+                      type="button"
+                      className="checkout-item-remove"
+                      onClick={() => { removeItem(item.productId); setError(''); }}
+                      aria-label={`Remove ${item.name} from this order`}
+                      title="Remove from order"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </section>
         </div>
@@ -217,14 +284,18 @@ export default function CheckoutPage() {
         <aside className="cart-summary checkout-summary">
           <h3>Order Summary</h3>
           <div className="cart-summary-row">
-            <span>Subtotal</span>
+            <span>Subtotal ({itemCount} item{itemCount === 1 ? '' : 's'})</span>
             <span>{formatPrice(subtotal)}</span>
           </div>
           <div className="cart-summary-row cart-summary-total">
             <span>Total</span>
             <span>{formatPrice(total)}</span>
           </div>
-          <button className="btn btn-primary btn-block" onClick={handlePlaceOrder} disabled={placingOrder}>
+          <button
+            className="btn btn-primary btn-block"
+            onClick={handlePlaceOrder}
+            disabled={placingOrder || hasUnavailable}
+          >
             {placingOrder ? 'Processing…' : 'Pay & Place Order'}
           </button>
           <p className="checkout-secure-note">Payments are securely processed via Razorpay.</p>

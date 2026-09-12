@@ -38,3 +38,12 @@ export const getProductBySlug = async (req: Request, res: Response, next: NextFu
   }
 };
 
+
+export const getAvailability = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const result = await catalogService.getAvailabilityForProducts(req.body.productIds);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -47,6 +47,9 @@ router.patch(
   validateBody(updateSubcategorySchema),
   controller.updateSubcategory
 );
+// Permanent removal, ADMIN only — hiding (PATCH isActive:false) stays the
+// everyday tool. The service refuses when real sales history is at stake.
+router.delete('/subcategories/:subcategoryId', requireRoles('ADMIN'), controller.deleteSubcategory);
 router.post(
   '/subcategories/:subcategoryId/image',
   requireRoles('ADMIN'),

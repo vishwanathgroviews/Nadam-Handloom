@@ -204,6 +204,11 @@ export const api = {
     return res.data;
   },
 
+  // Live stock for what's in the cart. The cart is localStorage and can be
+  // days old, so nothing in it can be trusted about availability.
+  getAvailability: async (productIds) =>
+    (await request('/catalog/availability', { method: 'POST', skipAuth: true, body: { productIds } })).data,
+
   getProductBySlug: async (slug) => {
     const res = await request(`/catalog/products/${slug}`, { skipAuth: true });
     return res.data;

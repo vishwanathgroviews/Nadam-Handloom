@@ -121,9 +121,64 @@
 
 .checkout-item {
   display: grid;
-  grid-template-columns: 52px 1fr auto;
+  /* Trailing column is the remove control. */
+  grid-template-columns: 52px 1fr auto auto;
   align-items: center;
   gap: 12px;
+}
+
+/* A line that can no longer be fulfilled: dimmed, flagged, and the only
+   thing standing between the customer and the pay button. */
+.checkout-item-unavailable {
+  opacity: 0.72;
+}
+
+.checkout-item-stock {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-error, #a33127);
+}
+
+.checkout-item-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.checkout-item-remove:hover,
+.checkout-item-remove:focus-visible {
+  background: rgba(163, 49, 39, 0.08);
+  color: var(--color-error, #a33127);
+}
+
+.checkout-item-count {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.checkout-stock-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(163, 49, 39, 0.08);
+  color: var(--color-error, #a33127);
+  font-size: 0.86rem;
+}
+
+.checkout-stock-alert p {
+  margin: 2px 0 0;
+  color: var(--text-muted);
 }
 
 .checkout-item img {

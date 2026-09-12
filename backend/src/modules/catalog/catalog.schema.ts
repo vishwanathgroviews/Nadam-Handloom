@@ -28,3 +28,9 @@ export const listProductsQuerySchema = z.object({
 });
 
 export type ListProductsQuery = z.infer<typeof listProductsQuerySchema>;
+
+// Bounded so a crafted request can't ask about the whole catalogue at once;
+// a real cart is a handful of lines.
+export const availabilityBodySchema = z.object({
+  productIds: z.array(z.string().uuid('Invalid product id')).min(1).max(100),
+});

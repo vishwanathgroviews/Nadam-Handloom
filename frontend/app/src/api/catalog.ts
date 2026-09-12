@@ -255,5 +255,24 @@ export const uploadProductImage = (token: string, productId: string, image: Uplo
 export const uploadCategoryImage = (token: string, categoryId: string, image: UploadImageInput) =>
   uploadImage<AdminCategory>(`/admin/categories/${categoryId}/image`, token, image);
 
+export interface DeleteSubcategoryResult {
+  id: string;
+  name: string;
+  productsDeleted: number;
+  abandonedOrdersDeleted: number;
+}
+
+/**
+ * Permanent removal — the server refuses with 409 if anything in the
+ * subcategory has actually been sold, or if a checkout is holding its stock
+ * right now. Hiding (updateSubcategory with isActive:false) is the
+ * reversible, everyday alternative.
+ */
+export const deleteSubcategory = (token: string, subcategoryId: string) =>
+  apiRequest<{ data: DeleteSubcategoryResult }>(`/admin/subcategories/${subcategoryId}`, {
+    method: 'DELETE',
+    token,
+  });
+
 export const uploadSubcategoryImage = (token: string, subcategoryId: string, image: UploadImageInput) =>
   uploadImage<AdminSubcategory>(`/admin/subcategories/${subcategoryId}/image`, token, image);

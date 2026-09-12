@@ -15,10 +15,17 @@ export const scanLookup = async (req: AuthenticatedRequest, res: Response, next:
 
 export const scanSell = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    if (req.body.override && !req.user!.roles.includes('ADMIN')) {
+    // The schema normalises every sale into items[], so the override flag
+    // lives per line — a bill is ADMIN-only if ANY line overrides an online
+    // reservation. Reading a top-level req.body.override here would silently
+    // let STAFF self-authorize by sending the multi-item form.
+    const overridesReservation = Array.isArray(req.body.items)
+      ? req.body.items.some((item: { override?: boolean }) => item.override)
+      : Boolean(req.body.override);
+    if (overridesReservation && !req.user!.roles.includes('ADMIN')) {
       throw new ForbiddenError('Only the owner can override a reserved item');
     }
-    const result = await inventoryService.scanSell(req.body.code, req.body, req.user!.id);
+    const result = await inventoryService.scanSell(req.body, req.user!.id);
     res.status(200).json({ success: true, data: result });
   } catch (error) {
     next(error);
