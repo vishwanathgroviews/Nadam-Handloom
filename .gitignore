@@ -48,3 +48,6 @@ CLAUDE.md
 
 # Built APKs — distributed via S3/EAS, never committed (107 MB each).
 *.apk
+
+# Throwaway test bundle (built against the live API for browser checks).
+frontend/customer-web/dist-test/
