@@ -101,8 +101,10 @@ export default function ProfileSettings() {
         firstName: formData.first_name,
         lastName: formData.last_name,
         displayName: formData.display_name,
-        // Theme/language are no longer offered, so they are no longer sent.
-        // Anything already stored for them is left untouched on the server.
+        // Preferences (theme/language) are no longer offered. The API
+        // replaces this object wholesale, so saving drops whatever was
+        // stored for them — nothing reads those keys any more, and state and
+        // pincode (which the address flow does use) are still carried.
         preferences: {
           state: formData.state,
           pincode: formData.pincode
