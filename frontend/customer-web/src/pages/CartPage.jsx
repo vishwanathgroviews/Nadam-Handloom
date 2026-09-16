@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
+import { Trash2, ShoppingBag } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/format';
 import './CartPage.css';
 
 export default function CartPage() {
-  const { items, updateQuantity, removeItem, subtotal } = useCart();
+  const { items, removeItem, subtotal } = useCart();
   const navigate = useNavigate();
 
   if (items.length === 0) {
@@ -39,25 +39,12 @@ export default function CartPage() {
                 <span className="price-current">{formatPrice(item.price)}</span>
 
                 <div className="cart-item-controls">
-                  <div className="quantity-stepper">
-                    <button onClick={() => updateQuantity(item.productId, item.quantity - 1)} aria-label="Decrease quantity">
-                      <Minus size={14} />
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                      aria-label="Increase quantity"
-                      disabled={item.stock !== undefined && item.quantity >= item.stock}
-                    >
-                      <Plus size={14} />
-                    </button>
-                  </div>
                   <button className="cart-item-remove" onClick={() => removeItem(item.productId)}>
                     <Trash2 size={15} /> Remove
                   </button>
                 </div>
               </div>
-              <span className="cart-item-line-total">{formatPrice(item.price * item.quantity)}</span>
+              <span className="cart-item-line-total">{formatPrice(item.price)}</span>
             </div>
           ))}
         </div>

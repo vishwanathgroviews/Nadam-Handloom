@@ -99,7 +99,6 @@ export default function OrderDetail() {
                   {item.imageSnapshot && <img src={item.imageSnapshot} alt={item.nameSnapshot} />}
                   <div className="checkout-item-info">
                     <span>{item.nameSnapshot}</span>
-                    <span className="checkout-item-qty">Qty: {item.quantity}</span>
                   </div>
                   <span className="checkout-item-price">{formatPrice(item.priceSnapshot * item.quantity)}</span>
                 </div>

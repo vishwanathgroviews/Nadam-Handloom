@@ -107,26 +107,40 @@
 
 .hero-dots {
   position: absolute;
-  bottom: 20px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
+  gap: 2px;
   z-index: 2;
 }
 
+/* The dot the eye sees stays 9px; the button around it is 30x30 so it can
+   actually be hit with a thumb. The visible pill is painted with ::before
+   rather than by sizing the button itself. */
 .hero-dot {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hero-dot::before {
+  content: '';
+  display: block;
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  border: none;
   background: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  padding: 0;
   transition: var(--transition-smooth);
 }
 
-.hero-dot.active {
+.hero-dot.active::before {
   background: var(--secondary);
   width: 24px;
   border-radius: 5px;

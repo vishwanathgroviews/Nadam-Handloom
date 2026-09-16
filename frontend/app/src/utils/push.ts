@@ -18,11 +18,21 @@ export interface PushRegistration {
 }
 
 /**
+ * Master switch for the notifications feature, which is turned off for now
+ * at the client's request. While this is false the app never asks for the
+ * notification permission and never registers a device token, so no push
+ * can be delivered to it. Everything below is left intact — flip this back
+ * to true to turn the feature back on, no other change needed.
+ */
+export const PUSH_NOTIFICATIONS_ENABLED = false;
+
+/**
  * Requests permission and returns an Expo push token, or null if push isn't
  * available right now (Expo Go, simulator, permission denied, or — until
  * `eas init` has been run for this project — no EAS projectId configured yet).
  */
 export const registerForPushNotifications = async (): Promise<PushRegistration | null> => {
+  if (!PUSH_NOTIFICATIONS_ENABLED) return null;
   if (isExpoGo) {
     console.warn('Push notifications need a development build — skipping under Expo Go.');
     return null;

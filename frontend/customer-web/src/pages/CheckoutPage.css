@@ -1,5 +1,6 @@
+/* Side gutter comes from .container — see CartPage.css. */
 .checkout-page {
-  padding: 28px 24px 60px;
+  padding: 28px 0 60px;
 }
 
 .checkout-auth-gate {
@@ -194,11 +195,10 @@
   gap: 2px;
   font-size: 0.88rem;
   color: var(--text-dark);
-}
-
-.checkout-item-qty {
-  color: var(--text-muted);
-  font-size: 0.78rem;
+  /* Lets the 1fr track actually shrink on a narrow phone instead of the row
+     growing wider than the card. */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .checkout-item-price {
@@ -221,5 +221,26 @@
 @media (max-width: 800px) {
   .checkout-layout {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .checkout-section {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  /* Image, details and price stay on one line; the remove control wraps to
+     its own row rather than crushing the price into two characters. */
+  .checkout-item {
+    grid-template-columns: 44px 1fr auto;
+    row-gap: 4px;
+  }
+  .checkout-item img {
+    width: 44px;
+    height: 54px;
+  }
+  .checkout-item-remove {
+    grid-column: 3;
+    justify-self: end;
   }
 }

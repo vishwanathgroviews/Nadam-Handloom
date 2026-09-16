@@ -8,7 +8,15 @@ import { logAuthEvent } from '../auth/auditLog.service';
 
 type Tx = Prisma.TransactionClient;
 
-export const RESERVATION_TTL_MS = 15 * 60 * 1000;
+/**
+ * How long an unpaid checkout may hold stock. A shopper who opens the
+ * payment sheet and walks away must not keep a saree off the shelf
+ * indefinitely — after this window the expiry sweep puts it back and it
+ * reads as in stock again everywhere (catalog.availability.ts counts only
+ * `in_stock` pieces plus the legacy counter, both of which the release
+ * restores).
+ */
+export const RESERVATION_TTL_MS = 10 * 60 * 1000;
 const LOW_STOCK_THRESHOLD = 3;
 
 export interface ReserveRequestItem {
@@ -647,7 +655,11 @@ export const getStockLedger = async (query: { productId?: string; page: number; 
 
 /** Periodically releases abandoned-checkout reservations past their TTL. */
 export const startReservationExpirySweep = () => {
-  const SWEEP_INTERVAL_MS = 60 * 1000;
+  // Runs well inside the TTL so a hold is actually released at ~10 minutes
+  // rather than up to a minute late — the sweep is a cheap indexed lookup
+  // (Reservation has an index on [status, expiresAt]) and is a no-op when
+  // nothing has expired.
+  const SWEEP_INTERVAL_MS = 15 * 1000;
 
   const interval = setInterval(() => {
     sweepExpiredReservations().catch((error) => console.error('Reservation expiry sweep failed:', error));

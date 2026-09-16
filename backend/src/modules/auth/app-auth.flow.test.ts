@@ -203,3 +203,81 @@ describe('app (mobile) auth flow', () => {
     expect(Array.isArray(adminAttempt.body.data)).toBe(true);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────
+// The staff app is for the shop's own people. A customer who signed up on
+// the storefront has an AuthAccount with a phone number just like a staff
+// member does, so every door into this app has to check for a staff role —
+// not just the login one.
+// ─────────────────────────────────────────────────────────────────
+describe('staff app is closed to customers', () => {
+  const createCustomer = async (mobile: string, mpin = '284759') => {
+    const account = await fake.client.authAccount.create({
+      data: {
+        phone: mobile,
+        email: `${mobile}@shopper.example.com`,
+        mpinHash: await hashSecret(mpin),
+        mpinSetAt: new Date(),
+        status: 'active',
+        phoneVerifiedAt: new Date(),
+        userProfile: { create: { firstName: 'Shop', lastName: 'Per' } },
+      },
+    });
+    await fake.client.userRole.create({ data: { authAccountId: account.id, roleId: roles.CUSTOMER.id } });
+    return account;
+  };
+
+  it('refuses a customer who signs in with the right mobile and MPIN', async () => {
+    await createCustomer('9100000001');
+
+    const login = await request(app)
+      .post('/api/v1/auth/app/login')
+      .send({ mobile: '9100000001', mpin: '284759', platform: 'android' });
+
+    expect(login.status).toBe(404);
+    // Same wording an unknown number gets — saying "you exist but you're not
+    // staff" would confirm the account to anyone holding the number.
+    expect(login.body.message).toBe('Please use the registered mobile number');
+  });
+
+  it('refuses to send a customer an activation OTP', async () => {
+    await createCustomer('9100000002');
+
+    const activate = await request(app).post('/api/v1/auth/app/activate').send({ mobile: '9100000002' });
+
+    expect(activate.status).toBe(404);
+    expect(sendOtpMock).not.toHaveBeenCalled();
+  });
+
+  it('refuses to send a customer an MPIN reset OTP', async () => {
+    await createCustomer('9100000003');
+
+    const forgot = await request(app).post('/api/v1/auth/app/mpin/forgot').send({ mobile: '9100000003' });
+
+    expect(forgot.status).toBe(404);
+    expect(sendOtpMock).not.toHaveBeenCalled();
+  });
+
+  it('still lets an invited staff member in, including one who also shops on the storefront', async () => {
+    const account = await fake.client.authAccount.create({
+      data: {
+        phone: '9100000004',
+        email: '9100000004@example.com',
+        mpinHash: await hashSecret('284759'),
+        mpinSetAt: new Date(),
+        status: 'active',
+        phoneVerifiedAt: new Date(),
+        adminProfile: { create: { firstName: 'Dual', lastName: 'Role' } },
+      },
+    });
+    await fake.client.userRole.create({ data: { authAccountId: account.id, roleId: roles.CUSTOMER.id } });
+    await fake.client.userRole.create({ data: { authAccountId: account.id, roleId: roles.STAFF.id } });
+
+    const login = await request(app)
+      .post('/api/v1/auth/app/login')
+      .send({ mobile: '9100000004', mpin: '284759', platform: 'android' });
+
+    expect(login.status).toBe(200);
+    expect(login.body.data.user.roles).toEqual(expect.arrayContaining(['STAFF']));
+  });
+});

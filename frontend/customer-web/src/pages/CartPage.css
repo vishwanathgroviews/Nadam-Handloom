@@ -1,5 +1,7 @@
+/* .container already supplies the side gutter (24px, 16px on phones) —
+   repeating it here doubled it and squeezed the content on small screens. */
 .cart-page {
-  padding: 28px 24px 60px;
+  padding: 28px 0 60px;
 }
 
 .cart-empty {
@@ -58,6 +60,13 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  /* Long product names would otherwise hold this grid track open and push
+     the line total past the card edge. */
+  min-width: 0;
+}
+
+.cart-item-name {
+  overflow-wrap: anywhere;
 }
 
 .cart-item-name {
@@ -79,9 +88,13 @@
 }
 
 .cart-item-remove {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
+  /* Vertical padding rather than a height, so the row keeps its look while
+     the button clears the ~32px a thumb needs. */
+  padding: 8px 10px 8px 0;
+  min-height: 32px;
   background: none;
   border: none;
   color: var(--text-muted);
@@ -147,9 +160,18 @@
 @media (max-width: 800px) {
   .cart-layout {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
   .cart-item {
     grid-template-columns: 70px 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+  /* The thumbnail's own fixed width has to follow the narrower track, or it
+     spills over the text beside it. */
+  .cart-item-image {
+    width: 70px;
+    height: 88px;
   }
   .cart-item-line-total {
     grid-column: 2;

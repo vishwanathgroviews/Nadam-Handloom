@@ -5,6 +5,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
+import { goToTab } from '../navigation/tabs';
 import { useAuth } from '../context/AuthContext';
 import { getDashboard, DashboardStats, SoldProductLine } from '../api/admin';
 import { listAdminOrders } from '../api/admin';
@@ -48,14 +49,14 @@ export default function AdminHomeScreen({ navigation }: Props) {
   );
 
   const quickActions: QuickAction[] = [
-    { key: 'scan', label: 'Scan to sell', icon: 'barcode-outline', onPress: () => navigation.navigate('Scanner') },
+    { key: 'scan', label: 'Scan to sell', icon: 'barcode-outline', onPress: () => goToTab(navigation, 'ScannerTab') },
     { key: 'new', label: 'New product', icon: 'add-circle-outline', onPress: () => navigation.navigate('ProductForm', {}) },
     { key: 'price', label: 'Update prices', icon: 'pricetag-outline', onPress: () => navigation.navigate('Categories') },
     { key: 'analytics', label: 'Analytics', icon: 'trending-up-outline', onPress: () => navigation.navigate('Analytics') },
   ];
 
   const manageItems: ManageItem[] = [
-    { key: 'products', label: 'Products', hint: stats ? `${stats.products.activeCount} live` : '—', icon: 'shirt-outline', onPress: () => navigation.navigate('Products') },
+    { key: 'products', label: 'Products', hint: stats ? `${stats.products.activeCount} live` : '—', icon: 'shirt-outline', onPress: () => goToTab(navigation, 'ProductsTab') },
     { key: 'catalog', label: 'Catalog', hint: 'Categories & pricing', icon: 'albums-outline', onPress: () => navigation.navigate('Categories') },
     { key: 'invoices', label: 'Invoices', hint: 'Generated invoices & reports', icon: 'document-text-outline', onPress: () => navigation.navigate('Invoices') },
     { key: 'team', label: 'Team', hint: 'Staff & roles', icon: 'people-outline', onPress: () => navigation.navigate('StaffList') },
@@ -121,7 +122,7 @@ export default function AdminHomeScreen({ navigation }: Props) {
           <TouchableOpacity style={styles.statTouchable} onPress={() => navigation.navigate('Inventory')} activeOpacity={0.8}>
             <StatCard icon="alert-circle-outline" iconColor={colors.warning} iconBg={colors.warningBg} label="running low" value={stats?.lowStockCount ?? '—'} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.statTouchable} onPress={() => navigation.navigate('Orders')} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.statTouchable} onPress={() => goToTab(navigation, 'OrdersTab')} activeOpacity={0.8}>
             <StatCard icon="cube-outline" iconColor={colors.success} iconBg={colors.successBg} label="to ship" value={toShipCount ?? '—'} />
           </TouchableOpacity>
         </View>

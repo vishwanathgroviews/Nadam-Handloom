@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import type { NavigatorScreenParams } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -50,17 +51,14 @@ export type AuthStackParamList = {
 };
 
 export type AppStackParamList = {
-  Home: undefined;
-  Orders: undefined;
+  Home: NavigatorScreenParams<RootTabParamList> | undefined;
   OrderShipment: { orderId: string };
   Categories: undefined;
   CategoryForm: { categoryId?: string };
   SubcategoryList: { categoryId: string; categoryName?: string };
   SubcategoryForm: { categoryId: string; subcategoryId?: string };
   SubcategoryCatalog: { subcategoryId: string; subcategoryName?: string };
-  Products: undefined;
   ProductForm: { productId?: string; initialBarcode?: string };
-  Scanner: undefined;
   Inventory: undefined;
   ReceiveStock: { productId: string; productName?: string; trackingMode?: TrackingMode };
   StaffList: undefined;
@@ -75,7 +73,7 @@ export type AppStackParamList = {
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const AppStack = createNativeStackNavigator<AppStackParamList>();
 
-type RootTabParamList = {
+export type RootTabParamList = {
   HomeTab: undefined;
   OrdersTab: undefined;
   ScannerTab: undefined;
@@ -89,18 +87,23 @@ function HomeRouter(props: NativeStackScreenProps<AppStackParamList, 'Home'>) {
   return role === 'ADMIN' ? <AdminHomeScreen {...props} /> : <StaffHomeScreen {...props} />;
 }
 
-// Only the app's root entry point becomes a tab container — every other
-// screen (Orders, Categories, Products, Scanner as a deep link from the Home
-// menu, etc.) stays a sibling in the outer AppStack exactly as before, so no
-// existing `navigation.navigate('X')` call anywhere in the app needs to
-// change. Scanner/Orders are deliberately reachable both as a tab (quick
-// access, used all day) and via the Home menu (unchanged) — React
-// Navigation resolves either path correctly since both point at the same
-// underlying screens. Icons/labels for these tabs are owned by TabBar, not
-// this screenOptions block.
+// The app's five top-level destinations live here and ONLY here. Orders,
+// Scanner and Products used to be registered a second time as siblings in
+// the outer AppStack so the Home menu could push them; that copy carried no
+// tab bar and no back chevron, so the only way off it was the hardware back
+// key — which is what made "back" look like it skipped straight to Home.
+// The Home menu now switches tabs (see goToTab) instead of pushing a
+// duplicate, and every genuinely nested screen below stays a pushed stack
+// route whose back chevron pops exactly one level.
+//
+// backBehavior="history" so the hardware back key retraces the tabs you
+// actually visited instead of jumping to Home from any non-first tab.
+// Icons/labels for these tabs are owned by TabBar, not this screenOptions
+// block.
 function RootTabs() {
   return (
     <Tab.Navigator
+      backBehavior="history"
       screenOptions={{ headerShown: false }}
       tabBar={(props) => <TabBar {...props} />}
     >
@@ -137,16 +140,13 @@ export default function RootNavigator() {
       {status === 'authenticated' ? (
         <AppStack.Navigator screenOptions={{ headerShown: false }}>
           <AppStack.Screen name="Home" component={RootTabs} />
-          <AppStack.Screen name="Orders" component={AdminOrdersScreen} />
           <AppStack.Screen name="OrderShipment" component={OrderShipmentScreen} />
           <AppStack.Screen name="Categories" component={CategoryListScreen} />
           <AppStack.Screen name="CategoryForm" component={CategoryFormScreen} />
           <AppStack.Screen name="SubcategoryList" component={SubcategoryListScreen} />
           <AppStack.Screen name="SubcategoryForm" component={SubcategoryFormScreen} />
           <AppStack.Screen name="SubcategoryCatalog" component={SubcategoryCatalogScreen} />
-          <AppStack.Screen name="Products" component={ProductListScreen} />
           <AppStack.Screen name="ProductForm" component={ProductFormScreen} />
-          <AppStack.Screen name="Scanner" component={ScannerScreen} />
           <AppStack.Screen name="Inventory" component={InventoryScreen} />
           <AppStack.Screen name="ReceiveStock" component={ReceiveStockScreen} options={{ presentation: 'modal' }} />
           <AppStack.Screen name="StaffList" component={StaffListScreen} />

@@ -29,6 +29,10 @@
 
 .store-menu-toggle {
   display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
   background: none;
   border: none;
   color: var(--text-dark);
@@ -157,6 +161,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* A 40px box around a 21px icon — the icon is the same size it always
+     was, this just makes the thing hittable on a touch screen. */
+  min-width: 40px;
+  min-height: 40px;
   padding: 6px;
   transition: var(--transition-smooth);
 }
@@ -292,9 +300,22 @@
     gap: 10px;
   }
 
+  /* The wordmark is the only elastic thing in this row (hamburger, logo and
+     the two action icons are all fixed), so it — and only it — absorbs
+     whatever width is left. Without min-width:0 a flex item refuses to
+     shrink below its text, which pushed the cart icon off the right edge on
+     360px phones; the document-level overflow-x:hidden then hid the damage
+     instead of the row fitting. */
   .store-brand {
     font-size: 1.15rem;
     gap: 6px;
+    min-width: 0;
+  }
+
+  .store-brand span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .store-nav {
@@ -342,5 +363,31 @@
   .store-footer-grid {
     grid-template-columns: 1fr;
     padding: 36px 20px 20px;
+  }
+}
+
+@media (max-width: 400px) {
+  .store-header-inner {
+    gap: 8px;
+  }
+
+  .store-brand {
+    font-size: 1.02rem;
+  }
+
+  .store-menu-toggle {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 4px;
+  }
+
+  .store-header-actions {
+    gap: 10px;
+  }
+
+  .store-icon-link {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 4px;
   }
 }

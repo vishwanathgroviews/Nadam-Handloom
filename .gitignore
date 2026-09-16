@@ -45,3 +45,6 @@ Thumbs.db
 .claude/
 CLAUDE.md
 .mcp.json
+
+# Built APKs — distributed via S3/EAS, never committed (107 MB each).
+*.apk

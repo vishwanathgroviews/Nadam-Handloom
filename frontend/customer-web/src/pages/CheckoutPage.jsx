@@ -96,7 +96,7 @@ export default function CheckoutPage() {
   const isShort = (item) => {
     const row = stockFor(item);
     if (!row) return false;
-    return !row.isPurchasable || row.availableCount < item.quantity;
+    return !row.isPurchasable || row.availableCount < 1;
   };
   const unavailableItems = items.filter(isShort);
   const hasUnavailable = unavailableItems.length > 0;
@@ -129,7 +129,8 @@ export default function CheckoutPage() {
     setPlacingOrder(true);
     try {
       const checkoutResult = await api.checkout({
-        items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        // Always one piece per line — see CartContext.
+        items: items.map((i) => ({ productId: i.productId, quantity: 1 })),
         addressId: selectedAddressId,
       });
 
@@ -255,7 +256,6 @@ export default function CheckoutPage() {
                     <img src={item.image} alt={item.name} />
                     <div className="checkout-item-info">
                       <span>{item.name}</span>
-                      <span className="checkout-item-qty">Qty: {item.quantity}</span>
                       {short && (
                         <span className="checkout-item-stock">
                           {row && row.availableCount > 0
@@ -264,7 +264,7 @@ export default function CheckoutPage() {
                         </span>
                       )}
                     </div>
-                    <span className="checkout-item-price">{formatPrice(item.price * item.quantity)}</span>
+                    <span className="checkout-item-price">{formatPrice(item.price)}</span>
                     <button
                       type="button"
                       className="checkout-item-remove"

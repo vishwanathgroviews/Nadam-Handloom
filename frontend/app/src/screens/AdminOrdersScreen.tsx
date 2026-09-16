@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../navigation/RootNavigator';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { AppStackParamList, RootTabParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
 import { listAdminOrders, AdminOrderSummary } from '../api/admin';
 import { colors, radius, spacing, typography } from '../utils/theme';
@@ -10,7 +12,10 @@ import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import { Badge, FilterChip, SegmentedControl } from '../components/ui/Chip';
 
-type Props = NativeStackScreenProps<AppStackParamList, 'Orders'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<RootTabParamList, 'OrdersTab'>,
+  NativeStackScreenProps<AppStackParamList>
+>;
 
 // The whole screen is exactly this binary workflow — nothing else. Entering
 // an AWB (markOrderShipped, admin.service.ts) is what moves an order from
@@ -49,12 +54,10 @@ const itemsSummary = (items: { nameSnapshot: string }[]): string => {
 
 export default function AdminOrdersScreen({ navigation }: Props) {
   const { accessToken } = useAuth();
-  // This screen is reachable both as the "Orders" bottom tab and as a plain
-  // stack push from elsewhere (e.g. Home's "to ship" tile) — the latter has
-  // no BottomTabNavigator ancestor, so useBottomTabBarHeight() would throw.
-  // A fixed generous clearance works safely in both contexts.
-  const insets = useSafeAreaInsets();
-  const bottomPadding = insets.bottom + 100;
+  // Only ever rendered as the "Orders" bottom tab now (Home's "to ship"
+  // tile selects the tab rather than pushing a second copy), so the real
+  // bar height is always available here.
+  const bottomPadding = useBottomTabBarHeight() + spacing.xl;
   const [tab, setTab] = useState<'to_ship' | 'shipped'>('to_ship');
   const [dateKey, setDateKey] = useState('all');
 

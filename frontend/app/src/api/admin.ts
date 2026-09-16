@@ -2,6 +2,10 @@ import { apiRequest } from './client';
 
 export interface AdminOrderItem {
   id: string;
+  // The catalog product this line was sold from, so the order and shipment
+  // screens can open its full details. Kept alongside the snapshots below
+  // rather than replacing them: the snapshots are what was actually bought.
+  productId: string;
   nameSnapshot: string;
   quantity: number;
   priceSnapshot: string;

@@ -7,7 +7,19 @@ const readCart = () => {
   try {
     const raw = localStorage.getItem(CART_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // A cart saved before quantities were removed can still hold lines with
+    // quantity > 1, or two lines for one product. Left alone those would be
+    // priced as one piece but reserved as several at checkout, so they are
+    // normalised on the way in: one line per product, one piece each.
+    const seen = new Set();
+    return parsed
+      .filter((item) => {
+        if (!item || seen.has(item.productId)) return false;
+        seen.add(item.productId);
+        return true;
+      })
+      .map((item) => ({ ...item, quantity: 1 }));
   } catch {
     return [];
   }
@@ -16,6 +28,12 @@ const readCart = () => {
 // Guest-friendly cart: lives entirely in localStorage so browsing and adding
 // to cart never requires login. Checkout submits this list to the backend,
 // which revalidates stock/price server-side before creating the order.
+//
+// There is no quantity anywhere on the storefront. Every listing is a single
+// handloom piece, so a cart line is one piece and adding something already
+// in the cart is a no-op rather than a second unit. Lines still carry
+// `quantity: 1` because that is the shape the checkout API takes — it is a
+// constant, never a control.
 export function CartProvider({ children }) {
   const [items, setItems] = useState(readCart);
 
@@ -23,14 +41,10 @@ export function CartProvider({ children }) {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addItem = useCallback((product, quantity = 1) => {
+  const addItem = useCallback((product) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.productId === product.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.productId === product.id ? { ...i, quantity: i.quantity + quantity } : i
-        );
-      }
+      // Already in the cart — nothing to add, and nothing to increment.
+      if (prev.some((i) => i.productId === product.id)) return prev;
       // Price/MRP are subcategory-level — every product in a subcategory shares them.
       const onlinePrice = Number(product.subcategory?.onlinePrice);
       return [
@@ -43,7 +57,7 @@ export function CartProvider({ children }) {
           mrp: Number(product.subcategory?.mrp ?? onlinePrice),
           image: product.images?.[0]?.url ?? product.image,
           stock: product.availableCount,
-          quantity,
+          quantity: 1,
         },
       ];
     });
@@ -53,21 +67,16 @@ export function CartProvider({ children }) {
     setItems((prev) => prev.filter((i) => i.productId !== productId));
   }, []);
 
-  const updateQuantity = useCallback((productId, quantity) => {
-    setItems((prev) => {
-      if (quantity <= 0) return prev.filter((i) => i.productId !== productId);
-      return prev.map((i) => (i.productId === productId ? { ...i, quantity } : i));
-    });
-  }, []);
-
   const clearCart = useCallback(() => setItems([]), []);
 
-  const subtotal = useMemo(() => items.reduce((sum, i) => sum + i.price * i.quantity, 0), [items]);
-  const itemCount = useMemo(() => items.reduce((sum, i) => sum + i.quantity, 0), [items]);
+  // One line = one piece, so the subtotal is a plain sum of prices and the
+  // count is simply how many lines there are.
+  const subtotal = useMemo(() => items.reduce((sum, i) => sum + i.price, 0), [items]);
+  const itemCount = items.length;
 
   const value = useMemo(
-    () => ({ items, addItem, removeItem, updateQuantity, clearCart, subtotal, itemCount }),
-    [items, addItem, removeItem, updateQuantity, clearCart, subtotal, itemCount]
+    () => ({ items, addItem, removeItem, clearCart, subtotal, itemCount }),
+    [items, addItem, removeItem, clearCart, subtotal, itemCount]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

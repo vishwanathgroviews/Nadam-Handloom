@@ -58,7 +58,8 @@
   background: transparent;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  padding: 6px 12px;
+  padding: 9px 14px;
+  min-height: 34px;
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--text-muted);

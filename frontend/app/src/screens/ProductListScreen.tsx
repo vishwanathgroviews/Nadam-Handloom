@@ -1,9 +1,12 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, TextInput, Image, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../navigation/RootNavigator';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { AppStackParamList, RootTabParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
 import { listProducts, AdminProductSummary } from '../api/catalog';
 import { saveToCache, loadFromCache } from '../utils/offlineCache';
@@ -15,7 +18,10 @@ import Card from '../components/ui/Card';
 import { Badge } from '../components/ui/Chip';
 import { colors, radius, spacing, typography } from '../utils/theme';
 
-type Props = NativeStackScreenProps<AppStackParamList, 'Products'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<RootTabParamList, 'ProductsTab'>,
+  NativeStackScreenProps<AppStackParamList>
+>;
 
 const CACHE_KEY = 'products';
 
@@ -34,6 +40,7 @@ interface ProductsCachePayload {
 
 export default function ProductListScreen({ navigation }: Props) {
   const { accessToken } = useAuth();
+  const tabBarHeight = useBottomTabBarHeight();
   const [products, setProducts] = useState<AdminProductSummary[]>([]);
   const [activeCount, setActiveCount] = useState(0);
   const [cap, setCap] = useState(5000);
@@ -156,7 +163,7 @@ export default function ProductListScreen({ navigation }: Props) {
         <FlatList
           data={products}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 40 }}
+          contentContainerStyle={{ paddingBottom: tabBarHeight + spacing.xl }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => {

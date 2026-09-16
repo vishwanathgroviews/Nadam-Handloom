@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Minus, Plus, ShoppingBag, Zap, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, Zap, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { formatPrice, discountPercent } from '../utils/format';
@@ -24,14 +24,12 @@ export default function ProductDetail() {
 
   const [product, setProduct] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
   const [notFound, setNotFound] = useState(false);
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
     setProduct(null);
     setActiveImage(0);
-    setQuantity(1);
     setAdded(false);
     api
       .getProductBySlug(slug)
@@ -61,16 +59,17 @@ export default function ProductDetail() {
   // creates a Piece row and never touches the legacy `stock` counter —
   // availableCount (stock + in-stock pieces) is what "in stock" means.
   const outOfStock = product.availableCount <= 0;
-  const maxQty = Math.min(product.availableCount, 10);
 
+  // Each listing is a single piece — one tap puts that piece in the cart,
+  // there is no amount to choose.
   const handleAddToCart = () => {
-    addItem(product, quantity);
+    addItem(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
   const handleBuyNow = () => {
-    addItem(product, quantity);
+    addItem(product);
     navigate('/checkout');
   };
 
@@ -142,21 +141,6 @@ export default function ProductDetail() {
               )}
             </tbody>
           </table>
-
-          {!outOfStock && (
-            <div className="product-quantity-row">
-              <span>Quantity</span>
-              <div className="quantity-stepper">
-                <button onClick={() => setQuantity((q) => Math.max(1, q - 1))} aria-label="Decrease quantity">
-                  <Minus size={14} />
-                </button>
-                <span>{quantity}</span>
-                <button onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))} aria-label="Increase quantity">
-                  <Plus size={14} />
-                </button>
-              </div>
-            </div>
-          )}
 
           <div className="product-actions">
             <button className="btn btn-outline btn-block" onClick={handleAddToCart} disabled={outOfStock}>

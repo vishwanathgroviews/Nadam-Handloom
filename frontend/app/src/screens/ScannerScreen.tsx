@@ -1,9 +1,12 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { AppStackParamList } from '../navigation/RootNavigator';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { AppStackParamList, RootTabParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
 import {
   scanLookup,
@@ -25,7 +28,10 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { Badge, SegmentedControl } from '../components/ui/Chip';
 
-type Props = NativeStackScreenProps<AppStackParamList, 'Scanner'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<RootTabParamList, 'ScannerTab'>,
+  NativeStackScreenProps<AppStackParamList>
+>;
 
 type Mode = 'sell' | 'lookup';
 
@@ -90,6 +96,7 @@ const MODE_OPTIONS: { key: Mode; label: string }[] = [
 
 export default function ScannerScreen({ navigation }: Props) {
   const { accessToken, role } = useAuth();
+  const tabBarHeight = useBottomTabBarHeight();
   const isOnline = useIsOnline();
   const [permission, requestPermission] = useCameraPermissions();
   const [mode, setMode] = useState<Mode>('sell');
@@ -279,7 +286,12 @@ export default function ScannerScreen({ navigation }: Props) {
   );
 
   // Puts the product just scanned onto the bill, carrying over whatever
-  // price was typed on the confirm step, then returns to the camera.
+  // price was typed on the confirm step, and stays on the bill. It
+  // deliberately does NOT reopen the camera: re-arming the scanner meant the
+  // item you just added scrolled out of view behind a live viewfinder, and
+  // the same label still sitting under the lens got picked up again. Staff
+  // choose what happens next from the bill itself — "Add More" goes back to
+  // the camera, "Complete Sale" finishes.
   const addToBill = useCallback(() => {
     if (!lookup) return;
     const code = lookup.barcode || lookup.sku;
@@ -298,8 +310,16 @@ export default function ScannerScreen({ navigation }: Props) {
         priceInput: salePriceInput.trim(),
       },
     ]);
-    scanAnother();
-  }, [lookup, bill, salePriceInput, scanAnother]);
+    // Clear the confirm card but stay in the 'result' phase so the bill —
+    // and its Add More / Complete Sale actions — is what's on screen.
+    setLookup(null);
+    setError('');
+    setErrorCode('');
+    setManualCode('');
+    setSalePriceInput('');
+    setScannedLock(false);
+    setPhase('result');
+  }, [lookup, bill, salePriceInput]);
 
   const handleCode = useCallback(
     (code: string) => {
@@ -364,7 +384,7 @@ export default function ScannerScreen({ navigation }: Props) {
     <KeyboardAwareScreen style={styles.screen}>
       <ScrollView
         style={styles.container}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + spacing.xl }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >

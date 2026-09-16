@@ -88,20 +88,35 @@ export const checkout = async (authAccountId: string, data: CheckoutInput) => {
     return { order: draft, total };
   });
 
-  const razorpayOrder = await paymentProvider.createOrder({
-    amount: total,
-    currency: 'INR',
-    receipt: order.orderNumber,
-  });
-
-  await prisma.payment.create({
-    data: {
-      orderId: order.id,
-      razorpayOrderId: razorpayOrder.providerOrderId,
+  // The reservation is already committed at this point, so anything that
+  // goes wrong from here on has to hand the stock back itself — there is no
+  // transaction left to roll back. Without this, a payment gateway that was
+  // down for ten seconds kept every item in that cart off the shelf for the
+  // full reservation TTL, against an order that could never be paid because
+  // it never got a payment record.
+  let razorpayOrder;
+  try {
+    razorpayOrder = await paymentProvider.createOrder({
       amount: total,
-      status: 'created',
-    },
-  });
+      currency: 'INR',
+      receipt: order.orderNumber,
+    });
+
+    await prisma.payment.create({
+      data: {
+        orderId: order.id,
+        razorpayOrderId: razorpayOrder.providerOrderId,
+        amount: total,
+        status: 'created',
+      },
+    });
+  } catch (error) {
+    await prisma.$transaction(async (tx) => {
+      await releaseReservationsForOrder(tx, order.id);
+      await tx.order.update({ where: { id: order.id }, data: { status: 'payment_failed' } });
+    });
+    throw error;
+  }
 
   return {
     orderId: order.id,

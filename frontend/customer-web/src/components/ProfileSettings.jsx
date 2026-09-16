@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  User, Phone, Globe, LogOut, Package, Save, Palette, CheckCircle, MapPin, AlertCircle,
+  User, Phone, LogOut, Package, Save, CheckCircle, MapPin, AlertCircle,
   ShieldCheck, KeyRound, Plus, Pencil, Trash2, Star, BadgeCheck,
 } from 'lucide-react';
 import { api } from '../services/api';
@@ -22,9 +22,7 @@ export default function ProfileSettings() {
     display_name: '',
     phone: '',
     state: '',
-    pincode: '',
-    theme: 'light',
-    language: 'en'
+    pincode: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -52,9 +50,7 @@ export default function ProfileSettings() {
       display_name: currentUser.userProfile?.displayName || '',
       phone: currentUser.phone || '',
       state: currentUser.userProfile?.preferences?.state || '',
-      pincode: currentUser.userProfile?.preferences?.pincode || '',
-      theme: currentUser.userProfile?.preferences?.theme || 'light',
-      language: currentUser.userProfile?.preferences?.language || 'en'
+      pincode: currentUser.userProfile?.preferences?.pincode || ''
     });
   }, [status, isAuthenticated, currentUser, navigate]);
 
@@ -105,11 +101,11 @@ export default function ProfileSettings() {
         firstName: formData.first_name,
         lastName: formData.last_name,
         displayName: formData.display_name,
+        // Theme/language are no longer offered, so they are no longer sent.
+        // Anything already stored for them is left untouched on the server.
         preferences: {
           state: formData.state,
-          pincode: formData.pincode,
-          theme: formData.theme,
-          language: formData.language
+          pincode: formData.pincode
         }
       });
 
@@ -321,50 +317,6 @@ export default function ProfileSettings() {
                     <MapPin size={18} className="input-icon" />
                   </div>
                   {errors.pincode && <span className="error-msg">{errors.pincode}</span>}
-                </div>
-              </div>
-            </section>
-
-            <section className="profile-card">
-              <h2 className="profile-card-title"><Palette size={16} /> Preferences</h2>
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="input-label">
-                    <Palette size={14} /> Theme
-                  </label>
-                  <div className="input-wrapper">
-                    <select
-                      name="theme"
-                      className="form-input"
-                      style={{ paddingLeft: '42px', appearance: 'auto' }}
-                      value={formData.theme}
-                      onChange={handleChange}
-                    >
-                      <option value="light">Classic Ivory</option>
-                      <option value="dark">Charcoal Weave</option>
-                    </select>
-                    <Palette size={18} className="input-icon" />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="input-label">
-                    <Globe size={14} /> Language
-                  </label>
-                  <div className="input-wrapper">
-                    <select
-                      name="language"
-                      className="form-input"
-                      style={{ paddingLeft: '42px', appearance: 'auto' }}
-                      value={formData.language}
-                      onChange={handleChange}
-                    >
-                      <option value="en">English</option>
-                      <option value="te">Telugu (తెలుగు)</option>
-                      <option value="ta">Tamil (தமிழ்)</option>
-                    </select>
-                    <Globe size={18} className="input-icon" />
-                  </div>
                 </div>
               </div>
             </section>

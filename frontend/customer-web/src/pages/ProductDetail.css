@@ -1,5 +1,5 @@
 .product-detail {
-  padding: 28px 24px 60px;
+  padding: 28px 0 60px;
 }
 
 .product-detail-grid {
@@ -99,39 +99,6 @@
 .product-attributes td:last-child {
   color: var(--text-dark);
   font-weight: 500;
-}
-
-.product-quantity-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-top: 14px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text-dark);
-}
-
-.quantity-stepper {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 6px 12px;
-}
-
-.quantity-stepper button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-dark);
-  display: flex;
-}
-
-.quantity-stepper span {
-  min-width: 18px;
-  text-align: center;
-  font-weight: 600;
 }
 
 .product-actions {

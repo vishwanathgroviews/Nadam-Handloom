@@ -24,11 +24,17 @@ interface Props {
 export default function ScreenHeader({ title, subtitle, onBack, showBack = true, rightAction, titleNode }: Props) {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const handleBack = onBack ?? (() => navigation.goBack());
+  // goBack() pops exactly one entry; the canGoBack() guard keeps a stray tap
+  // on a root screen from bubbling the action up to a parent navigator,
+  // which is what could unwind more than one step at a time.
+  const handleBack = onBack ?? (() => { if (navigation.canGoBack()) navigation.goBack(); });
+  // Never render a chevron that would do nothing (or, worse, jump somewhere
+  // unrelated) — a tab root has nothing beneath it to go back to.
+  const canShowBack = showBack && navigation.canGoBack();
 
   return (
     <View style={[styles.row, { paddingTop: insets.top + spacing.sm }]}>
-      {showBack && (
+      {canShowBack && (
         <TouchableOpacity style={styles.iconCircle} onPress={handleBack} activeOpacity={0.75}>
           <Ionicons name="chevron-back" size={18} color={colors.text} />
         </TouchableOpacity>
@@ -41,11 +47,10 @@ export default function ScreenHeader({ title, subtitle, onBack, showBack = true,
           </>
         )}
       </View>
-      {rightAction === undefined ? (
-        <View style={styles.iconCircle}>
-          <Ionicons name="notifications-outline" size={18} color={colors.text} />
-        </View>
-      ) : rightAction}
+      {/* Notifications are switched off for now (see utils/push.ts) — the
+          bell that used to sit here went nowhere, so it is not rendered.
+          The slot itself stays only when a screen supplies its own action. */}
+      {rightAction ?? null}
     </View>
   );
 }

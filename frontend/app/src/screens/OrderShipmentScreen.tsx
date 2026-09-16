@@ -11,6 +11,8 @@ import { savePdfBytes, sharePdf } from '../utils/pdf';
 import { DTDC_TRACKING_URL } from '../utils/constants';
 import { buildShipmentMessage as composeShipmentMessage, dedupeProductLinks } from '../utils/shipmentMessage';
 import KeyboardAwareScreen from '../components/KeyboardAwareScreen';
+import BarcodeScanModal from '../components/BarcodeScanModal';
+import { normalizeBarcode } from '../utils/barcode';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -29,6 +31,8 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
   const [error, setError] = useState('');
   const [result, setResult] = useState<MarkShippedResult | null>(null);
   const [sharingInvoice, setSharingInvoice] = useState(false);
+  const [awbScannerVisible, setAwbScannerVisible] = useState(false);
+  const [scanStatus, setScanStatus] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!accessToken) return;
@@ -48,6 +52,17 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  // One scan fills the field and closes the camera — there is exactly one
+  // AWB per parcel, so there is nothing to keep scanning for.
+  const handleAwbScanned = useCallback((code: string) => {
+    const cleaned = normalizeBarcode(code);
+    if (!cleaned) return;
+    setAwbNumber(cleaned);
+    setScanStatus(`Scanned ${cleaned}`);
+    setAwbScannerVisible(false);
+    setError('');
+  }, []);
 
   const handleMarkShipped = async () => {
     if (!accessToken) return;
@@ -200,8 +215,18 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
 
       <Card style={styles.card}>
         <Text style={styles.cardLabel}>Items</Text>
+        {/* Every line opens the product it was sold from — staff packing a
+            parcel need the full listing (photos, SKU, barcode, stock) and
+            were otherwise left retyping the name into the Products search. */}
         {order.items.map((item) => (
-          <View key={item.id} style={styles.itemRow}>
+          <TouchableOpacity
+            key={item.id}
+            style={styles.itemRow}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('ProductForm', { productId: item.productId })}
+            accessibilityRole="button"
+            accessibilityLabel={`View product details for ${item.nameSnapshot}`}
+          >
             {item.imageSnapshot ? (
               <Image source={{ uri: item.imageSnapshot }} style={styles.itemThumb} />
             ) : (
@@ -209,9 +234,13 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
                 <Ionicons name="image-outline" size={18} color={colors.iconMuted} />
               </View>
             )}
-            <Text style={styles.itemName} numberOfLines={2}>{item.nameSnapshot}</Text>
+            <View style={styles.itemTextWrap}>
+              <Text style={styles.itemName} numberOfLines={2}>{item.nameSnapshot}</Text>
+              <Text style={styles.itemViewHint}>View product</Text>
+            </View>
             <Text style={styles.itemQty}>×{item.quantity}</Text>
-          </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.iconMuted} />
+          </TouchableOpacity>
         ))}
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Order total</Text>
@@ -300,19 +329,43 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
               This order is already marked "{order.shipment?.status}". Entering a new AWB will update it.
             </Text>
           )}
-          <TextInput
-            style={styles.input}
-            placeholder="Scan or type AWB"
-            placeholderTextColor={colors.textFaint}
-            autoCapitalize="characters"
-            value={awbNumber}
-            onChangeText={setAwbNumber}
-          />
+          {/* The AWB is printed as a barcode on every DTDC label, so it is
+              scanned the same way a product tag is (BarcodeScanModal in
+              'assign' mode hands back the raw code rather than looking it up
+              in the catalog). Typing it stays available for a smudged label. */}
+          <View style={styles.awbRow}>
+            <TextInput
+              style={[styles.input, styles.awbInput]}
+              placeholder="Scan or type AWB"
+              placeholderTextColor={colors.textFaint}
+              autoCapitalize="characters"
+              value={awbNumber}
+              onChangeText={setAwbNumber}
+            />
+            <TouchableOpacity
+              style={styles.awbScanButton}
+              onPress={() => { setError(''); setAwbScannerVisible(true); }}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Scan the DTDC shipment barcode"
+            >
+              <Ionicons name="barcode-outline" size={20} color={colors.primary} />
+            </TouchableOpacity>
+          </View>
           {error ? <Text style={styles.error}>{error}</Text> : null}
           <Button title="Mark as Shipped" onPress={handleMarkShipped} loading={submitting} style={styles.submitButton} />
         </Card>
       )}
       </ScrollView>
+
+      <BarcodeScanModal
+        visible={awbScannerVisible}
+        accessToken={accessToken}
+        mode="assign"
+        onScanned={handleAwbScanned}
+        statusText={scanStatus}
+        onClose={() => setAwbScannerVisible(false)}
+      />
     </KeyboardAwareScreen>
   );
 }
@@ -326,7 +379,9 @@ const styles = StyleSheet.create({
   itemRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.md + 2 },
   itemThumb: { width: 44, height: 44, borderRadius: 14, backgroundColor: colors.placeholderBg },
   itemThumbEmpty: { alignItems: 'center', justifyContent: 'center' },
-  itemName: { ...typography.body, fontSize: 14, color: colors.text, flex: 1 },
+  itemTextWrap: { flex: 1, minWidth: 0 },
+  itemName: { ...typography.body, fontSize: 14, color: colors.text },
+  itemViewHint: { ...typography.bodySm, fontSize: 11, color: colors.primary, marginTop: 2 },
   itemQty: { ...typography.bodySm, color: colors.textLabel },
   totalRow: {
     flexDirection: 'row',
@@ -386,6 +441,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   submitButton: { marginTop: spacing.xs },
+  awbRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  awbInput: { flex: 1 },
+  awbScanButton: {
+    width: 48, height: 48, borderRadius: radius.md, backgroundColor: colors.primaryBg,
+    alignItems: 'center', justifyContent: 'center', marginTop: spacing.md, marginBottom: spacing.md,
+  },
   error: {
     ...typography.bodySm,
     color: colors.error,

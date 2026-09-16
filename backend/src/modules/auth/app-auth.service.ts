@@ -14,14 +14,39 @@ const LOCKOUT_MS = 15 * 60 * 1000;
 
 const MOBILE_NOT_REGISTERED = 'Please use the registered mobile number';
 
+// This app is for the shop's own people only. A customer who signed up on
+// the storefront has an AuthAccount with a phone number just like a staff
+// member does, so without this gate they could activate and sign in here and
+// see the whole back office. Membership is decided purely by role — the only
+// way to get one is an ADMIN invite (admin.service.ts -> provisionUser).
+const STAFF_APP_ROLES = ['ADMIN', 'STAFF'];
+
 const toPublicUser = async (account: { id: string; email: string | null; phone: string | null }) => {
   const { roles } = await getRolesAndPermissions(account.id);
   return { id: account.id, email: account.email, phone: account.phone, roles };
 };
 
+/**
+ * True only for accounts an ADMIN has invited into the staff app.
+ * Deliberately reports the same "not registered" outcome as an unknown
+ * number rather than "you're a customer, not staff": telling an outsider
+ * that their number exists but lacks access is an account-enumeration leak,
+ * and there is nothing a customer could usefully do with the distinction.
+ */
+const hasStaffAppAccess = async (authAccountId: string): Promise<boolean> => {
+  const staffRole = await prisma.userRole.findFirst({
+    where: { authAccountId, role: { is: { name: { in: STAFF_APP_ROLES } } } },
+    select: { roleId: true },
+  });
+  return staffRole !== null;
+};
+
 const findRegisteredAccount = async (mobile: string) => {
   const account = await prisma.authAccount.findUnique({ where: { phone: mobile } });
   if (!account || account.deletedAt || account.status === 'deleted') {
+    throw new NotFoundError(MOBILE_NOT_REGISTERED);
+  }
+  if (!(await hasStaffAppAccess(account.id))) {
     throw new NotFoundError(MOBILE_NOT_REGISTERED);
   }
   return account;
@@ -45,8 +70,7 @@ export const requestAppActivation = async (data: { mobile: string }, req: Reques
 };
 
 export const verifyAppActivationOtp = async (mobile: string, code: string, req: Request) => {
-  const account = await prisma.authAccount.findUnique({ where: { phone: mobile } });
-  if (!account) throw new NotFoundError(MOBILE_NOT_REGISTERED);
+  const account = await findRegisteredAccount(mobile);
 
   await verifyOtp(account.id, 'signup_verify', code);
   await prisma.authAccount.update({
@@ -68,6 +92,9 @@ export const setupAppMpin = async (
 
   if (!account || !account.phoneVerifiedAt) {
     throw new BadRequestError('Phone number not verified yet');
+  }
+  if (!(await hasStaffAppAccess(account.id))) {
+    throw new AppError('This account does not have access to the staff app.', 403, 'NOT_STAFF');
   }
   if (account.status === 'active') {
     throw new ConflictError('Registration already completed, please log in');
@@ -96,6 +123,13 @@ export const loginAppUser = async (
   const account = await prisma.authAccount.findUnique({ where: { phone: data.mobile } });
 
   if (!account || account.deletedAt || account.status === 'deleted') {
+    throw new NotFoundError(MOBILE_NOT_REGISTERED);
+  }
+
+  // Customers are refused here even with a correct MPIN — a storefront
+  // account carries no staff role, and this app has no read-only mode.
+  if (!(await hasStaffAppAccess(account.id))) {
+    await logAuthEvent({ authAccountId: account.id, eventType: 'login_denied_not_staff', source: 'staff_app', req });
     throw new NotFoundError(MOBILE_NOT_REGISTERED);
   }
 
@@ -165,8 +199,7 @@ export const confirmAppMpinReset = async (
   newMpin: string,
   req: Request
 ) => {
-  const account = await prisma.authAccount.findUnique({ where: { phone: mobile } });
-  if (!account) throw new NotFoundError(MOBILE_NOT_REGISTERED);
+  const account = await findRegisteredAccount(mobile);
 
   await verifyOtp(account.id, 'mpin_reset', code);
   await resetMpin(account.id, newMpin);

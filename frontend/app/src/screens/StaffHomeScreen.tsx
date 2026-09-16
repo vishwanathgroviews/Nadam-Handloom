@@ -5,6 +5,7 @@ import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
+import { goToTab } from '../navigation/tabs';
 import { useAuth } from '../context/AuthContext';
 import { getDashboard, DashboardStats, listAdminOrders } from '../api/admin';
 import ScreenHeader from '../components/ui/ScreenHeader';
@@ -30,9 +31,9 @@ export default function StaffHomeScreen({ navigation }: Props) {
   );
 
   const quickActions: QuickAction[] = [
-    { key: 'scan', label: 'Scan to sell', icon: 'barcode-outline', onPress: () => navigation.navigate('Scanner') },
-    { key: 'orders', label: 'Orders to ship', icon: 'cube-outline', onPress: () => navigation.navigate('Orders') },
-    { key: 'products', label: 'Browse products', icon: 'shirt-outline', onPress: () => navigation.navigate('Products') },
+    { key: 'scan', label: 'Scan to sell', icon: 'barcode-outline', onPress: () => goToTab(navigation, 'ScannerTab') },
+    { key: 'orders', label: 'Orders to ship', icon: 'cube-outline', onPress: () => goToTab(navigation, 'OrdersTab') },
+    { key: 'products', label: 'Browse products', icon: 'shirt-outline', onPress: () => goToTab(navigation, 'ProductsTab') },
   ];
 
   return (
@@ -65,7 +66,7 @@ export default function StaffHomeScreen({ navigation }: Props) {
           <TouchableOpacity style={styles.statTouchable} onPress={() => navigation.navigate('Inventory')} activeOpacity={0.8}>
             <StatCard icon="alert-circle-outline" iconColor={colors.warning} iconBg={colors.warningBg} label="running low" value={stats?.lowStockCount ?? '—'} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.statTouchable} onPress={() => navigation.navigate('Orders')} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.statTouchable} onPress={() => goToTab(navigation, 'OrdersTab')} activeOpacity={0.8}>
             <StatCard icon="cube-outline" iconColor={colors.success} iconBg={colors.successBg} label="to ship" value={toShipCount ?? '—'} />
           </TouchableOpacity>
         </View>
@@ -75,7 +76,7 @@ export default function StaffHomeScreen({ navigation }: Props) {
 
         <Text style={[typography.caption, styles.sectionLabel]}>Manage</Text>
         <View style={styles.manageGrid}>
-          <TouchableOpacity style={styles.manageCard} onPress={() => navigation.navigate('Products')} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.manageCard} onPress={() => goToTab(navigation, 'ProductsTab')} activeOpacity={0.8}>
             <View style={styles.manageIconWrap}><Ionicons name="shirt-outline" size={18} color={colors.primary} /></View>
             <Text style={styles.manageLabel}>Products</Text>
             <Text style={styles.manageHint}>{stats ? `${stats.products.activeCount} live` : '—'}</Text>

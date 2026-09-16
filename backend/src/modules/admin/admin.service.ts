@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { randomUUID } from 'crypto';
 import { prisma } from '../../config/prisma';
 import { splitFullName } from '../../utils/name';
 import { BadRequestError, ConflictError, NotFoundError } from '../../utils/errors';
@@ -8,18 +9,127 @@ import { logAuthEvent } from '../auth/auditLog.service';
 import { getLowStock } from '../inventory/inventory.service';
 import { getProductStats } from '../catalog/catalog.admin.service';
 
+/**
+ * Invites someone into the staff app.
+ *
+ * `phone` and `email` are both unique on AuthAccount, and an account can
+ * already exist for a number of ordinary reasons that are not "this person
+ * is already on the team": they shopped on the storefront as a customer,
+ * a previous invite was never activated, or a former staff member was
+ * removed. Flatly refusing all of those with one "account already exists"
+ * message is what made this unusable — the admin had no way to invite a
+ * real new colleague whose number the system happened to have seen before.
+ *
+ * So a collision is resolved rather than rejected, and the only genuine
+ * conflict left is the one the admin actually needs to hear about: the
+ * number or address already belongs to an active team member, or the two
+ * fields point at two different existing people.
+ */
 export const provisionUser = async (
   data: { name: string; mobile: string; email: string; role: 'ADMIN' | 'STAFF' },
   req: Request
 ) => {
-  const existing = await prisma.authAccount.findFirst({
-    where: { OR: [{ phone: data.mobile }, { email: data.email }] },
-  });
-  if (existing) {
-    throw new ConflictError('An account with this mobile number or email already exists');
+  const [byPhone, byEmail] = await Promise.all([
+    prisma.authAccount.findUnique({
+      where: { phone: data.mobile },
+      include: { roles: { include: { role: true } }, adminProfile: true },
+    }),
+    prisma.authAccount.findUnique({
+      where: { email: data.email },
+      include: { roles: { include: { role: true } }, adminProfile: true },
+    }),
+  ]);
+
+  // Two different existing people: reusing either row would silently steal
+  // the other's identifier, so this one really does need the admin to fix
+  // the details before we can go on.
+  if (byPhone && byEmail && byPhone.id !== byEmail.id) {
+    throw new ConflictError(
+      'That mobile number and that email address belong to two different accounts. Check both and try again.'
+    );
   }
 
+  const existing = byPhone ?? byEmail;
   const { firstName, lastName } = splitFullName(data.name);
+
+  if (existing) {
+    const roleNames = existing.roles.map((userRole) => userRole.role.name);
+    const isTeamMember = roleNames.some((name) => name === 'ADMIN' || name === 'STAFF');
+    const isDeleted = Boolean(existing.deletedAt) || existing.status === 'deleted';
+    // Activated = they have completed OTP + MPIN and can sign in today.
+    const isActivated = Boolean(existing.mpinHash) && existing.status === 'active';
+
+    if (isTeamMember && isActivated && !isDeleted) {
+      throw new ConflictError(
+        byPhone
+          ? 'Someone on your team already uses this mobile number.'
+          : 'Someone on your team already uses this email address.'
+      );
+    }
+
+    // Everything else is re-invitable: a pending invite that was never
+    // activated, a removed member being brought back, or a customer being
+    // given staff access. All three converge on the same end state — one
+    // account, holding the requested role, pending activation — and the
+    // staff app resends the OTP when they tap Activate.
+    const account = await prisma.$transaction(async (tx) => {
+      const updated = await tx.authAccount.update({
+        where: { id: existing.id },
+        data: {
+          phone: data.mobile,
+          email: data.email,
+          status: 'pending',
+          deletedAt: null,
+          // A re-invite must not leave the old sign-in intact: the previous
+          // holder of this number should not keep access just because the
+          // row was reused.
+          mpinHash: null,
+          mpinSetAt: null,
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+          // Access tokens are checked against this stamp (auth.middleware),
+          // so rotating it kills the ones already in flight rather than
+          // leaving them valid for their remaining few minutes.
+          securityStamp: randomUUID(),
+          adminProfile: {
+            upsert: {
+              create: { firstName, lastName },
+              update: { firstName, lastName },
+            },
+          },
+        },
+      });
+
+      const role = await tx.role.findUniqueOrThrow({ where: { name: data.role } });
+      // Replace whatever staff roles were there (a STAFF being re-invited as
+      // ADMIN, say). A CUSTOMER role is left alone — being on the team does
+      // not stop them shopping on the storefront with the same account.
+      await tx.userRole.deleteMany({
+        where: { authAccountId: updated.id, role: { is: { name: { in: ['ADMIN', 'STAFF'] } } } },
+      });
+      await tx.userRole.create({ data: { authAccountId: updated.id, roleId: role.id } });
+
+      // Any session the account held before this re-invite is no longer
+      // legitimate — rotating the security stamp invalidates the tokens and
+      // revoking the rows closes the sessions themselves.
+      await tx.session.updateMany({
+        where: { authAccountId: updated.id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+
+      return updated;
+    });
+
+    await logAuthEvent({
+      authAccountId: account.id,
+      eventType: 'admin_reinvited_user',
+      source: 'staff_app',
+      req,
+      metadata: { role: data.role, previousRoles: roleNames, wasDeleted: isDeleted },
+    });
+
+    return { id: account.id, mobile: data.mobile, email: data.email, role: data.role };
+  }
 
   const account = await prisma.$transaction(async (tx) => {
     const created = await tx.authAccount.create({

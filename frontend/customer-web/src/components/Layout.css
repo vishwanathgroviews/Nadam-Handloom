@@ -392,7 +392,11 @@
   .layout-wrapper {
     flex-direction: column;
     height: auto;
-    max-width: 500px;
+    /* 500px is the cap, not the width: on its own it overrode the base
+       rule's max-width:100% and left the card 500px wide inside a 340px
+       phone, pushing the banner and the whole sign-in form off screen. */
+    width: 100%;
+    max-width: min(500px, 100%);
   }
 
   .layout-banner {
