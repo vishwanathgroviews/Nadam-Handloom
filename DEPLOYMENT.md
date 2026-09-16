@@ -42,6 +42,160 @@
 
 ---
 
+# ⚠️ ADDENDUM — Your actual instance (read this first; it overrides parts of the runbook)
+
+Checked on 2026-09-16 against AWS account `612216903777`.
+
+**Your instance**
+
+| Property | Value |
+|---|---|
+| Name | `Nandam-Handlooms-prod` |
+| Instance ID | `i-025ec4312a4b30b11` |
+| Region / AZ | `ap-south-1b` (Mumbai) |
+| OS | Ubuntu 26.04 LTS (amd64), codename `resolute` |
+| Instance type | **t3.micro — 1 GB RAM** |
+| Disk | 20 GB gp3 |
+| Key pair | `nandam-handlooms-key` |
+| Security group | `sg-051f2faadeb2f5575` |
+
+**Decisions taken:** stay on `t3.micro` for the client's production test; resize later once the client signs off.
+
+**This is a shared AWS account.** `ibo-mongo` and `ibo-api` belong to another project. Do not stop them, and do not touch Elastic IP `13.200.175.198`.
+
+## A. Fix the security group (do this before anything else)
+
+The group currently allows **only SSH, open to the whole internet**. Ports 80 and 443 are missing, so the website would be unreachable and Certbot could never issue a certificate.
+
+1. EC2 console → region **Asia Pacific (Mumbai)**
+2. **Instances** → `Nandam-Handlooms-prod` → **Security** tab → click `sg-051f2faadeb2f5575`
+3. **Inbound rules** → **Edit inbound rules**
+4. On the existing **SSH / 22** row, change Source from `Anywhere-IPv4` to **My IP**
+5. **Add rule** → **HTTP** → Source **Anywhere-IPv4**
+6. **Add rule** → **HTTPS** → Source **Anywhere-IPv4**
+7. **Save rules**
+
+End state: 22 from your IP, 80 from anywhere, 443 from anywhere.
+
+> If your home IP changes later and SSH stops working, return here and pick **My IP** again.
+
+## B. Allocate an Elastic IP
+
+`13.233.152.25` is temporary and will change on any stop/start.
+
+1. EC2 → **Network & Security → Elastic IPs** → **Allocate Elastic IP address** → **Allocate**
+2. Select the **new** address (not `13.200.175.198` — that is the other project's)
+3. **Actions → Associate Elastic IP address**
+4. Resource type **Instance** → `Nandam-Handlooms-prod (i-025ec4312a4b30b11)` → **Associate**
+
+Record the new address as `SERVER_IP`. Use it for SSH and for the DNS records in Part 10.
+
+## C. Part 3 changes — no IAM role is possible
+
+The IAM user `saisiddartha@groviews.com` has no IAM write permissions (`iam:ListPolicies`, `iam:ListInstanceProfiles`, `iam:ListAccessKeys` are all denied). It cannot create `NandamHandloomsServerRole`.
+
+- **Do** Step 3.1 — confirm the bucket serves images publicly.
+- **Skip** Steps 3.2 and 3.3.
+- Instead, open `C:\Users\goran\.aws\credentials` on your PC (one `[default]` profile, already verified working against the bucket) and add these two lines to the server `.env` in Step 7.3:
+
+```
+S3_ACCESS_KEY_ID="<aws_access_key_id from that file>"
+S3_SECRET_ACCESS_KEY="<aws_secret_access_key from that file>"
+```
+
+Your code reads these before falling back to the instance role. At startup you will then see `credentials from .env` rather than the credential-chain message — that is the correct sign.
+
+> This places a long-lived secret on the server. Acceptable for a client test. Keep `chmod 600` on the `.env`, and before the real launch ask the administrator of account `612216903777` to create the instance role so these two lines can be deleted.
+
+## D. Changes for 1 GB RAM
+
+**Step 6.2 — use 3 GB of swap, not 2 GB:**
+
+```bash
+sudo fallocate -l 3G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+free -h
+```
+
+**Step 7.7 — cap the TypeScript compiler's memory:**
+
+```bash
+cd /var/www/nandamhandlooms/app/backend
+NODE_OPTIONS="--max-old-space-size=1536" npm run build
+```
+
+If it still dies with `Killed`, build on your PC instead and copy `backend/dist` up the same way as the website below.
+
+**Part 8 — build the website on your PC, not on the server.** A Vite build will not survive 1 GB. Replace Steps 8.1–8.3 with:
+
+```powershell
+# [PC]
+cd D:\Handlooms\Nadam-Handloom\frontend\customer-web
+npm run build
+scp -i "$env:USERPROFILE\.ssh\nandam-handlooms-key.pem" -r dist ubuntu@<SERVER_IP>:/tmp/web-dist
+```
+
+```bash
+# [SERVER]
+mkdir -p /var/www/nandamhandlooms/app/frontend/customer-web
+rm -rf /var/www/nandamhandlooms/app/frontend/customer-web/dist
+mv /tmp/web-dist /var/www/nandamhandlooms/app/frontend/customer-web/dist
+ls /var/www/nandamhandlooms/app/frontend/customer-web/dist
+```
+
+The `ls` must show `index.html` and an `assets` folder. Repeat both blocks whenever the website changes.
+
+**Section 17.1 — the deploy script must drop the website build.** Use this version instead:
+
+```bash
+#!/bin/bash
+set -e
+cd /var/www/nandamhandlooms/app
+echo "--> Pulling latest code"
+git pull origin main
+echo "--> Backend"
+cd backend
+npm ci --omit=dev
+npx prisma generate
+npx prisma migrate deploy
+NODE_OPTIONS="--max-old-space-size=1536" npm run build
+echo "--> Restarting API"
+pm2 restart nandam-api
+pm2 list
+echo "--> Website: build on your PC and scp the dist folder up (see Addendum D)."
+```
+
+## E. Ubuntu 26.04 note
+
+The runbook assumed Ubuntu 24.04. You are on 26.04 (`resolute`), which NodeSource may not have packages for yet. If Step 6.3 fails, use `nvm` instead:
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+source ~/.bashrc
+nvm install 24
+nvm alias default 24
+node -v
+```
+
+If you use `nvm`, PM2 must be installed under that Node (`npm install -g pm2`, **without** `sudo`), and the long `sudo env PATH=...` line printed by `pm2 startup` in Step 7.10 becomes essential — it is what teaches systemd where the nvm-managed Node lives.
+
+## F. Still outstanding from Part 2
+
+Your Neon database is in **Singapore** while this server is in **Mumbai** — roughly 50 ms per query. Check Neon's region list before creating the production branch (Step 2.2). If Mumbai is unavailable, this is acceptable for a client test; note it as something to revisit.
+
+## G. When the client signs off, resize
+
+1. EC2 → Instances → select the instance → **Instance state → Stop instance**
+2. Wait for `stopped` → **Actions → Instance settings → Change instance type** → **t3.small**
+3. **Instance state → Start instance**
+
+The Elastic IP from Fix B survives this, so DNS keeps working. After it starts, confirm `pm2 list` shows `nandam-api` online. You can then build the website on the server again and drop the scp step.
+
+---
+
 ## PART 0 — Before you start
 
 ### 0.1 Accounts you need

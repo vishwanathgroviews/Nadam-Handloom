@@ -17,7 +17,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "REPLACE_WITH_PRODUCTION_API_URL"
+        "EXPO_PUBLIC_API_URL": "https://api.nandamhandlooms.com"
       }
     }
   },
