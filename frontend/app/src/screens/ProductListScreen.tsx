@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, TextInput, Image, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, TextInput, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +12,7 @@ import { listProducts, AdminProductSummary } from '../api/catalog';
 import { saveToCache, loadFromCache } from '../utils/offlineCache';
 import OfflineBanner from '../components/OfflineBanner';
 import BarcodeScanModal from '../components/BarcodeScanModal';
+import { useDialog } from '../components/DialogProvider';
 import type { ScanLookupResult } from '../api/inventory';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
@@ -41,6 +42,7 @@ interface ProductsCachePayload {
 export default function ProductListScreen({ navigation }: Props) {
   const { accessToken } = useAuth();
   const tabBarHeight = useBottomTabBarHeight();
+  const showDialog = useDialog();
   const [products, setProducts] = useState<AdminProductSummary[]>([]);
   const [activeCount, setActiveCount] = useState(0);
   const [cap, setCap] = useState(5000);
@@ -63,16 +65,18 @@ export default function ProductListScreen({ navigation }: Props) {
   const handleScanNotFound = useCallback(
     (code: string) => {
       setScannerVisible(false);
-      Alert.alert(
-        'No product found',
-        `No product uses the barcode "${code}" yet. Create a new product and attach it?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Create Product', onPress: () => navigation.navigate('ProductForm', { initialBarcode: code }) },
-        ]
-      );
+      showDialog({
+        title: 'No product found',
+        message: `No product uses the barcode "${code}" yet. Create a new product and attach it?`,
+        tone: 'warning',
+        dismissOnBackdrop: false,
+        actions: [
+          { label: 'Create Product', onPress: () => navigation.navigate('ProductForm', { initialBarcode: code }) },
+          { label: 'Cancel' },
+        ],
+      });
     },
-    [navigation]
+    [navigation, showDialog]
   );
 
   const load = useCallback(
@@ -196,7 +200,10 @@ export default function ProductListScreen({ navigation }: Props) {
                       {!item.isActive && <Badge label="Inactive" tone="neutral" />}
                     </View>
                   </View>
-                  <Text style={styles.price}>₹{item.subcategory.onlinePrice}</Text>
+                  {/* Store price, never the online one: this app sells at the
+                      counter, and showing the website's figure here invited
+                      staff to charge it by mistake. */}
+                  <Text style={styles.price}>₹{item.subcategory.storePrice}</Text>
                 </Card>
               </TouchableOpacity>
             );

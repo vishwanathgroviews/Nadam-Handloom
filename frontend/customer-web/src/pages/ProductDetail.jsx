@@ -40,8 +40,8 @@ export default function ProductDetail() {
   if (notFound) {
     return (
       <div className="container state-block">
-        <h3>Product not found</h3>
-        <p>This saree may no longer be available.</p>
+        <h3>No longer available</h3>
+        <p>This is a one-of-a-kind handloom piece, and it has been sold.</p>
         <Link to="/shop" className="btn btn-outline">Continue Shopping</Link>
       </div>
     );
@@ -57,8 +57,9 @@ export default function ProductDetail() {
   const discount = discountPercent(mrp, onlinePrice);
   // A unit received via the admin app's barcode intake flow only ever
   // creates a Piece row and never touches the legacy `stock` counter —
-  // availableCount (stock + in-stock pieces) is what "in stock" means.
-  const outOfStock = product.availableCount <= 0;
+  // The API 404s a sold product rather than returning it, so reaching this
+  // page at all means it is available — the not-found branch above is what
+  // an old link or a stale tab now lands on.
 
   // Each listing is a single piece — one tap puts that piece in the cart,
   // there is no amount to choose.
@@ -115,13 +116,7 @@ export default function ProductDetail() {
             )}
           </div>
 
-          {outOfStock ? (
-            <span className="badge badge-danger">Out of Stock</span>
-          ) : product.availableCount <= 5 ? (
-            <span className="badge badge-danger">Only {product.availableCount} left</span>
-          ) : (
-            <span className="badge badge-success">In Stock</span>
-          )}
+          <span className="badge badge-success">In Stock</span>
 
           <p className="product-description">{product.subcategory.description}</p>
 
@@ -143,10 +138,10 @@ export default function ProductDetail() {
           </table>
 
           <div className="product-actions">
-            <button className="btn btn-outline btn-block" onClick={handleAddToCart} disabled={outOfStock}>
+            <button className="btn btn-outline btn-block" onClick={handleAddToCart}>
               {added ? <><CheckCircle2 size={17} /> Added to Cart</> : <><ShoppingBag size={17} /> Add to Cart</>}
             </button>
-            <button className="btn btn-primary btn-block" onClick={handleBuyNow} disabled={outOfStock}>
+            <button className="btn btn-primary btn-block" onClick={handleBuyNow}>
               <Zap size={17} /> Buy Now
             </button>
           </div>

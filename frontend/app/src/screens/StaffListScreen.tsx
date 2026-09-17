@@ -4,11 +4,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
-import { listUsers, AdminUser } from '../api/admin';
+import { listUsers, revokeUserAccess, AdminUser } from '../api/admin';
 import { colors, radius, spacing, typography } from '../utils/theme';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import { Badge } from '../components/ui/Chip';
+import { useDialog } from '../components/DialogProvider';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'StaffList'>;
 
@@ -23,7 +25,9 @@ const formatJoined = (iso: string) =>
   new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
 
 export default function StaffListScreen({ navigation }: Props) {
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
+  const showDialog = useDialog();
+  const [revokingId, setRevokingId] = useState<string | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -46,6 +50,43 @@ export default function StaffListScreen({ navigation }: Props) {
     useCallback(() => {
       load();
     }, [load])
+  );
+
+  // Two steps on purpose: this signs the person out of every device they are
+  // holding and blocks the next sign-in, so it should not happen on a stray
+  // tap. It is reversible — Invite puts them back (see provisionUser).
+  const handleRevoke = useCallback(
+    (member: AdminUser) => {
+      const displayName = member.name || member.phone || member.email || 'this person';
+      showDialog({
+        title: `Revoke ${displayName}'s access?`,
+        message:
+          'They will be signed out everywhere immediately and will not be able to sign in again.\n\nTheir sales and activity history is kept, and you can invite them back at any time.',
+        tone: 'danger',
+        dismissOnBackdrop: false,
+        actions: [
+          {
+            label: 'Revoke access',
+            variant: 'destructive',
+            onPress: async () => {
+              if (!accessToken) return;
+              setRevokingId(member.id);
+              setError('');
+              try {
+                await revokeUserAccess(accessToken, member.id);
+                await load();
+              } catch (err: any) {
+                setError(err.message || 'Could not revoke access');
+              } finally {
+                setRevokingId(null);
+              }
+            },
+          },
+          { label: 'Cancel' },
+        ],
+      });
+    },
+    [accessToken, load, showDialog]
   );
 
   return (
@@ -85,6 +126,27 @@ export default function StaffListScreen({ navigation }: Props) {
                   </Text>
                 </View>
                 <Badge label={isAdmin ? 'Owner' : 'Staff'} tone={isAdmin ? 'primary' : 'neutral'} />
+                {/* Hidden on your own row: the server refuses it anyway (an
+                    owner locking themselves out would leave nobody able to
+                    invite anyone back), so offering the button would only be
+                    a dead end. */}
+                {item.id !== user?.id && (
+                  <TouchableOpacity
+                    style={styles.revokeButton}
+                    onPress={() => handleRevoke(item)}
+                    disabled={revokingId === item.id}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Revoke access for ${displayName}`}
+                    hitSlop={8}
+                  >
+                    {revokingId === item.id ? (
+                      <ActivityIndicator size="small" color={colors.error} />
+                    ) : (
+                      <Ionicons name="person-remove-outline" size={18} color={colors.error} />
+                    )}
+                  </TouchableOpacity>
+                )}
               </Card>
             );
           }}
@@ -119,6 +181,10 @@ const styles = StyleSheet.create({
   info: { flex: 1, minWidth: 0 },
   name: { ...typography.bodySemibold, color: colors.text },
   meta: { ...typography.bodySm, color: colors.textLabel, marginTop: 3 },
+  revokeButton: {
+    width: 36, height: 36, borderRadius: radius.pill, backgroundColor: colors.errorBg,
+    alignItems: 'center', justifyContent: 'center',
+  },
   inviteCta: {
     borderRadius: radius.lg, backgroundColor: colors.segmentTrack,
     padding: spacing.lg, alignItems: 'center', marginTop: spacing.xs,

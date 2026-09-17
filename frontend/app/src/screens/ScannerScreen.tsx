@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -18,8 +17,8 @@ import {
 } from '../api/inventory';
 import { useIsOnline } from '../utils/network';
 import KeyboardAwareScreen from '../components/KeyboardAwareScreen';
+import CameraScanner from '../components/CameraScanner';
 import OfflineBanner from '../components/OfflineBanner';
-import { SUPPORTED_BARCODE_TYPES } from '../utils/barcodeTypes';
 import { savePdfBytes, printPdf, sharePdf } from '../utils/pdf';
 import { colors, radius, shadow, spacing, typography } from '../utils/theme';
 import { openWhatsAppChat } from '../utils/whatsapp';
@@ -58,15 +57,13 @@ const SALE_CHANNEL_OPTIONS: { key: SaleChannel; label: string }[] = [
   { key: 'whatsapp', label: 'Through WhatsApp' },
 ];
 
+// Two fields, not eight: these orders are taken down mid-chat, and the
+// customer has usually already sent their address as one block of text.
+// Splitting it across name/line/city/state/pincode boxes meant retyping it
+// piece by piece, and the courier label only needs the block back anyway.
 const EMPTY_CUSTOMER = {
-  fullName: '',
   phone: '',
-  line1: '',
-  line2: '',
-  city: '',
-  state: '',
-  pincode: '',
-  notes: '',
+  address: '',
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -98,7 +95,6 @@ export default function ScannerScreen({ navigation }: Props) {
   const { accessToken, role } = useAuth();
   const tabBarHeight = useBottomTabBarHeight();
   const isOnline = useIsOnline();
-  const [permission, requestPermission] = useCameraPermissions();
   const [mode, setMode] = useState<Mode>('sell');
   const [phase, setPhase] = useState<Phase>('scanning');
   const [manualCode, setManualCode] = useState('');
@@ -200,26 +196,17 @@ export default function ScannerScreen({ navigation }: Props) {
       }
 
       // A WhatsApp order is going to be couriered, so it can't be recorded
-      // without a name, a number to message, and an address to ship to.
+      // without a number to message and an address to ship to.
       let customerPayload: WhatsappCustomerInput | undefined;
       if (saleChannel === 'whatsapp') {
-        const missing = (['fullName', 'phone', 'line1', 'city', 'state', 'pincode'] as const).filter(
-          (field) => !customer[field].trim()
-        );
-        if (missing.length) {
-          setError('Enter the customer\'s name, mobile number and full delivery address first.');
+        if (!customer.phone.trim() || customer.address.trim().length < 5) {
+          setError("Enter the customer's mobile number and full delivery address first.");
           setPhase('result');
           return;
         }
         customerPayload = {
-          fullName: customer.fullName.trim(),
           phone: customer.phone.trim(),
-          line1: customer.line1.trim(),
-          ...(customer.line2.trim() ? { line2: customer.line2.trim() } : {}),
-          city: customer.city.trim(),
-          state: customer.state.trim(),
-          pincode: customer.pincode.trim(),
-          ...(customer.notes.trim() ? { notes: customer.notes.trim() } : {}),
+          address: customer.address.trim(),
         };
       }
 
@@ -334,11 +321,15 @@ export default function ScannerScreen({ navigation }: Props) {
     [isOnline, runLookup]
   );
 
+  // CameraScanner only calls this once several frames have agreed on the same
+  // value, so what arrives here is a confirmed, canonical code rather than one
+  // frame's guess. The lock still guards against a second confirmation landing
+  // while the first lookup is in flight.
   const handleBarcodeScanned = useCallback(
-    ({ data }: { data: string }) => {
+    (code: string) => {
       if (scannedLock || phase !== 'scanning') return;
       setScannedLock(true);
-      handleCode(data);
+      handleCode(code);
     },
     [scannedLock, phase, handleCode]
   );
@@ -372,14 +363,6 @@ export default function ScannerScreen({ navigation }: Props) {
     );
   };
 
-  if (!permission) {
-    return (
-      <View style={styles.screen}>
-        <ActivityIndicator style={{ marginTop: 60 }} color={colors.primary} />
-      </View>
-    );
-  }
-
   return (
     <KeyboardAwareScreen style={styles.screen}>
       <ScrollView
@@ -403,26 +386,12 @@ export default function ScannerScreen({ navigation }: Props) {
 
         {phase === 'scanning' && (
           <>
-            <View style={styles.cameraWrap}>
-              {permission.granted ? (
-                <>
-                  <CameraView
-                    style={StyleSheet.absoluteFill}
-                    barcodeScannerSettings={{ barcodeTypes: SUPPORTED_BARCODE_TYPES }}
-                    onBarcodeScanned={handleBarcodeScanned}
-                  />
-                  <View style={styles.viewfinderWrap} pointerEvents="none">
-                    <View style={styles.viewfinder} />
-                  </View>
-                </>
-              ) : (
-                <View style={styles.permissionPrompt}>
-                  <Text style={styles.permissionText}>Camera access is needed to scan tags.</Text>
-                  <TouchableOpacity style={styles.permissionButton} onPress={requestPermission} activeOpacity={0.85}>
-                    <Text style={styles.permissionButtonText}>Allow Camera</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+            <View style={styles.cameraSlot}>
+              <CameraScanner
+                active={phase === 'scanning'}
+                onScan={handleBarcodeScanned}
+                height={270}
+              />
             </View>
 
             <View style={styles.manualPill}>
@@ -476,7 +445,7 @@ export default function ScannerScreen({ navigation }: Props) {
                 )}
                 {sellResult.channel === 'whatsapp' && (
                   <Text style={styles.soldMeta}>
-                    It's in To Ship now — add the DTDC AWB there to send {customer.fullName || 'the customer'} their
+                    It's in To Ship now — add the DTDC AWB there to send {customer.phone || 'the customer'} their
                     tracking update and invoice.
                   </Text>
                 )}
@@ -578,10 +547,18 @@ export default function ScannerScreen({ navigation }: Props) {
                   </View>
                 ))}
 
+                {/* Receipt-style dashed rule closing off the item list, the
+                    way the printed bill does — a dashed border rather than a
+                    row of typed dashes so it spans the card exactly at any
+                    width and never wraps onto a second line. */}
+                <View style={styles.billSeparator} />
+
                 <View style={styles.billTotalRow}>
                   <Text style={styles.billTotalLabel}>Total</Text>
                   <Text style={styles.billTotalValue}>₹{billTotal.toLocaleString('en-IN')}</Text>
                 </View>
+
+                <View style={styles.billSeparator} />
 
                 <Text style={styles.label}>Where is this sale happening?</Text>
                 <SegmentedControl options={SALE_CHANNEL_OPTIONS} value={saleChannel} onChange={setSaleChannel} />
@@ -594,13 +571,6 @@ export default function ScannerScreen({ navigation }: Props) {
               </Text>
               <TextInput
                 style={styles.customerInput}
-                placeholder="Customer name *"
-                placeholderTextColor={colors.textMuted}
-                value={customer.fullName}
-                onChangeText={(v) => updateCustomer('fullName', v)}
-              />
-              <TextInput
-                style={styles.customerInput}
                 placeholder="Mobile number *"
                 placeholderTextColor={colors.textMuted}
                 keyboardType="phone-pad"
@@ -608,50 +578,18 @@ export default function ScannerScreen({ navigation }: Props) {
                 onChangeText={(v) => updateCustomer('phone', v)}
               />
               <TextInput
-                style={styles.customerInput}
-                placeholder="Address line 1 *"
+                style={[styles.customerInput, styles.addressInput]}
+                placeholder="Full delivery address *"
                 placeholderTextColor={colors.textMuted}
-                value={customer.line1}
-                onChangeText={(v) => updateCustomer('line1', v)}
+                value={customer.address}
+                onChangeText={(v) => updateCustomer('address', v)}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
               />
-              <TextInput
-                style={styles.customerInput}
-                placeholder="Address line 2 (optional)"
-                placeholderTextColor={colors.textMuted}
-                value={customer.line2}
-                onChangeText={(v) => updateCustomer('line2', v)}
-              />
-              <View style={styles.customerRow}>
-                <TextInput
-                  style={[styles.customerInput, styles.customerRowInput]}
-                  placeholder="City *"
-                  placeholderTextColor={colors.textMuted}
-                  value={customer.city}
-                  onChangeText={(v) => updateCustomer('city', v)}
-                />
-                <TextInput
-                  style={[styles.customerInput, styles.customerRowInput]}
-                  placeholder="State *"
-                  placeholderTextColor={colors.textMuted}
-                  value={customer.state}
-                  onChangeText={(v) => updateCustomer('state', v)}
-                />
-              </View>
-              <TextInput
-                style={styles.customerInput}
-                placeholder="Pincode *"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="number-pad"
-                value={customer.pincode}
-                onChangeText={(v) => updateCustomer('pincode', v)}
-              />
-              <TextInput
-                style={styles.customerInput}
-                placeholder="Notes (optional)"
-                placeholderTextColor={colors.textMuted}
-                value={customer.notes}
-                onChangeText={(v) => updateCustomer('notes', v)}
-              />
+              <Text style={styles.helper}>
+                Paste the whole address the customer sent — name, street, city, state and pincode together.
+              </Text>
             </View>
           )}
 
@@ -690,6 +628,12 @@ const styles = StyleSheet.create({
     width: 84, textAlign: 'right', backgroundColor: colors.inputBg, borderRadius: radius.md,
     paddingHorizontal: spacing.sm, paddingVertical: spacing.sm, ...typography.bodySm, color: colors.text,
   },
+  billSeparator: {
+    borderBottomWidth: 1.5,
+    borderStyle: 'dashed',
+    borderBottomColor: colors.divider,
+    marginTop: spacing.md,
+  },
   billTotalRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
     marginTop: spacing.md, marginBottom: spacing.sm,
@@ -704,31 +648,7 @@ const styles = StyleSheet.create({
   addMoreText: { ...typography.bodySemibold, color: colors.primary },
   container: { flex: 1, paddingHorizontal: spacing.md },
   scrollContent: { paddingBottom: spacing.xxl },
-  cameraWrap: {
-    height: 270,
-    borderRadius: radius.xxl,
-    overflow: 'hidden',
-    backgroundColor: colors.text,
-    marginTop: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  viewfinderWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
-  viewfinder: {
-    width: 210,
-    height: 140,
-    borderRadius: radius.md,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.85)',
-  },
-  permissionPrompt: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.md },
-  permissionText: { ...typography.bodySm, color: '#fff', textAlign: 'center' },
-  permissionButton: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-  },
-  permissionButtonText: { ...typography.button, color: colors.text },
+  cameraSlot: { marginTop: spacing.lg, marginBottom: spacing.md },
   manualPill: {
     backgroundColor: colors.surface,
     borderRadius: radius.pill,
@@ -754,6 +674,7 @@ const styles = StyleSheet.create({
   },
   helper: { ...typography.bodySm, color: colors.textMuted, marginTop: spacing.sm },
   customerForm: { marginTop: spacing.md, gap: spacing.sm },
+  addressInput: { minHeight: 96, paddingTop: spacing.md },
   customerInput: {
     backgroundColor: colors.inputBg,
     borderRadius: radius.md,

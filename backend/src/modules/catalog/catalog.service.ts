@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { NotFoundError } from '../../utils/errors';
 import { ListProductsQuery } from './catalog.schema';
@@ -8,6 +9,22 @@ import { withAvailability, withAvailabilityOne } from './catalog.availability';
 const CATEGORY_SELECT = { name: true, slug: true, description: true } as const;
 const SUBCATEGORY_SELECT = { id: true, name: true, description: true, onlinePrice: true, mrp: true, isActive: true } as const;
 const CUSTOMER_VISIBLE_CHANNELS = ['online_only', 'both'];
+
+/**
+ * Only products that can actually be bought right now.
+ *
+ * Every listing is a single handloom piece, so "out of stock" means "this
+ * exact saree has been sold" — showing it greyed out offers the customer
+ * something that will never come back. It is a real filter rather than a
+ * post-query one so paging and totals stay honest: filtering after the fact
+ * would return short pages and a count that disagreed with them.
+ *
+ * Mirrors catalog.availability.ts's definition of availability: the legacy
+ * bulk counter, or at least one in_stock Piece.
+ */
+const IN_STOCK: Prisma.ProductWhereInput = {
+  OR: [{ stock: { gt: 0 } }, { pieces: { some: { status: 'in_stock' } } }],
+};
 
 export const listCategories = async () => {
   return prisma.category.findMany({
@@ -55,6 +72,9 @@ const buildProductWhere = (query: ListProductsQuery, categoryId?: string) => {
     category: { is: { isActive: true } },
     subcategory: { is: { isActive: true } },
   };
+  // AND, not a second top-level OR — `q` search below already owns where.OR,
+  // and merging the two would turn "in stock" into "or matches the search".
+  where.AND = [IN_STOCK];
   if (categoryId) where.categoryId = categoryId;
   if (query.subcategoryId) where.subcategoryId = query.subcategoryId;
   if (query.featured) where.isFeatured = true;
@@ -149,6 +169,10 @@ export const getProductBySlug = async (slug: string) => {
       channelVisibility: { in: CUSTOMER_VISIBLE_CHANNELS },
       category: { is: { isActive: true } },
       subcategory: { is: { isActive: true } },
+      // A sold piece is gone for good, so its page is genuinely not found
+      // rather than a listing with the buttons greyed out. An old link or a
+      // stale tab lands on the storefront's "no longer available" state.
+      AND: [IN_STOCK],
     },
     include: {
       category: { select: CATEGORY_SELECT },

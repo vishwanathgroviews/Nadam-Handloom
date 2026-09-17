@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
 import Layout from './components/Layout';
+import ScrollToTop from './components/ScrollToTop';
 import Login from './components/Login';
 import Register from './components/Register';
 import OtpVerification from './components/OtpVerification';
@@ -28,6 +29,9 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
+          {/* Inside the router, above every route: one place resets the
+              scroll position instead of each page remembering to. */}
+          <ScrollToTop />
           <Routes>
             {/* Storefront — main site layout, browsable without login */}
             <Route element={<StoreLayout />}>

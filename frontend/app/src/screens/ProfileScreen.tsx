@@ -51,6 +51,9 @@ export default function ProfileScreen() {
         { key: 'analytics', label: 'Analytics', hint: 'Online, store & WhatsApp', icon: 'trending-up-outline', onPress: () => navigation.navigate('Analytics') },
         { key: 'sessions', label: 'Sessions', hint: 'Signed-in devices', icon: 'hardware-chip-outline', onPress: () => navigation.navigate('Sessions') },
         { key: 'catalog', label: 'Catalog', hint: 'Categories & pricing', icon: 'albums-outline', onPress: () => navigation.navigate('Categories') },
+        // Owner-only: the staff surface no longer carries Inventory at all,
+        // but the owner still needs somewhere to receive stock from.
+        { key: 'inventory', label: 'Inventory', hint: 'Receive stock', icon: 'cube-outline', onPress: () => navigation.navigate('Inventory') },
         { key: 'staff', label: 'Team', hint: 'Staff & roles', icon: 'people-outline', onPress: () => navigation.navigate('StaffList') },
         { key: 'audit', label: 'Activity', hint: 'Audit log', icon: 'document-text-outline', onPress: () => navigation.navigate('AuditLog') },
       ]

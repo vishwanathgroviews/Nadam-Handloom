@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
@@ -10,6 +10,7 @@ import BarcodeScanModal from '../components/BarcodeScanModal';
 import { normalizeBarcode } from '../utils/barcode';
 import { colors, radius, spacing, typography } from '../utils/theme';
 import ScreenHeader from '../components/ui/ScreenHeader';
+import { useDialog } from '../components/DialogProvider';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 
@@ -18,6 +19,7 @@ type Props = NativeStackScreenProps<AppStackParamList, 'ReceiveStock'>;
 export default function ReceiveStockScreen({ route, navigation }: Props) {
   const { productId, productName } = route.params;
   const { accessToken } = useAuth();
+  const showDialog = useDialog();
 
   const [scannerVisible, setScannerVisible] = useState(false);
   const [pending, setPending] = useState<string[]>([]);
@@ -74,7 +76,11 @@ export default function ReceiveStockScreen({ route, navigation }: Props) {
       const res = await receivePieces(accessToken, productId, pending);
       setPending([]);
       setStatusText(null);
-      Alert.alert('Stock received', `${res.data.length} unit${res.data.length === 1 ? '' : 's'} added.`);
+      showDialog({
+        title: 'Stock received',
+        message: `${res.data.length} unit${res.data.length === 1 ? '' : 's'} added.`,
+        tone: 'success',
+      });
     } catch (err: any) {
       if (err.code === 'BARCODE_ALREADY_ASSIGNED' && Array.isArray(err.details)) {
         const takenCodes = new Set(err.details.map((d: any) => d.barcode));

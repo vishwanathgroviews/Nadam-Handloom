@@ -158,6 +158,18 @@ export interface AdminUser {
 
 export const listUsers = (token: string) => apiRequest<{ data: AdminUser[] }>('/admin/users', { token });
 
+/**
+ * Takes a teammate's access to the app away. The account and its history
+ * stay — they can be invited back with provisionUser — but their roles,
+ * sessions and MPIN are cleared, so they cannot sign in and any app they
+ * currently have open stops working on its next request.
+ */
+export const revokeUserAccess = (token: string, userId: string) =>
+  apiRequest<{ data: { id: string; name: string | null; revokedRoles: string[] } }>(
+    `/admin/users/${userId}/access`,
+    { method: 'DELETE', token }
+  );
+
 export const provisionUser = (
   token: string,
   data: { name: string; mobile: string; email: string; role: 'ADMIN' | 'STAFF' }

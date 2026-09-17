@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold, Outfit_700Bold } from '@expo-google-fonts/outfit';
 import { AuthProvider } from './src/context/AuthContext';
+import { DialogProvider } from './src/components/DialogProvider';
 import RootNavigator from './src/navigation/RootNavigator';
 import { colors } from './src/utils/theme';
 
@@ -29,7 +30,11 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <RootNavigator />
+        {/* Inside AuthProvider so any screen can raise a dialog, and above the
+            navigator so a dialog survives the screen that opened it. */}
+        <DialogProvider>
+          <RootNavigator />
+        </DialogProvider>
       </AuthProvider>
       <StatusBar style="dark" />
     </SafeAreaProvider>

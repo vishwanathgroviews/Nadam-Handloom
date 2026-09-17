@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { scanLookup, ScanLookupResult } from '../api/inventory';
-import { SUPPORTED_BARCODE_TYPES } from '../utils/barcodeTypes';
 import { SingleFireLock } from '../utils/concurrencyGuards';
+import CameraScanner from './CameraScanner';
 import { colors, spacing } from '../utils/theme';
 
 interface Props {
@@ -30,6 +29,13 @@ interface Props {
   // component — knows whether a scanned code turned out to be free or taken.
   statusText?: string | null;
   statusTone?: 'success' | 'error';
+  /**
+   * When set, the camera is not started and this message is shown in its
+   * place — the caller is saying "there is already a code in hand". Used by
+   * the fields that hold exactly one barcode (product barcode, DTDC AWB), so
+   * a second tag cannot silently overwrite the one on screen.
+   */
+  suspendedMessage?: string | null;
 }
 
 // The shared "read a printed barcode" camera surface — same scanning
@@ -38,9 +44,9 @@ interface Props {
 // a product/code by scanning its tag instead of typing it.
 export default function BarcodeScanModal({
   visible, accessToken, onClose, mode = 'lookup', onFound, onScanned, onNotFound, statusText, statusTone = 'success',
+  suspendedMessage = null,
 }: Props) {
   const insets = useSafeAreaInsets();
-  const [permission, requestPermission] = useCameraPermissions();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   // expo-camera's onBarcodeScanned keeps firing rapidly while the same label
@@ -51,26 +57,18 @@ export default function BarcodeScanModal({
   // very first fire closes the gate before a second one can get through.
   const lockRef = useRef(new SingleFireLock());
 
-  // Prompts for camera access the moment the scanner opens, instead of
-  // waiting for the user to notice and tap an in-app "Allow Camera" button
-  // first — so the camera is live as soon as this modal appears, on every
-  // open after the very first one.
-  useEffect(() => {
-    if (visible && permission && !permission.granted && permission.canAskAgain) {
-      requestPermission();
-    }
-  }, [visible, permission, requestPermission]);
-
   const handleScanned = useCallback(
-    async ({ data }: { data: string }) => {
+    async (data: string) => {
+      // CameraScanner has already required agreeing frames and canonicalised
+      // the value; this lock only stops two confirmed scans overlapping while
+      // the first is still being resolved against the server.
       if (!lockRef.current.tryAcquire()) return;
 
       if (mode === 'assign') {
-        // A short debounce lock (not a hard lock like 'lookup') — the same
-        // physical label re-fires the scan event rapidly while the camera
-        // holds on it, but the caller expects to keep scanning further codes.
+        // A short debounce (not a hard lock like 'lookup') — the caller
+        // expects to keep scanning further codes.
         onScanned?.(data);
-        setTimeout(() => lockRef.current.release(), 1000);
+        setTimeout(() => lockRef.current.release(), 600);
         return;
       }
 
@@ -114,37 +112,13 @@ export default function BarcodeScanModal({
         </View>
 
         <View style={styles.scanBody}>
-          <View style={styles.cameraWrap}>
-            {!permission ? (
-              <ActivityIndicator style={{ marginTop: 60 }} color="#fff" />
-            ) : permission.granted ? (
-              <>
-                <CameraView
-                  style={StyleSheet.absoluteFill}
-                  barcodeScannerSettings={{ barcodeTypes: SUPPORTED_BARCODE_TYPES }}
-                  onBarcodeScanned={handleScanned}
-                />
-                {/* A 1D barcode is wide and short, not square — this guide
-                    frames roughly that shape instead of a full-bleed camera
-                    view sized for scanning anything. */}
-                <View style={styles.viewfinderWrap} pointerEvents="none">
-                  <View style={styles.viewfinder} />
-                </View>
-              </>
-            ) : (
-              <View style={styles.permissionPrompt}>
-                <Text style={styles.permissionText}>Camera access is needed to scan barcodes.</Text>
-                <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
-                  <Text style={styles.permissionButtonText}>Allow Camera</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-            {processing && (
-              <View style={styles.processingOverlay}>
-                <ActivityIndicator color="#fff" />
-              </View>
-            )}
-          </View>
+          <CameraScanner
+            active={visible}
+            onScan={handleScanned}
+            busy={processing}
+            height={220}
+            suspendedMessage={suspendedMessage}
+          />
 
           {error ? (
             <View style={styles.errorBox}>
@@ -155,7 +129,7 @@ export default function BarcodeScanModal({
             </View>
           ) : mode === 'assign' && statusText ? (
             <Text style={[styles.hint, statusTone === 'error' ? styles.hintError : styles.hintSuccess]}>{statusText}</Text>
-          ) : (
+          ) : suspendedMessage ? null : (
             <Text style={styles.hint}>Point the camera at a product's barcode label.</Text>
           )}
         </View>
@@ -171,14 +145,6 @@ const styles = StyleSheet.create({
   // Centers the (now compact) camera+hint block in the space below the
   // header, instead of a fixed-height camera leaving a large empty gap.
   scanBody: { flex: 1, justifyContent: 'center' },
-  cameraWrap: { height: 220, borderRadius: 16, overflow: 'hidden', backgroundColor: '#000' },
-  viewfinderWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
-  viewfinder: { width: 260, height: 90, borderRadius: 10, borderWidth: 2, borderColor: 'rgba(255,255,255,0.85)' },
-  permissionPrompt: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 },
-  permissionText: { color: '#fff', textAlign: 'center', fontSize: 13 },
-  permissionButton: { backgroundColor: colors.primary, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 20 },
-  permissionButtonText: { color: '#fff', fontWeight: '700' },
-  processingOverlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
   hint: { textAlign: 'center', color: colors.textMuted, fontSize: 13, marginTop: 16 },
   hintSuccess: { color: colors.success, fontWeight: '600' },
   hintError: { color: colors.error, fontWeight: '600' },

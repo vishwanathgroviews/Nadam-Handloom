@@ -12,6 +12,9 @@ router.use(authenticate);
 // Staff/admin provisioning — ADMIN only.
 router.get('/users', requireRoles('ADMIN'), controller.getUsers);
 router.post('/users', requireRoles('ADMIN'), validateBody(provisionUserSchema), controller.createUser);
+// Revoking is owner-only and deliberately separate from deleting: the
+// account and its history stay, only access goes.
+router.delete('/users/:userId/access', requireRoles('ADMIN'), controller.revokeUserAccess);
 
 // Order & shipment management — ADMIN and STAFF both process shipments.
 router.get('/orders', requireRoles('ADMIN', 'STAFF'), validateQuery(listAdminOrdersQuerySchema), controller.listOrders);

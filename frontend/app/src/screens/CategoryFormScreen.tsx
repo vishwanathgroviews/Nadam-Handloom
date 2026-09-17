@@ -10,6 +10,7 @@ import { listCategories, createCategory, updateCategory, uploadCategoryImage, Ad
 import KeyboardAwareScreen from '../components/KeyboardAwareScreen';
 import PhotoSourceSheet from '../components/PhotoSourceSheet';
 import ScreenHeader from '../components/ui/ScreenHeader';
+import { parseSortOrder } from '../utils/sortOrder';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { colors, radius, spacing, typography } from '../utils/theme';
@@ -124,7 +125,7 @@ export default function CategoryFormScreen({ route, navigation }: Props) {
       const payload = {
         name: name.trim(),
         description: description.trim(),
-        ...(sortOrder.trim() ? { sortOrder: Number(sortOrder) } : {}),
+        ...(parseSortOrder(sortOrder) !== undefined ? { sortOrder: parseSortOrder(sortOrder) } : {}),
       };
       if (isEdit && categoryId) {
         await updateCategory(accessToken, categoryId, payload);

@@ -37,6 +37,21 @@ export interface ApiError extends Error {
   details?: unknown;
 }
 
+/**
+ * True when a failure means "this session is no longer valid", as opposed to
+ * "the request did not get through".
+ *
+ * The distinction is the whole reason staff were being logged out at random:
+ * a refresh that failed because the phone lost signal for a moment was
+ * treated exactly like a refresh the server had rejected, and the session was
+ * thrown away. status 0 is what rawRequest uses for every transport failure
+ * (network error or timeout) — those must never end a session.
+ */
+export const isAuthFailure = (err: unknown): boolean => {
+  const status = (err as ApiError | undefined)?.status;
+  return status === 401 || status === 403;
+};
+
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: Record<string, unknown>;
@@ -90,8 +105,13 @@ async function rawRequest<T = any>(path: string, options: RequestOptions = {}): 
     });
   } catch (err: any) {
     if (err?.code === 'NETWORK_TIMEOUT') throw err;
+    // Deliberately does not say "the backend isn't running": from the phone's
+    // side an unreachable server and a dropped mobile signal look identical,
+    // and in production it is nearly always the latter. Telling staff the
+    // server is down when their signal dipped sent them chasing the wrong
+    // problem.
     const error = new Error(
-      `Could not reach the server at ${API_BASE_URL}. Check that the backend is running and your phone is on the same Wi-Fi network.`
+      'Could not reach the server. Check your internet connection and try again.'
     ) as ApiError;
     error.status = 0;
     error.code = 'NETWORK_ERROR';
@@ -139,7 +159,12 @@ export async function refreshAccessToken(): Promise<string> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       const storedRefreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
-      if (!storedRefreshToken) throw new Error('No refresh token stored');
+      if (!storedRefreshToken) {
+        const error = new Error('No refresh token stored') as ApiError;
+        error.status = 401;
+        error.code = 'NO_REFRESH_TOKEN';
+        throw error;
+      }
 
       const res = await rawRequest<{ data: { tokens: { accessToken: string; refreshToken?: string } } }>(
         '/auth/refresh',
@@ -166,9 +191,17 @@ export async function apiRequest<T = any>(path: string, options: RequestOptions 
       try {
         const newToken = await refreshAccessToken();
         return await rawRequest<T>(path, { ...options, token: newToken });
-      } catch {
-        onAuthExpired?.();
-        throw apiError;
+      } catch (refreshErr) {
+        // Session genuinely rejected (or no refresh token to try): sign out.
+        if (isAuthFailure(refreshErr) || (refreshErr as ApiError)?.code === 'NO_REFRESH_TOKEN') {
+          onAuthExpired?.();
+          throw apiError;
+        }
+        // Couldn't reach the server to find out. Leave the session alone and
+        // report the transport problem — the call is retryable, and throwing
+        // the user back to the login screen over one dropped request is what
+        // the "it logged me out by itself" reports were.
+        throw refreshErr;
       }
     }
     throw err;

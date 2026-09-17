@@ -15,13 +15,9 @@ export interface ScanLookupResult {
 }
 
 export interface WhatsappCustomerInput {
-  fullName: string;
   phone: string;
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  pincode: string;
+  /** The entire delivery address as one block of text — see the WhatsApp form in ScannerScreen. */
+  address: string;
   notes?: string;
 }
 

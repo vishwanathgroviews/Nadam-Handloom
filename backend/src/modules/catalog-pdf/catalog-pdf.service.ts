@@ -1,6 +1,5 @@
 import PDFDocument from 'pdfkit';
 import { prisma } from '../../config/prisma';
-import { COMPANY } from '../../config/company';
 import { AppError, BadRequestError, NotFoundError } from '../../utils/errors';
 import { storageProvider } from '../../providers/storage';
 import { fetchImageBuffer } from '../../utils/fetchImageBuffer';
@@ -8,34 +7,33 @@ import { logAuthEvent } from '../auth/auditLog.service';
 
 // A customer-shareable PDF catalog per subcategory — one product photo per
 // page on the "Nandam Soft Premium" brand skin (warm ivory ground, maroon +
-// gold accents), with the shop's logo+name on every page. Distinct from the
-// barcode label PDFs in ../labels, which are for sticker sheets, not sharing
-// with customers. Only in-stock products with a photo are included —
-// out-of-stock products get neither a page nor an image. The caption under
-// each photo is the subcategory's name, not the individual product's own
-// name — this business prices and labels by subcategory (every product in
-// one subcategory shares its price), and most products carry no name of
-// their own beyond that (Product.name defaults to the subcategory's name
-// unless staff type something more specific).
+// gold accents). Distinct from the barcode label PDFs in ../labels, which
+// are for sticker sheets, not sharing with customers. Only in-stock products
+// with a photo are included — out-of-stock products get neither a page nor
+// an image.
+//
+// Each page carries the subcategory name once, at the top, and then the
+// photo. Deliberately nothing else: the shop name (it is being sent by the
+// shop, to a customer who is already talking to them), the name repeated
+// under the photo, and the price are all off the page at the owner's
+// request — prices move, and a shared PDF outlives the price it was
+// generated with.
 
 const PAGE_WIDTH = 595.28; // A4, points
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 26;
 const CARD_RADIUS = 20;
-const FOOTER_HEIGHT = 78;
+// Breathing room between the photo and the bottom edge of the card.
+const BOTTOM_INSET = 24;
 
 const IVORY = '#FAF6F1';
 const CARD_SHADOW = '#EFE6DC';
 const MAROON = '#7A1F2B';
 const GOLD = '#B07C2A';
-const TEXT = '#241E1B';
-const TEXT_MUTED = '#7C716A';
 const IMAGE_MAT = '#F6F1EB';
 
 export interface CatalogItem {
   name: string;
-  storePrice: number;
-  mrp: number | null;
   imageBuffer: Buffer;
 }
 
@@ -75,13 +73,6 @@ const drawPageFrame = (doc: PDFKit.PDFDocument, subcategoryName: string) => {
     });
   y = doc.y + 6;
 
-  doc
-    .font('Helvetica')
-    .fontSize(8.5)
-    .fillColor(TEXT_MUTED)
-    .text(COMPANY.name.toUpperCase(), contentX, y, { width: contentWidth, align: 'center', characterSpacing: 1.4 });
-  y += 16;
-
   const dividerY = y;
   doc.moveTo(contentX, dividerY).lineTo(contentX + contentWidth / 2 - 10, dividerY).lineWidth(0.75).strokeColor(GOLD).stroke();
   doc.moveTo(contentX + contentWidth / 2 + 10, dividerY).lineTo(contentX + contentWidth, dividerY).lineWidth(0.75).strokeColor(GOLD).stroke();
@@ -95,11 +86,10 @@ const drawPageFrame = (doc: PDFKit.PDFDocument, subcategoryName: string) => {
   return { contentX, contentWidth, y };
 };
 
-// Exported so a caller with its own item list (name + price + image, not
-// necessarily a real Subcategory row — e.g. a placeholder/preview catalog
-// for photos not uploaded into the app yet) can reuse the exact approved
-// rendering — same page per call as generateCatalogPdf below, no
-// duplicated layout code.
+// Exported so a caller with its own item list (name + image, not necessarily
+// a real Subcategory row — e.g. a placeholder/preview catalog for photos not
+// uploaded into the app yet) can reuse the exact approved rendering — same
+// page per call as generateCatalogPdf below, no duplicated layout code.
 export const renderCatalogPdf = async (items: CatalogItem[]): Promise<Buffer> => {
   const doc = new PDFDocument({ size: [PAGE_WIDTH, PAGE_HEIGHT], margin: 0 });
   const chunks: Buffer[] = [];
@@ -110,7 +100,9 @@ export const renderCatalogPdf = async (items: CatalogItem[]): Promise<Buffer> =>
     if (index > 0) doc.addPage();
     const { contentX, contentWidth, y: bodyTop } = drawPageFrame(doc, item.name);
 
-    const imageBottom = MARGIN + (PAGE_HEIGHT - MARGIN * 2) - FOOTER_HEIGHT;
+    // No caption block any more (see the header comment), so the photo runs
+    // to the bottom of the card rather than stopping short of a footer.
+    const imageBottom = MARGIN + (PAGE_HEIGHT - MARGIN * 2) - BOTTOM_INSET;
     const imageHeight = imageBottom - bodyTop;
 
     doc.roundedRect(contentX, bodyTop, contentWidth, imageHeight, 10).fill(IMAGE_MAT);
@@ -124,23 +116,6 @@ export const renderCatalogPdf = async (items: CatalogItem[]): Promise<Buffer> =>
       console.error(`Failed to embed image for "${item.name}" in catalog PDF, skipping image:`, error);
     }
 
-    let fy = imageBottom + 14;
-    doc.font('Times-BoldItalic').fontSize(13).fillColor(TEXT).text(item.name, contentX, fy, { width: contentWidth, align: 'center' });
-    fy += 20;
-
-    const priceLabel = `Rs. ${item.storePrice.toLocaleString('en-IN')}`;
-    const pillWidth = doc.font('Helvetica-Bold').fontSize(12).widthOfString(priceLabel) + 32;
-    const pillX = contentX + (contentWidth - pillWidth) / 2;
-    doc.roundedRect(pillX, fy, pillWidth, 22, 11).fill(MAROON);
-    doc.font('Helvetica-Bold').fontSize(12).fillColor('#FFFFFF').text(priceLabel, pillX, fy + 5, { width: pillWidth, align: 'center' });
-
-    if (item.mrp && item.mrp > item.storePrice) {
-      doc
-        .font('Helvetica')
-        .fontSize(9)
-        .fillColor(TEXT_MUTED)
-        .text(`MRP Rs. ${item.mrp.toLocaleString('en-IN')}`, contentX, fy + 28, { width: contentWidth, align: 'center' });
-    }
   });
 
   doc.end();
@@ -183,14 +158,12 @@ export const generateCatalogPdf = async (
     throw new BadRequestError('This subcategory has no in-stock products with photos right now');
   }
 
-  const storePrice = Number(subcategory.storePrice);
-  const mrp = subcategory.mrp ? Number(subcategory.mrp) : null;
 
   const items: CatalogItem[] = [];
   for (const product of inStock) {
     try {
       const imageBuffer = await fetchImageBuffer(product.images[0]!.url);
-      items.push({ name: subcategory.name, storePrice, mrp, imageBuffer });
+      items.push({ name: subcategory.name, imageBuffer });
     } catch (error) {
       console.error(`Failed to fetch photo for product ${product.id}, skipping from catalog:`, error);
     }

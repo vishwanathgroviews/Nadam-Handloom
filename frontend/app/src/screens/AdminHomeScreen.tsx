@@ -118,10 +118,9 @@ export default function AdminHomeScreen({ navigation }: Props) {
           )}
         </View>
 
+        {/* See StaffHomeScreen: single-piece listings have no stock level to
+            run low on, so the tile is gone for the owner too. */}
         <View style={styles.statRow}>
-          <TouchableOpacity style={styles.statTouchable} onPress={() => navigation.navigate('Inventory')} activeOpacity={0.8}>
-            <StatCard icon="alert-circle-outline" iconColor={colors.warning} iconBg={colors.warningBg} label="running low" value={stats?.lowStockCount ?? '—'} />
-          </TouchableOpacity>
           <TouchableOpacity style={styles.statTouchable} onPress={() => goToTab(navigation, 'OrdersTab')} activeOpacity={0.8}>
             <StatCard icon="cube-outline" iconColor={colors.success} iconBg={colors.successBg} label="to ship" value={toShipCount ?? '—'} />
           </TouchableOpacity>

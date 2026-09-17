@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import { apiRequest, refreshAccessToken, registerAuthHandlers, REFRESH_TOKEN_KEY } from '../api/client';
+import { apiRequest, refreshAccessToken, registerAuthHandlers, REFRESH_TOKEN_KEY, isAuthFailure } from '../api/client';
 
 // Persisted alongside the refresh token — lets MpinLoginScreen ask for just
 // an MPIN on repeat logins from the same device rather than a mobile number
@@ -114,17 +114,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setStatus('unauthenticated');
         return;
       }
-      try {
-        const newAccessToken = await refreshAccessToken();
-        const claims = decodeJwtPayload<AccessTokenClaims>(newAccessToken);
-        if (!claims) throw new Error('Invalid access token');
-        await applySession(
-          { accessToken: newAccessToken },
-          { id: claims.sub, email: null, phone: null, roles: claims.roles }
-        );
-      } catch {
-        await clearSession();
+      // A cold start on a weak connection must not look like a logout. Only a
+      // session the server actually rejected clears the stored refresh token;
+      // a transport failure is retried a couple of times and then leaves the
+      // token in place, so the next launch with signal restores the session
+      // silently instead of demanding the MPIN again.
+      const BACKOFF_MS = [0, 1500, 4000];
+      for (let attempt = 0; attempt < BACKOFF_MS.length; attempt++) {
+        if (BACKOFF_MS[attempt]) await new Promise((r) => setTimeout(r, BACKOFF_MS[attempt]));
+        try {
+          const newAccessToken = await refreshAccessToken();
+          const claims = decodeJwtPayload<AccessTokenClaims>(newAccessToken);
+          if (!claims) throw new Error('Invalid access token');
+          await applySession(
+            { accessToken: newAccessToken },
+            { id: claims.sub, email: null, phone: null, roles: claims.roles }
+          );
+          return;
+        } catch (err) {
+          if (isAuthFailure(err) || (err as { code?: string })?.code === 'NO_REFRESH_TOKEN') {
+            await clearSession();
+            return;
+          }
+          // Transport failure — fall through and try again.
+        }
       }
+      // Still unreachable. Show the sign-in screen, but keep the refresh
+      // token: this was the network's fault, not the session's.
+      setStatus('unauthenticated');
     })();
   }, [applySession, clearSession]);
 

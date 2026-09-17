@@ -51,3 +51,6 @@ CLAUDE.md
 
 # Throwaway test bundle (built against the live API for browser checks).
 frontend/customer-web/dist-test/
+
+# Scratch output from one-off render checks.
+backend/.tmp/

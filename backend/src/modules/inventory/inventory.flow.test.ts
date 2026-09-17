@@ -287,6 +287,52 @@ describe('scan-to-lookup / scan-to-sell', () => {
     expect(skuRes.body.data.availableQty).toBe(4);
   });
 
+  // The reported bug: the first scan of a tag worked and the second came back
+  // "No product found". The camera reports whichever GTIN symbology it
+  // decoded that frame, so the same label can arrive as UPC-A once and EAN-13
+  // the next time — two different strings for one piece.
+  it('resolves the same tag however its symbology decoded — repeat scans never miss', async () => {
+    const staffToken = await createStaffToken('9000000111', 'STAFF');
+    const category = seedCategory();
+    const product = seedProduct(category.id, { trackingMode: 'serialized' });
+    // Stored as the 13-digit EAN-13 form, as the intake scan happened to read it.
+    const piece = seedPiece(product.id, { barcode: '0036000291452' });
+
+    const asStored = await request(app).post('/api/v1/admin/inventory/scan-lookup')
+      .set('Authorization', `Bearer ${staffToken}`).send({ code: '0036000291452' });
+    expect(asStored.status).toBe(200);
+    expect(asStored.body.data.pieceId).toBe(piece.id);
+
+    // Second scan of the very same label, decoded as UPC-A this time.
+    const asUpcA = await request(app).post('/api/v1/admin/inventory/scan-lookup')
+      .set('Authorization', `Bearer ${staffToken}`).send({ code: '036000291452' });
+    expect(asUpcA.status).toBe(200);
+    expect(asUpcA.body.data.pieceId).toBe(piece.id);
+  });
+
+  it('sells a piece scanned in a different symbology than it was received in', async () => {
+    const staffToken = await createStaffToken('9000000112', 'STAFF');
+    const category = seedCategory();
+    const subcategory = seedSubcategory(category.id);
+    const product = seedProduct(category.id, { subcategoryId: subcategory.id, trackingMode: 'serialized', stock: 0 });
+    const piece = seedPiece(product.id, { barcode: '0036000291452' });
+
+    const res = await request(app).post('/api/v1/admin/inventory/scan-sell')
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ items: [{ code: '036000291452' }], channel: 'store' });
+
+    expect(res.status).toBe(200);
+    const sold = fake.db.piece.find((row: any) => row.id === piece.id);
+    expect(sold.status).toBe('sold_offline');
+  });
+
+  it('still refuses a code that belongs to nothing', async () => {
+    const staffToken = await createStaffToken('9000000113', 'STAFF');
+    const res = await request(app).post('/api/v1/admin/inventory/scan-lookup')
+      .set('Authorization', `Bearer ${staffToken}`).send({ code: 'NOT-A-REAL-TAG' });
+    expect(res.status).toBe(404);
+  });
+
   it('records a WhatsApp sale as a shippable order with the buyer on it, not a finished counter sale', async () => {
     const staffToken = await createStaffToken('9000000150', 'STAFF');
     const category = seedCategory();
@@ -296,9 +342,11 @@ describe('scan-to-lookup / scan-to-sell', () => {
       .send({
         code: product.sku,
         channel: 'whatsapp',
+        // Two fields only — the whole address as one block, the way staff
+        // receive it in the chat.
         customer: {
-          fullName: 'Lakshmi Rao', phone: '9876500011', line1: '12 Temple Street',
-          city: 'Vijayawada', state: 'Andhra Pradesh', pincode: '520001',
+          phone: '9876500011',
+          address: 'Lakshmi Rao, 12 Temple Street, Vijayawada, Andhra Pradesh - 520001',
         },
       });
 
@@ -310,9 +358,10 @@ describe('scan-to-lookup / scan-to-sell', () => {
     // Still has to be packed and couriered, so it joins the To Ship queue
     // rather than being closed out like a counter sale.
     expect(order.status).toBe('processing');
-    expect(order.shippingAddress.fullName).toBe('Lakshmi Rao');
     expect(order.shippingAddress.phone).toBe('9876500011');
-    expect(order.shippingAddress.pincode).toBe('520001');
+    // The free-text address is stored in line1, the same field every other
+    // order's street line uses, so the To Ship screen needs no special case.
+    expect(order.shippingAddress.line1).toBe('Lakshmi Rao, 12 Temple Street, Vijayawada, Andhra Pradesh - 520001');
 
     // A Shipment row is what makes the AWB screen work for this order.
     expect(fake.db.shipment.filter((s: any) => s.orderId === order.id)).toHaveLength(1);
@@ -345,8 +394,8 @@ describe('scan-to-lookup / scan-to-sell', () => {
         code: product.sku,
         channel: 'whatsapp',
         customer: {
-          fullName: 'Meera Devi', phone: '9876500022', line1: '5 Market Road',
-          city: 'Guntur', state: 'Andhra Pradesh', pincode: '522001',
+          phone: '9876500022',
+          address: 'Meera Devi, 5 Market Road, Guntur, Andhra Pradesh - 522001',
         },
       });
     const orderId = sale.body.data.orderId;
@@ -476,6 +525,58 @@ describe('scan-to-lookup / scan-to-sell', () => {
     expect(overrideEvent.source).toBe('staff_app');
     expect(overrideEvent.metadata.salePrice).toBe(1750);
     expect(overrideEvent.metadata.categoryStorePrice).toBe(2000);
+  });
+
+  // The owner's hard requirement: a price typed on one sale applies to that
+  // sale and nothing else. It must never edit the subcategory's own prices,
+  // and the next scan of a sibling product has to come back at the
+  // configured counter price again.
+  it('a price typed on one sale changes only that sale', async () => {
+    const staffToken = await createStaffToken('9000000122', 'STAFF');
+    const category = seedCategory();
+    const subcategory = seedSubcategory(category.id, { storePrice: 2000, onlinePrice: 2600 });
+    const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 3, subcategoryId: subcategory.id });
+    const sibling = seedProduct(category.id, { trackingMode: 'quantity', stock: 3, subcategoryId: subcategory.id });
+
+    await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
+      .send({ code: product.sku, salePrice: 1750 });
+
+    // The subcategory's configured prices are untouched.
+    const after = fake.db.subcategory.find((sc: any) => sc.id === subcategory.id);
+    expect(Number(after.storePrice)).toBe(2000);
+    expect(Number(after.onlinePrice)).toBe(2600);
+
+    // A different product in the same subcategory still sells at the
+    // configured counter price.
+    const second = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
+      .send({ code: sibling.sku });
+    const secondOrder = fake.db.order.find((o: any) => o.id === second.body.data.orderId);
+    expect(Number(secondOrder.total)).toBe(2000);
+
+    // And so does the very same product on its next sale.
+    const third = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
+      .send({ code: product.sku });
+    const thirdOrder = fake.db.order.find((o: any) => o.id === third.body.data.orderId);
+    expect(Number(thirdOrder.total)).toBe(2000);
+  });
+
+  // The counter never charges the website's price.
+  it('sells at the counter price, not the online one', async () => {
+    const staffToken = await createStaffToken('9000000123', 'STAFF');
+    const category = seedCategory();
+    const subcategory = seedSubcategory(category.id, { storePrice: 2000, onlinePrice: 2600 });
+    const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 2, subcategoryId: subcategory.id });
+
+    const lookup = await request(app).post('/api/v1/admin/inventory/scan-lookup')
+      .set('Authorization', `Bearer ${staffToken}`).send({ code: product.sku });
+    expect(Number(lookup.body.data.storePrice)).toBe(2000);
+    // The scan response must not even carry the website price into the app.
+    expect(lookup.body.data.onlinePrice).toBeUndefined();
+
+    const sale = await request(app).post('/api/v1/admin/inventory/scan-sell')
+      .set('Authorization', `Bearer ${staffToken}`).send({ code: product.sku });
+    const order = fake.db.order.find((o: any) => o.id === sale.body.data.orderId);
+    expect(Number(order.total)).toBe(2000);
   });
 
   it('omitting salePrice behaves exactly as before — no audit event, store price used', async () => {
@@ -637,8 +738,8 @@ describe('scan-to-lookup / scan-to-sell', () => {
         items: [{ code: pieces[0].barcode, salePrice: 900 }, { code: pieces[1].barcode }],
         channel: 'whatsapp',
         customer: {
-          fullName: 'Lakshmi', phone: '9876500011', line1: '2-3 Market Road',
-          city: 'Vijayawada', state: 'Andhra Pradesh', pincode: '520001',
+          phone: '9876500011',
+          address: 'Lakshmi, 2-3 Market Road, Vijayawada, Andhra Pradesh - 520001',
         },
       });
 

@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   Image,
   Switch,
-  Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -36,6 +35,8 @@ import KeyboardAwareScreen from '../components/KeyboardAwareScreen';
 import SearchablePicker from '../components/SearchablePicker';
 import PhotoSourceSheet from '../components/PhotoSourceSheet';
 import BarcodeScanModal from '../components/BarcodeScanModal';
+import { useDialog } from '../components/DialogProvider';
+import { goToTab } from '../navigation/tabs';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -53,6 +54,7 @@ const VISIBILITY_OPTIONS: { value: ChannelVisibility; label: string }[] = [
 export default function ProductFormScreen({ route, navigation }: Props) {
   const initialProductId = route.params?.productId;
   const { accessToken } = useAuth();
+  const showDialog = useDialog();
 
   const [productId, setProductId] = useState<string | undefined>(initialProductId);
   const isEdit = Boolean(productId);
@@ -239,6 +241,10 @@ export default function ProductFormScreen({ route, navigation }: Props) {
     [accessToken, pendingBarcodesClaims]
   );
 
+  // The single-code field is "occupied" the moment it holds anything, and the
+  // camera stays shut until it is emptied — see the scan button below.
+  const barcodeFieldHolds = barcodeInput.trim().length > 0;
+
   const handleAddBarcode = () => {
     if (!barcodeInput.trim()) return;
     tryAddBarcode(barcodeInput);
@@ -333,11 +339,15 @@ export default function ProductFormScreen({ route, navigation }: Props) {
         }
       }
 
-      Alert.alert('Product created', warning || 'Its photo and scanned barcode(s) were saved.');
-      // Land on the product's own page (same route the list and "scan ->
-      // not found -> create" flow both use) instead of leaving staff on the
-      // now-stale "New Product" form.
-      navigation.replace('ProductForm', { productId: newProductId });
+      showDialog({
+        title: 'Product created',
+        message: warning || 'Its photo and scanned barcode(s) were saved.',
+        tone: warning ? 'warning' : 'success',
+      });
+      // Back to the list, not the product's own page: creating one is almost
+      // always followed by creating the next or checking the listing, and the
+      // stale "New Product" form was a dead end either way.
+      goToTab(navigation, 'ProductsTab');
     } catch (err: any) {
       // A taken barcode rolls the whole creation back server-side, so the
       // form is still the live draft — drop just the offending codes so staff
@@ -516,7 +526,7 @@ export default function ProductFormScreen({ route, navigation }: Props) {
 
       {selectedSubcategory && (
         <Text style={styles.noteText}>
-          Price ₹{selectedSubcategory.onlinePrice} is set on the subcategory — change it in Categories.
+          Store price ₹{selectedSubcategory.storePrice} is set on the subcategory — change it in Categories.
         </Text>
       )}
 
@@ -584,8 +594,17 @@ export default function ProductFormScreen({ route, navigation }: Props) {
               onSubmitEditing={handleAddBarcode}
             />
             {/* The icon opens the camera directly — typing still works via the
-                keyboard's return key (onSubmitEditing above) without a second button. */}
-            <TouchableOpacity style={styles.addBarcodeButton} onPress={() => setScannerVisible(true)} activeOpacity={0.8}>
+                keyboard's return key (onSubmitEditing above) without a second button.
+                Disabled while the field already holds a code: scanning then
+                would silently replace what is sitting there unreviewed, so the
+                typed code has to be added or cleared first. */}
+            <TouchableOpacity
+              style={[styles.addBarcodeButton, barcodeFieldHolds && styles.addBarcodeButtonDisabled]}
+              onPress={() => setScannerVisible(true)}
+              activeOpacity={0.8}
+              disabled={barcodeFieldHolds}
+              accessibilityState={{ disabled: barcodeFieldHolds }}
+            >
               <Ionicons name="barcode-outline" size={16} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -645,6 +664,11 @@ export default function ProductFormScreen({ route, navigation }: Props) {
         accessToken={accessToken}
         mode="assign"
         onScanned={handleCameraScanned}
+        suspendedMessage={
+          barcodeFieldHolds
+            ? `"${barcodeInput.trim()}" is already in the barcode field. Add it or clear it before scanning another.`
+            : null
+        }
         onClose={() => setScannerVisible(false)}
       />
       </ScrollView>
@@ -697,6 +721,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
   },
+  addBarcodeButtonDisabled: { opacity: 0.4 },
   addBarcodeButton: {
     backgroundColor: colors.primary,
     borderRadius: radius.md,

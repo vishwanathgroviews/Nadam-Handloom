@@ -10,6 +10,7 @@ import { openWhatsAppChat } from '../utils/whatsapp';
 import { savePdfBytes, sharePdf } from '../utils/pdf';
 import { DTDC_TRACKING_URL } from '../utils/constants';
 import { buildShipmentMessage as composeShipmentMessage, dedupeProductLinks } from '../utils/shipmentMessage';
+import { formatShipTo } from '../utils/shipTo';
 import KeyboardAwareScreen from '../components/KeyboardAwareScreen';
 import BarcodeScanModal from '../components/BarcodeScanModal';
 import { normalizeBarcode } from '../utils/barcode';
@@ -20,7 +21,6 @@ import Button from '../components/ui/Button';
 type Props = NativeStackScreenProps<AppStackParamList, 'OrderShipment'>;
 
 const formatRupees = (amount: string | number): string => `₹${Math.round(Number(amount)).toLocaleString('en-IN')}`;
-
 export default function OrderShipmentScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
   const { accessToken } = useAuth();
@@ -52,6 +52,8 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
   useEffect(() => {
     load();
   }, [load]);
+
+  const awbFieldHolds = awbNumber.trim().length > 0;
 
   // One scan fills the field and closes the camera — there is exactly one
   // AWB per parcel, so there is nothing to keep scanning for.
@@ -107,8 +109,9 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
   // "Copy" action on iOS/Android) without adding a new dependency.
   const handleCopyAddress = () => {
     if (!shipTo) return;
-    const { fullName, line1, line2, city, state, pincode, phone } = shipTo;
-    const message = `${fullName}\n${line1}${line2 ? `, ${line2}` : ''}\n${city}, ${state} - ${pincode}\nPhone: ${phone}`;
+    const message = [formatShipTo(shipTo), shipTo.phone ? `Phone: ${shipTo.phone}` : '']
+      .filter(Boolean)
+      .join('\n');
     Share.share({ message }).catch(() => {});
   };
 
@@ -342,14 +345,19 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
               value={awbNumber}
               onChangeText={setAwbNumber}
             />
+            {/* Shut while the field already holds an AWB: a parcel has exactly
+                one, so scanning a second label could only overwrite the one on
+                screen without the person noticing. Clear it to scan again. */}
             <TouchableOpacity
-              style={styles.awbScanButton}
+              style={[styles.awbScanButton, awbFieldHolds && styles.awbScanButtonDisabled]}
               onPress={() => { setError(''); setAwbScannerVisible(true); }}
               activeOpacity={0.8}
+              disabled={awbFieldHolds}
               accessibilityRole="button"
+              accessibilityState={{ disabled: awbFieldHolds }}
               accessibilityLabel="Scan the DTDC shipment barcode"
             >
-              <Ionicons name="barcode-outline" size={20} color={colors.primary} />
+              <Ionicons name="barcode-outline" size={20} color={awbFieldHolds ? colors.iconMuted : colors.primary} />
             </TouchableOpacity>
           </View>
           {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -364,6 +372,11 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
         mode="assign"
         onScanned={handleAwbScanned}
         statusText={scanStatus}
+        suspendedMessage={
+          awbFieldHolds
+            ? `AWB ${awbNumber.trim()} is already entered. Clear the field to scan a different one.`
+            : null
+        }
         onClose={() => setAwbScannerVisible(false)}
       />
     </KeyboardAwareScreen>
@@ -443,6 +456,7 @@ const styles = StyleSheet.create({
   submitButton: { marginTop: spacing.xs },
   awbRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   awbInput: { flex: 1 },
+  awbScanButtonDisabled: { opacity: 0.45 },
   awbScanButton: {
     width: 48, height: 48, borderRadius: radius.md, backgroundColor: colors.primaryBg,
     alignItems: 'center', justifyContent: 'center', marginTop: spacing.md, marginBottom: spacing.md,

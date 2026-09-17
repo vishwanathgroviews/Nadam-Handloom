@@ -22,7 +22,11 @@
         "android.permission.CAMERA",
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.RECORD_AUDIO"
-      ]
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#5C1420"
+      }
     },
     "plugins": [
       [
@@ -52,6 +56,15 @@
       "eas": {
         "projectId": "3f1e6196-d244-4e12-9993-ca68992aa9b6"
       }
+    },
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#5C1420"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     }
   }
 }

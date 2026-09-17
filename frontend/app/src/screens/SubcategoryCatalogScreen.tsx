@@ -5,7 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
 import { getCatalogPdfStatus, generateCatalogPdf, CatalogPdfStatus } from '../api/catalogPdf';
-import { savePdfBytes, printPdf, sharePdf } from '../utils/pdf';
+import { savePdfBytes, sharePdf } from '../utils/pdf';
 import { useIsOnline } from '../utils/network';
 import OfflineBanner from '../components/OfflineBanner';
 import ScreenHeader from '../components/ui/ScreenHeader';
@@ -44,29 +44,40 @@ export default function SubcategoryCatalogScreen({ route, navigation }: Props) {
     loadStatus();
   }, [loadStatus]);
 
-  const handleGenerate = useCallback(
-    async (action: 'print' | 'share') => {
-      if (!accessToken) return;
-      if (!isOnline) return setError('You are offline — generating the catalog needs a live connection.');
+  // Generating always ends in the share sheet. This catalog exists to be sent
+  // to a customer — printing it was never what it was for, and the extra
+  // button only made staff choose between two things they wanted the same
+  // outcome from.
+  const handleGenerate = useCallback(async () => {
+    if (!accessToken) return;
+    if (!isOnline) return setError('You are offline — generating the catalog needs a live connection.');
 
-      setGenerating(true);
-      setError('');
-      try {
-        const result = await generateCatalogPdf(accessToken, subcategoryId);
-        const uri = savePdfBytes(result.bytes, `catalog-${subcategoryId}-${Date.now()}.pdf`);
-        setLastPdfUri(uri);
-        setLastProductCount(result.productCount ?? null);
-        await loadStatus();
-        if (action === 'print') await printPdf(uri);
-        else await sharePdf(uri);
-      } catch (err: any) {
-        setError(err.message || 'Failed to generate the catalog PDF');
-      } finally {
-        setGenerating(false);
-      }
-    },
-    [accessToken, isOnline, subcategoryId, loadStatus]
-  );
+    setGenerating(true);
+    setError('');
+    try {
+      const result = await generateCatalogPdf(accessToken, subcategoryId);
+      const uri = savePdfBytes(result.bytes, `catalog-${subcategoryId}-${Date.now()}.pdf`);
+      setLastPdfUri(uri);
+      setLastProductCount(result.productCount ?? null);
+      await loadStatus();
+      await sharePdf(uri);
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate the catalog PDF');
+    } finally {
+      setGenerating(false);
+    }
+  }, [accessToken, isOnline, subcategoryId, loadStatus]);
+
+  // Sends the catalog that was already generated, without making a new one.
+  const handleShareExisting = useCallback(async () => {
+    if (!lastPdfUri) return;
+    setError('');
+    try {
+      await sharePdf(lastPdfUri);
+    } catch (err: any) {
+      setError(err.message || 'Could not open the share sheet');
+    }
+  }, [lastPdfUri]);
 
   const hasExisting = Boolean(status);
 
@@ -75,8 +86,8 @@ export default function SubcategoryCatalogScreen({ route, navigation }: Props) {
       <ScreenHeader title="Catalog PDF" backLabel="Subcategories" subtitle={subcategoryName || 'This subcategory'} />
       <Text style={styles.helper}>
         Generates a PDF with every active product's photo in this subcategory, ready to share with a customer over
-        WhatsApp or save. Generating a new one deletes the old PDF and replaces it — there's only ever one live
-        catalog per subcategory.
+        WhatsApp or save. Generating opens the share sheet straight away. A new one deletes the old PDF and
+        replaces it — there's only ever one live catalog per subcategory.
       </Text>
 
       {!isOnline && <OfflineBanner />}
@@ -114,17 +125,20 @@ export default function SubcategoryCatalogScreen({ route, navigation }: Props) {
       ) : (
         <View style={styles.actionColumn}>
           <Button
-            title={hasExisting ? 'Generate New & Print' : 'Generate & Print'}
-            onPress={() => handleGenerate('print')}
+            title={hasExisting ? 'Generate New' : 'Generate Catalog'}
+            onPress={handleGenerate}
             disabled={!isOnline}
           />
-          <Button
-            title={hasExisting ? 'Generate New & Share' : 'Generate & Share'}
-            onPress={() => handleGenerate('share')}
-            disabled={!isOnline}
-            variant="secondary"
-            style={styles.secondActionButton}
-          />
+          {/* Only once there is a freshly generated file on this device to
+              send — before that, Generate New is the way to get one. */}
+          {lastPdfUri ? (
+            <Button
+              title="Share"
+              onPress={handleShareExisting}
+              variant="secondary"
+              style={styles.secondActionButton}
+            />
+          ) : null}
         </View>
       )}
     </View>

@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image, TextInput } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -19,6 +19,7 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
   const [subcategories, setSubcategories] = useState<AdminSubcategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [query, setQuery] = useState('');
 
   const load = useCallback(async () => {
     if (!accessToken) return;
@@ -40,6 +41,15 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
     }, [load])
   );
 
+  // Filtered on the device rather than through the API: a category holds a
+  // handful of subcategories, they are already all loaded, and matching
+  // locally keeps the list responsive on every keystroke with no round trip.
+  const visible = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return subcategories;
+    return subcategories.filter((item) => item.name.toLowerCase().includes(term));
+  }, [subcategories, query]);
+
   return (
     <View style={styles.container}>
       <ScreenHeader
@@ -53,15 +63,37 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
         }
       />
 
+      {subcategories.length > 0 && (
+        <Card style={styles.searchCard}>
+          <Ionicons name="search" size={17} color={colors.textLabel} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search subcategories"
+            placeholderTextColor={colors.textMuted}
+            value={query}
+            onChangeText={setQuery}
+            autoCorrect={false}
+            returnKeyType="search"
+          />
+          {query.length > 0 && (
+            <TouchableOpacity onPress={() => setQuery('')} hitSlop={10}>
+              <Ionicons name="close-circle" size={17} color={colors.iconMuted} />
+            </TouchableOpacity>
+          )}
+        </Card>
+      )}
+
       {loading ? (
         <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
       ) : error ? (
         <Text style={styles.error}>{error}</Text>
       ) : subcategories.length === 0 ? (
         <Text style={styles.empty}>No subcategories yet — tap "+ New" to add one.</Text>
+      ) : visible.length === 0 ? (
+        <Text style={styles.empty}>No subcategory matches "{query.trim()}".</Text>
       ) : (
         <FlatList
-          data={subcategories}
+          data={visible}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
@@ -93,7 +125,8 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
                   </View>
                 </View>
                 <View style={styles.priceWrap}>
-                  <Text style={styles.price}>₹{item.onlinePrice}</Text>
+                  {/* The counter price — see ProductListScreen. */}
+                  <Text style={styles.price}>₹{item.storePrice}</Text>
                   <Text style={styles.priceSub}>Store ₹{item.storePrice}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={colors.iconMuted} />
@@ -122,6 +155,16 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   addButtonText: { ...typography.bodySmSemibold, color: colors.primary },
+  searchCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm + 2,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md + 1,
+    marginBottom: spacing.md,
+  },
+  searchInput: { flex: 1, ...typography.bodyMedium, color: colors.text, padding: 0 },
   card: {
     marginBottom: spacing.sm + 2,
     overflow: 'hidden',

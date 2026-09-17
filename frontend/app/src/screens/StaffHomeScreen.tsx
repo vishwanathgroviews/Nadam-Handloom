@@ -62,10 +62,10 @@ export default function StaffHomeScreen({ navigation }: Props) {
           <Text style={styles.welcomeSub}>Scan to sell, check stock, or ship what's waiting.</Text>
         </View>
 
+        {/* No "running low" count: every listing here is a single piece, so
+            stock is either on the shelf or sold — there is no level to run low
+            on, and the tile only ever restated the product count. */}
         <View style={styles.statRow}>
-          <TouchableOpacity style={styles.statTouchable} onPress={() => navigation.navigate('Inventory')} activeOpacity={0.8}>
-            <StatCard icon="alert-circle-outline" iconColor={colors.warning} iconBg={colors.warningBg} label="running low" value={stats?.lowStockCount ?? '—'} />
-          </TouchableOpacity>
           <TouchableOpacity style={styles.statTouchable} onPress={() => goToTab(navigation, 'OrdersTab')} activeOpacity={0.8}>
             <StatCard icon="cube-outline" iconColor={colors.success} iconBg={colors.successBg} label="to ship" value={toShipCount ?? '—'} />
           </TouchableOpacity>
@@ -80,11 +80,6 @@ export default function StaffHomeScreen({ navigation }: Props) {
             <View style={styles.manageIconWrap}><Ionicons name="shirt-outline" size={18} color={colors.primary} /></View>
             <Text style={styles.manageLabel}>Products</Text>
             <Text style={styles.manageHint}>{stats ? `${stats.products.activeCount} live` : '—'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.manageCard} onPress={() => navigation.navigate('Inventory')} activeOpacity={0.8}>
-            <View style={styles.manageIconWrap}><Ionicons name="cube-outline" size={18} color={colors.primary} /></View>
-            <Text style={styles.manageLabel}>Inventory</Text>
-            <Text style={styles.manageHint}>What needs restocking</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.manageCard} onPress={() => navigation.navigate('Invoices')} activeOpacity={0.8}>
             <View style={styles.manageIconWrap}><Ionicons name="document-text-outline" size={18} color={colors.primary} /></View>

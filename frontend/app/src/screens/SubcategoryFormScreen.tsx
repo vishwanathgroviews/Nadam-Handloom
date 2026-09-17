@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Switch, Image, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Switch, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +17,8 @@ import {
 import KeyboardAwareScreen from '../components/KeyboardAwareScreen';
 import PhotoSourceSheet from '../components/PhotoSourceSheet';
 import ScreenHeader from '../components/ui/ScreenHeader';
+import { parseSortOrder } from '../utils/sortOrder';
+import { useDialog } from '../components/DialogProvider';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { colors, radius, spacing, typography } from '../utils/theme';
@@ -27,6 +29,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
   const { categoryId, subcategoryId } = route.params;
   const isEdit = Boolean(subcategoryId);
   const { accessToken, role } = useAuth();
+  const showDialog = useDialog();
   const canEdit = role === 'ADMIN';
 
   const [loading, setLoading] = useState(isEdit);
@@ -39,6 +42,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
   const [onlinePrice, setOnlinePrice] = useState('');
   const [storePrice, setStorePrice] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [sortOrder, setSortOrder] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [hasOwnImage, setHasOwnImage] = useState(false);
   // Held locally until Save Changes — see processPickedPhoto/handleSave.
@@ -59,6 +63,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
         setOnlinePrice(String(subcategory.onlinePrice));
         setStorePrice(String(subcategory.storePrice));
         setIsActive(subcategory.isActive);
+        setSortOrder(String(subcategory.sortOrder));
         setImageUrl(subcategory.imageUrl);
         setHasOwnImage(subcategory.hasOwnImage);
       } catch (err: any) {
@@ -142,6 +147,8 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
         description: description.trim(),
         onlinePrice: online,
         storePrice: store,
+        // Only sent when it is actually a number — see parseSortOrder.
+        ...(parseSortOrder(sortOrder) !== undefined ? { sortOrder: parseSortOrder(sortOrder) } : {}),
       };
       if (isEdit && subcategoryId) {
         await updateSubcategory(accessToken, subcategoryId, { ...payload, isActive });
@@ -170,33 +177,37 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [accessToken, name, description, onlinePrice, storePrice, isActive, isEdit, categoryId, subcategoryId, navigation, pendingImage]);
+  }, [accessToken, name, description, onlinePrice, storePrice, sortOrder, isActive, isEdit, categoryId, subcategoryId, navigation, pendingImage]);
 
   // Two steps on purpose: this deletes the subcategory's products and their
   // photos as well, and there is no undo. Hiding sits one card above for the
   // reversible case.
   const handleDelete = useCallback(() => {
     if (!accessToken || !subcategoryId) return;
-    Alert.alert(
-      `Delete "${name || 'this subcategory'}"?`,
-      'This permanently removes the subcategory, every product listed under it and their photos. It cannot be undone.\n\nTo take it off the website but keep everything, use "Visible on customer web" instead.',
-      [
-        { text: 'Cancel', style: 'cancel' },
+    showDialog({
+      title: `Delete "${name || 'this subcategory'}"?`,
+      message:
+        'This permanently removes the subcategory, every product listed under it and their photos. It cannot be undone.\n\nTo take it off the website but keep everything, use "Visible on customer web" instead.',
+      tone: 'danger',
+      dismissOnBackdrop: false,
+      actions: [
         {
-          text: 'Delete',
-          style: 'destructive',
+          label: 'Delete',
+          variant: 'destructive',
           onPress: async () => {
             setDeleting(true);
             setError('');
             try {
               const res = await deleteSubcategory(accessToken, subcategoryId);
               const { productsDeleted } = res.data;
-              Alert.alert(
-                'Deleted',
-                productsDeleted === 0
-                  ? `"${res.data.name}" was removed.`
-                  : `"${res.data.name}" and ${productsDeleted} product${productsDeleted === 1 ? '' : 's'} were removed.`
-              );
+              showDialog({
+                title: 'Deleted',
+                message:
+                  productsDeleted === 0
+                    ? `"${res.data.name}" was removed.`
+                    : `"${res.data.name}" and ${productsDeleted} product${productsDeleted === 1 ? '' : 's'} were removed.`,
+                tone: 'success',
+              });
               navigation.goBack();
             } catch (err: any) {
               // The server refuses when real sales history is at stake; its
@@ -207,9 +218,10 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
             }
           },
         },
-      ]
-    );
-  }, [accessToken, subcategoryId, name, navigation]);
+        { label: 'Cancel' },
+      ],
+    });
+  }, [accessToken, subcategoryId, name, navigation, showDialog]);
 
   if (loading) {
     return (
@@ -269,7 +281,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
         <Text style={styles.cardTitle}>Pricing</Text>
         <View style={styles.row}>
           <View style={styles.rowItem}>
-            <Text style={styles.fieldLabel}>Online Price (₹)</Text>
+            <Text style={styles.fieldLabel}>Website Price (₹)</Text>
             <TextInput
               style={styles.input}
               value={onlinePrice}
@@ -280,7 +292,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
             />
           </View>
           <View style={styles.rowItem}>
-            <Text style={styles.fieldLabel}>Store Price (₹)</Text>
+            <Text style={styles.fieldLabel}>Counter Price (₹)</Text>
             <TextInput
               style={styles.input}
               value={storePrice}
@@ -292,9 +304,24 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
           </View>
         </View>
         <Text style={styles.helper}>
-          Online price shows on the customer web and is what Razorpay charges. Store price only appears in this app
-          when staff scan a tag.
+          Website price is what the customer site shows and Razorpay charges — it is set here and appears nowhere
+          else in this app. Counter price is what this app sells at when you scan a tag; you can still change the
+          amount on an individual sale without touching either of these.
         </Text>
+
+        <Text style={styles.fieldLabel}>Display order</Text>
+        <Text style={styles.helper}>
+          Lower numbers show first within this category. Leave blank to keep its current position.
+        </Text>
+        <TextInput
+          style={styles.input}
+          value={sortOrder}
+          onChangeText={setSortOrder}
+          editable={canEdit}
+          keyboardType="numeric"
+          placeholder="e.g. 0"
+          placeholderTextColor={colors.textMuted}
+        />
       </Card>
 
       {isEdit && canEdit && (

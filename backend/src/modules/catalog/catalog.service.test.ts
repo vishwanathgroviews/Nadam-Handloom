@@ -245,6 +245,64 @@ describe('catalog.service', () => {
   // Checkout calls this before taking money. The atomic claim in
   // reserveItemsForOrder is still the real guard, but finding out an item
   // sold out at the Razorpay step is a bad way to learn it.
+  // Every listing is a single piece, so "out of stock" means this exact
+  // saree is sold. Showing it greyed out offers the customer something that
+  // will never come back.
+  describe('sold-out products are not shown at all', () => {
+    const soldOutProduct = () => {
+      const { subcategory } = pushBudgetCategoryProduct({
+        categorySlug: 'sold-out-cat',
+        productSlug: 'sold-out-saree',
+        onlinePrice: 3000,
+      });
+      const product = fake.db.product.find((p: any) => p.slug === 'sold-out-saree');
+      product.stock = 0; // no bulk counter and no pieces => availableCount 0
+      return { product, subcategory };
+    };
+
+    it('leaves a sold-out product out of the listing entirely', async () => {
+      soldOutProduct();
+      const res = await listProducts(parseQuery({}));
+
+      expect(res.items.map((i: any) => i.slug)).not.toContain('sold-out-saree');
+      // The total has to agree with the page, or paging shows short pages.
+      expect(res.total).toBe(res.items.length);
+    });
+
+    it('keeps a product whose stock is only in barcoded pieces', async () => {
+      const { product } = soldOutProduct();
+      fake.db.piece.push({
+        id: randomUUID(), productId: product.id, barcode: 'NH-PIECE-1', status: 'in_stock',
+        soldAt: null, createdAt: new Date(), updatedAt: new Date(),
+      });
+
+      const res = await listProducts(parseQuery({}));
+      expect(res.items.map((i: any) => i.slug)).toContain('sold-out-saree');
+    });
+
+    it('does not resurrect a product whose only piece has been sold', async () => {
+      const { product } = soldOutProduct();
+      fake.db.piece.push({
+        id: randomUUID(), productId: product.id, barcode: 'NH-PIECE-2', status: 'sold_offline',
+        soldAt: new Date(), createdAt: new Date(), updatedAt: new Date(),
+      });
+
+      const res = await listProducts(parseQuery({}));
+      expect(res.items.map((i: any) => i.slug)).not.toContain('sold-out-saree');
+    });
+
+    it('treats a sold-out product page as not found rather than showing it greyed out', async () => {
+      soldOutProduct();
+      await expect(getProductBySlug('sold-out-saree')).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    it('still filters out sold-out products when searching', async () => {
+      soldOutProduct();
+      const res = await listProducts(parseQuery({ q: 'Budget' }));
+      expect(res.items.map((i: any) => i.slug)).not.toContain('sold-out-saree');
+    });
+  });
+
   it('reports live availability for the products in a cart', async () => {
     const product = fake.db.product[0];
     product.stock = 3;

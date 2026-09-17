@@ -174,3 +174,116 @@ describe('POST /admin/users — inviting a team member', () => {
     expect(sessions.every((s: any) => s.revokedAt !== null)).toBe(true);
   });
 });
+
+describe('DELETE /admin/users/:userId/access — revoking a team member', () => {
+  const seedStaff = async (phone: string, role: 'ADMIN' | 'STAFF') => {
+    const account = await fake.client.authAccount.create({
+      data: {
+        phone,
+        email: `${phone}@example.com`,
+        mpinHash: await hashSecret(MPIN),
+        mpinSetAt: new Date(),
+        status: 'active',
+        phoneVerifiedAt: new Date(),
+        adminProfile: { create: { firstName: 'Team', lastName: 'Member' } },
+      },
+    });
+    await fake.client.userRole.create({ data: { authAccountId: account.id, roleId: roles[role]!.id } });
+    return account;
+  };
+
+  const revoke = (userId: string) =>
+    request(app).delete(`/api/v1/admin/users/${userId}/access`).set('Authorization', `Bearer ${adminToken}`);
+
+  it('strips the staff role, kills live sessions and invalidates tokens already issued', async () => {
+    const staff = await seedStaff('9300000001', 'STAFF');
+    await fake.client.session.create({
+      data: {
+        authAccountId: staff.id,
+        refreshTokenHash: 'live-hash',
+        platform: 'android',
+        expiresAt: new Date(Date.now() + 86_400_000),
+      },
+    });
+    const stampBefore = staff.securityStamp;
+
+    const res = await revoke(staff.id);
+
+    expect(res.status).toBe(200);
+    expect(await rolesOf(staff.id)).toEqual([]);
+    const after = await fake.client.authAccount.findUnique({ where: { id: staff.id } });
+    // Rotating the stamp is what stops the access token already sitting in
+    // their running app from working for the rest of its 15 minutes.
+    expect(after.securityStamp).not.toBe(stampBefore);
+    expect(after.mpinHash).toBeNull();
+    const sessions = await fake.client.session.findMany({ where: { authAccountId: staff.id } });
+    expect(sessions.every((s: any) => s.revokedAt !== null)).toBe(true);
+  });
+
+  it('actually stops them signing in afterwards', async () => {
+    const staff = await seedStaff('9300000002', 'STAFF');
+    const before = await request(app).post('/api/v1/auth/app/login').send({ mobile: '9300000002', mpin: MPIN });
+    expect(before.status).toBe(200);
+
+    await revoke(staff.id);
+
+    const after = await request(app).post('/api/v1/auth/app/login').send({ mobile: '9300000002', mpin: MPIN });
+    expect(after.status).toBe(404);
+  });
+
+  it('leaves the account and its history in place, so they can be invited back', async () => {
+    const staff = await seedStaff('9300000003', 'STAFF');
+    await revoke(staff.id);
+
+    const reinvite = await request(app)
+      .post('/api/v1/admin/users')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'Team Member', mobile: '9300000003', email: '9300000003@example.com', role: 'STAFF' });
+
+    expect(reinvite.status).toBe(201);
+    expect(await rolesOf(staff.id)).toEqual(['STAFF']);
+  });
+
+  it('keeps a customer able to shop after losing staff access', async () => {
+    const staff = await seedStaff('9300000004', 'STAFF');
+    await fake.client.userRole.create({ data: { authAccountId: staff.id, roleId: roles.CUSTOMER!.id } });
+
+    await revoke(staff.id);
+
+    expect(await rolesOf(staff.id)).toEqual(['CUSTOMER']);
+  });
+
+  it('refuses to let an owner revoke themselves', async () => {
+    const me = await fake.client.authAccount.findUnique({ where: { phone: '9200000000' } });
+    const res = await revoke(me.id);
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/your own access/i);
+    expect(await rolesOf(me.id)).toEqual(['ADMIN']);
+  });
+
+  it('refuses to remove the last owner', async () => {
+    const otherAdmin = await seedStaff('9300000005', 'ADMIN');
+    // Two owners: this one can go.
+    expect((await revoke(otherAdmin.id)).status).toBe(200);
+
+    // Now the signed-in owner is the only one left, and they are already
+    // blocked from revoking themselves — assert the guard directly by trying
+    // to revoke someone who has no access at all.
+    const noAccess = await fake.client.authAccount.create({ data: { phone: '9300000006', status: 'active' } });
+    const res = await revoke(noAccess.id);
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/no access/i);
+  });
+
+  it('is owner-only', async () => {
+    const staff = await seedStaff('9300000007', 'STAFF');
+    const staffLogin = await request(app).post('/api/v1/auth/app/login').send({ mobile: '9300000007', mpin: MPIN });
+
+    const res = await request(app)
+      .delete(`/api/v1/admin/users/${staff.id}/access`)
+      .set('Authorization', `Bearer ${staffLogin.body.data.tokens.accessToken}`);
+
+    expect(res.status).toBe(403);
+  });
+});

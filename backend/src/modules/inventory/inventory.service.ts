@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError, NotFoundError } from '../../utils/errors';
 import { reserveOrderNumber } from '../../utils/orderNumber';
-import { normalizeBarcode } from '../../utils/barcode';
+import { normalizeBarcode, barcodeCandidates } from '../../utils/barcode';
 import { generateInvoiceForOrder } from '../invoices/invoices.service';
 import { logAuthEvent } from '../auth/auditLog.service';
 
@@ -218,13 +218,9 @@ export interface OfflineOrderLine {
 }
 
 export interface WhatsappCustomer {
-  fullName: string;
   phone: string;
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  pincode: string;
+  /** The whole delivery address as one block of text — see whatsappCustomerSchema. */
+  address: string;
   notes?: string;
 }
 
@@ -246,6 +242,22 @@ export const createOfflineOrder = async (
 ) => {
   const total = items.reduce((sum, item) => sum + Number(item.unitPrice) * item.quantity, 0);
   const isWhatsapp = channel === 'whatsapp';
+  // Stored in the same shape every other order uses, so the To Ship screen
+  // and the shipment message read one field set regardless of where the
+  // order came from: the free-text WhatsApp address lands in line1.
+  const shippingAddress: Prisma.InputJsonValue = isWhatsapp && customer && 'address' in customer
+    ? {
+        fullName: '',
+        phone: customer.phone,
+        line1: customer.address,
+        line2: null,
+        city: '',
+        state: '',
+        pincode: '',
+        ...(customer.notes ? { notes: customer.notes } : {}),
+      }
+    : ({ ...(customer ?? {}) } as Prisma.InputJsonObject);
+
   const order = await tx.order.create({
     data: {
       orderNumber,
@@ -253,7 +265,7 @@ export const createOfflineOrder = async (
       status: isWhatsapp ? 'processing' : 'delivered',
       subtotal: total,
       total,
-      shippingAddress: customer ?? {},
+      shippingAddress,
     },
   });
   await tx.orderItem.createMany({
@@ -272,12 +284,16 @@ export const createOfflineOrder = async (
 };
 
 export const scanLookup = async (code: string) => {
-  // Same canonical form receivePieces stored the code in, so a tag typed in
-  // one case and scanned in another still resolves to its piece.
-  const normalized = normalizeBarcode(code);
+  // Not one string but every form the same physical tag can decode as — a
+  // camera reports whichever symbology it matched this frame, so scanning one
+  // label twice can genuinely produce two different strings (see
+  // barcodeCandidates). Matching the family is what makes a repeat scan of a
+  // tag resolve to the piece the first scan found.
+  const candidates = barcodeCandidates(code);
+  if (!candidates.length) throw new NotFoundError('No product found for this code');
 
-  const piece = await prisma.piece.findUnique({
-    where: { barcode: normalized },
+  const piece = await prisma.piece.findFirst({
+    where: { barcode: { in: candidates } },
     include: { product: { include: { category: { select: { name: true } }, subcategory: { select: { storePrice: true } } } } },
   });
   if (piece) {
@@ -293,8 +309,8 @@ export const scanLookup = async (code: string) => {
     };
   }
 
-  const product = await prisma.product.findUnique({
-    where: { sku: normalized },
+  const product = await prisma.product.findFirst({
+    where: { sku: { in: candidates } },
     include: { category: { select: { name: true } }, subcategory: { select: { storePrice: true } } },
   });
   if (product) {
@@ -360,10 +376,13 @@ export const resolveAndClaimOfflineSaleItem = async (
   actorId: string,
   ledgerRef: string
 ): Promise<ClaimedSaleLine> => {
-  const normalized = normalizeBarcode(code);
+  // Same symbology-family match scanLookup uses, so the code that was looked
+  // up and shown on the confirm step is the one that actually sells.
+  const candidates = barcodeCandidates(code);
+  if (!candidates.length) throw new NotFoundError('No product found for this code');
 
-  const piece = await tx.piece.findUnique({
-    where: { barcode: normalized },
+  const piece = await tx.piece.findFirst({
+    where: { barcode: { in: candidates } },
     include: {
       product: {
         include: {
@@ -424,8 +443,8 @@ export const resolveAndClaimOfflineSaleItem = async (
     };
   }
 
-  const product = await tx.product.findUnique({
-    where: { sku: normalized },
+  const product = await tx.product.findFirst({
+    where: { sku: { in: candidates } },
     include: { subcategory: { select: { storePrice: true } }, images: { take: 1, orderBy: { sortOrder: 'asc' } } },
   });
   if (!product) throw new NotFoundError('No product found for this code');
@@ -594,8 +613,11 @@ export const claimPiecesForProduct = async (
     throw new AppError('This batch has a duplicate code in it', 409, 'DUPLICATE_IN_BATCH');
   }
 
+  // Checked against every equivalent form, not just the literal string: a tag
+  // already stored as its EAN-13 form would otherwise be claimable a second
+  // time by scanning the same label as UPC-A.
   const existing = await tx.piece.findMany({
-    where: { barcode: { in: normalized } },
+    where: { barcode: { in: normalized.flatMap((code) => barcodeCandidates(code)) } },
     include: { product: { select: { name: true } } },
   });
   if (existing.length) {

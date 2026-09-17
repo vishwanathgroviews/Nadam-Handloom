@@ -5,16 +5,18 @@ export const scanLookupSchema = z.object({
 });
 
 // A WhatsApp sale is a remote order that still has to be packed and
-// couriered, so unlike a counter sale it needs the buyer's delivery details
-// up front — see scanSell in inventory.service.ts.
+// couriered, so unlike a counter sale it needs somewhere to send it — see
+// scanSell in inventory.service.ts.
+//
+// Two fields, not eight. These orders are taken down mid-chat at the
+// counter, and the customer has almost always already pasted their address
+// as one block of text; splitting it into name/line1/line2/city/state/
+// pincode meant retyping it piece by piece with the phone in the other hand.
+// One free-text address is what staff actually have, and it is all the
+// courier label needs.
 export const whatsappCustomerSchema = z.object({
-  fullName: z.string().trim().min(1, 'Customer name is required').max(120),
   phone: z.string().trim().min(6, 'Enter a valid mobile number').max(20),
-  line1: z.string().trim().min(1, 'Address is required').max(200),
-  line2: z.string().trim().max(200).optional(),
-  city: z.string().trim().min(1, 'City is required').max(100),
-  state: z.string().trim().min(1, 'State is required').max(100),
-  pincode: z.string().trim().min(4, 'Enter a valid pincode').max(12),
+  address: z.string().trim().min(5, 'Enter the full delivery address').max(600),
   notes: z.string().trim().max(500).optional(),
 });
 
@@ -51,7 +53,7 @@ export const scanSellSchema = z
     path: ['items'],
   })
   .refine((data) => data.channel !== 'whatsapp' || data.customer, {
-    message: 'Customer name, mobile and address are required for a WhatsApp order',
+    message: 'A mobile number and delivery address are required for a WhatsApp order',
     path: ['customer'],
   })
   .transform((data) => ({

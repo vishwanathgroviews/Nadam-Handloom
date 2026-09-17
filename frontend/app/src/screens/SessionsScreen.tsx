@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { listSessions, revokeSession, AdminSession } from '../api/admin';
 import { colors, radius, spacing, typography } from '../utils/theme';
 import ScreenHeader from '../components/ui/ScreenHeader';
+import { useDialog } from '../components/DialogProvider';
 import Card from '../components/ui/Card';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Sessions'>;
@@ -20,6 +21,7 @@ const nameFor = (session: AdminSession) => {
 
 export default function SessionsScreen({ navigation }: Props) {
   const { accessToken } = useAuth();
+  const showDialog = useDialog();
   const [sessions, setSessions] = useState<AdminSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [revokingId, setRevokingId] = useState<string | null>(null);
@@ -46,25 +48,31 @@ export default function SessionsScreen({ navigation }: Props) {
   );
 
   const handleRevoke = (session: AdminSession) => {
-    Alert.alert('Revoke session?', `Sign out ${nameFor(session)}'s ${session.platform || 'device'} immediately?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Revoke',
-        style: 'destructive',
-        onPress: async () => {
-          if (!accessToken) return;
-          setRevokingId(session.id);
-          try {
-            await revokeSession(accessToken, session.id);
-            setSessions((prev) => prev.filter((s) => s.id !== session.id));
-          } catch (err: any) {
-            setError(err.message || 'Failed to revoke session');
-          } finally {
-            setRevokingId(null);
-          }
+    showDialog({
+      title: 'Revoke session?',
+      message: `Sign out ${nameFor(session)}'s ${session.platform || 'device'} immediately?`,
+      tone: 'danger',
+      dismissOnBackdrop: false,
+      actions: [
+        {
+          label: 'Revoke',
+          variant: 'destructive',
+          onPress: async () => {
+            if (!accessToken) return;
+            setRevokingId(session.id);
+            try {
+              await revokeSession(accessToken, session.id);
+              setSessions((prev) => prev.filter((s) => s.id !== session.id));
+            } catch (err: any) {
+              setError(err.message || 'Failed to revoke session');
+            } finally {
+              setRevokingId(null);
+            }
+          },
         },
-      },
-    ]);
+        { label: 'Cancel' },
+      ],
+    });
   };
 
   return (

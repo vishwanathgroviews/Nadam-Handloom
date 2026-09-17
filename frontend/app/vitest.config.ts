@@ -1,10 +1,10 @@
 import { defineConfig } from 'vitest/config';
 
-// Deliberately minimal: only the pure, dependency-free logic under
-// src/utils/*.test.ts is covered this way (see concurrencyGuards.ts) — this
-// app has no React Native component test setup (no jest-expo), so anything
-// that needs to render a screen or drive expo-camera stays a manual/device
-// test, not a unit test.
+// Covers the pure logic under src/utils (see concurrencyGuards.ts,
+// scanStabilizer.ts) and the API client, whose few Expo/RN imports are
+// configuration only and are stubbed in its test. There is no React Native
+// component test setup (no jest-expo), so anything that has to render a
+// screen or drive expo-camera stays a manual/device test.
 export default defineConfig({
   test: {
     environment: 'node',

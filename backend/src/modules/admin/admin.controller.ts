@@ -21,6 +21,19 @@ export const getUsers = async (_req: AuthenticatedRequest, res: Response, next: 
   }
 };
 
+export const revokeUserAccess = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const result = await adminService.revokeUserAccess(
+      req.params.userId as string,
+      req.user!.id,
+      req
+    );
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const listOrders = async (req: AuthenticatedRequest & QueryValidatedRequest, res: Response, next: NextFunction) => {
   try {
     const result = await adminService.listOrdersForAdmin(req.validatedQuery);

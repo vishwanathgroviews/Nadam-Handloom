@@ -182,6 +182,82 @@ export const listUsers = async () => {
   }));
 };
 
+/**
+ * Takes away a team member's access to the staff app.
+ *
+ * A soft revoke, not a delete: the account keeps its history (who rang up
+ * which sale, who changed which price — the audit log points at these rows),
+ * and the same person can be invited back later, which provisionUser already
+ * handles. What actually stops them signing in is losing the ADMIN/STAFF
+ * role, since every door into the app checks for one (app-auth.service.ts).
+ *
+ * The three steps have to happen together: drop the roles so a new sign-in
+ * fails, revoke live sessions so an open app stops working, and rotate the
+ * security stamp so the access token already in that app's memory is refused
+ * on its very next call rather than lasting out its 15 minutes.
+ */
+export const revokeUserAccess = async (targetUserId: string, actorId: string, req: Request) => {
+  const account = await prisma.authAccount.findUnique({
+    where: { id: targetUserId },
+    include: { roles: { include: { role: true } }, adminProfile: true },
+  });
+  if (!account) throw new NotFoundError('Team member not found');
+
+  // Without this an owner could lock themselves out of their own shop with
+  // one tap, and there would be no one left who could invite anyone back.
+  if (account.id === actorId) {
+    throw new BadRequestError("You can't revoke your own access.");
+  }
+
+  const roleNames = account.roles.map((userRole) => userRole.role.name);
+  if (!roleNames.some((name) => name === 'ADMIN' || name === 'STAFF')) {
+    throw new BadRequestError('This person already has no access to the app.');
+  }
+
+  const remainingAdmins = await prisma.userRole.count({
+    where: {
+      role: { is: { name: 'ADMIN' } },
+      authAccountId: { not: account.id },
+      authAccount: { is: { deletedAt: null, status: { not: 'deleted' } } },
+    },
+  });
+  if (roleNames.includes('ADMIN') && remainingAdmins === 0) {
+    throw new BadRequestError('This is the last owner account — make someone else an owner first.');
+  }
+
+  await prisma.$transaction(async (tx) => {
+    // The CUSTOMER role, if they have one, is left alone: losing staff access
+    // is not a reason to lose the ability to shop on the storefront.
+    await tx.userRole.deleteMany({
+      where: { authAccountId: account.id, role: { is: { name: { in: ['ADMIN', 'STAFF'] } } } },
+    });
+    await tx.session.updateMany({
+      where: { authAccountId: account.id, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    await tx.authAccount.update({
+      where: { id: account.id },
+      data: { securityStamp: randomUUID(), mpinHash: null, mpinSetAt: null, status: 'pending' },
+    });
+  });
+
+  await logAuthEvent({
+    authAccountId: account.id,
+    eventType: 'admin_revoked_user_access',
+    source: 'staff_app',
+    req,
+    metadata: { revokedRoles: roleNames, byUserId: actorId },
+  });
+
+  return {
+    id: account.id,
+    name: account.adminProfile
+      ? `${account.adminProfile.firstName} ${account.adminProfile.lastName}`
+      : account.phone,
+    revokedRoles: roleNames.filter((name) => name === 'ADMIN' || name === 'STAFF'),
+  };
+};
+
 // ─────────────────────────────────────────────────────────────────
 // Order & shipment management (ADMIN/STAFF) — DTDC AWB entry.
 // We never call the DTDC API here: staff paste the AWB DTDC gave them
