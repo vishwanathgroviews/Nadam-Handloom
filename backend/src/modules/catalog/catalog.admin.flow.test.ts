@@ -538,3 +538,63 @@ describe('catalog admin — products', () => {
     expect(res.body.code).toBe('STORAGE_NOT_CONFIGURED');
   });
 });
+
+// The Products screen showed only some products: the API pages its results
+// and the app never asked past page 1. The app now pages through, which only
+// works if every page is a clean, non-overlapping slice of the whole list.
+describe('admin product list paging', () => {
+  const seedMany = (count: number, sameInstant: boolean) => {
+    const base = fake.db.product[0];
+    // Ahead of the base fixture, which is stamped with the current time.
+    const at = new Date(Date.now() + 60_000);
+    for (let i = 0; i < count; i++) {
+      fake.db.product.push({
+        ...base,
+        id: `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+        slug: `paged-${i}`,
+        sku: `NH-PAGED-${i}`,
+        name: `Paged Product ${i}`,
+        // A bulk import stamps many rows with the same createdAt — the case
+        // where ordering by createdAt alone is undefined.
+        createdAt: sameInstant ? at : new Date(at.getTime() + i * 1000),
+      });
+    }
+  };
+
+  const fetchEveryPage = async (token: string, pageSize: number) => {
+    const seen: string[] = [];
+    let total = Infinity;
+    for (let page = 1; seen.length < total && page < 50; page++) {
+      const res = await request(app)
+        .get(`/api/v1/admin/products?page=${page}&pageSize=${pageSize}`)
+        .set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(200);
+      total = res.body.data.total;
+      if (res.body.data.items.length === 0) break;
+      seen.push(...res.body.data.items.map((p: any) => p.id));
+    }
+    return { seen, total };
+  };
+
+  it('returns every product exactly once across pages, even when many share a timestamp', async () => {
+    const token = await createToken('STAFF', '9000000090');
+    seedMany(47, true);
+
+    const { seen, total } = await fetchEveryPage(token, 20);
+
+    expect(total).toBe(fake.db.product.length);
+    expect(seen).toHaveLength(total);
+    expect(new Set(seen).size).toBe(total);
+  });
+
+  it('lists newest first', async () => {
+    const token = await createToken('STAFF', '9000000091');
+    seedMany(5, false);
+
+    const res = await request(app)
+      .get('/api/v1/admin/products?page=1&pageSize=3')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.body.data.items.map((p: any) => p.slug)).toEqual(['paged-4', 'paged-3', 'paged-2']);
+  });
+});

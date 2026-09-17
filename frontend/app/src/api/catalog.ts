@@ -226,11 +226,15 @@ export const updateSubcategory = (token: string, subcategoryId: string, data: Pa
     body: data as any,
   });
 
-export const listProducts = (token: string, params: { category?: string; q?: string; page?: number } = {}) => {
+export const listProducts = (
+  token: string,
+  params: { category?: string; q?: string; page?: number; pageSize?: number } = {}
+) => {
   const qs = new URLSearchParams();
   if (params.category) qs.set('category', params.category);
   if (params.q) qs.set('q', params.q);
   if (params.page) qs.set('page', String(params.page));
+  if (params.pageSize) qs.set('pageSize', String(params.pageSize));
   const suffix = qs.toString() ? `?${qs.toString()}` : '';
   return apiRequest<{
     data: { items: AdminProductSummary[]; total: number; page: number; pageSize: number; activeCount: number; cap: number; remaining: number };

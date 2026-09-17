@@ -400,7 +400,11 @@ export const listAllProducts = async (query: ListAdminProductsQuery) => {
   const [items, total, stats] = await Promise.all([
     prisma.product.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      // id breaks ties. Products created in the same instant (a bulk import,
+      // a seed) have no defined order by createdAt alone, so Postgres is free
+      // to return them differently on each page request — which skips some
+      // and repeats others once the list is paged through.
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,
       include: PRODUCT_ADMIN_INCLUDE,
