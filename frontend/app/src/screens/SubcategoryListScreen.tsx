@@ -1,11 +1,18 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image, TextInput } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image, TextInput, Keyboard } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
 import { listSubcategories, AdminSubcategory } from '../api/catalog';
+import {
+  addRecentSearch,
+  clearRecentSearches,
+  loadRecentSearches,
+  recentSearchesKey,
+  saveRecentSearches,
+} from '../utils/recentSearches';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import { Badge } from '../components/ui/Chip';
@@ -15,11 +22,63 @@ type Props = NativeStackScreenProps<AppStackParamList, 'SubcategoryList'>;
 
 export default function SubcategoryListScreen({ route, navigation }: Props) {
   const { categoryId, categoryName } = route.params;
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   const [subcategories, setSubcategories] = useState<AdminSubcategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recentsKey = recentSearchesKey(user?.id, categoryId);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadRecentSearches(recentsKey).then((list) => {
+      if (!cancelled) setRecentSearches(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [recentsKey]);
+
+  useEffect(() => () => {
+    if (blurTimer.current) clearTimeout(blurTimer.current);
+  }, []);
+
+  // A search is remembered once it was actually used — submitted, or followed
+  // by opening one of its results — not on every keystroke, which would fill
+  // the list with half-typed fragments like "pa" and "pat".
+  const rememberSearch = useCallback(
+    (term: string) => {
+      if (!term.trim()) return;
+      setRecentSearches((prev) => {
+        const next = addRecentSearch(prev, term);
+        saveRecentSearches(recentsKey, next);
+        return next;
+      });
+    },
+    [recentsKey]
+  );
+
+  const pickRecentSearch = useCallback(
+    (term: string) => {
+      setQuery(term);
+      rememberSearch(term);
+      setSearchFocused(false);
+      Keyboard.dismiss();
+    },
+    [rememberSearch]
+  );
+
+  const handleClearRecents = useCallback(() => {
+    setRecentSearches([]);
+    clearRecentSearches(recentsKey);
+  }, [recentsKey]);
+
+  // Shown the moment the search box is tapped, while it is still empty —
+  // once the person starts typing, the live results take over.
+  const showRecents = searchFocused && !query.trim() && recentSearches.length > 0;
 
   const load = useCallback(async () => {
     if (!accessToken) return;
@@ -74,12 +133,48 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
             onChangeText={setQuery}
             autoCorrect={false}
             returnKeyType="search"
+            onFocus={() => {
+              if (blurTimer.current) clearTimeout(blurTimer.current);
+              setSearchFocused(true);
+            }}
+            // Hidden a beat after blur rather than at once: on some Android
+            // builds the blur lands before the tap on a recent search, and
+            // hiding immediately would unmount the row being tapped.
+            onBlur={() => {
+              blurTimer.current = setTimeout(() => setSearchFocused(false), 150);
+            }}
+            onSubmitEditing={() => rememberSearch(query)}
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')} hitSlop={10}>
               <Ionicons name="close-circle" size={17} color={colors.iconMuted} />
             </TouchableOpacity>
           )}
+        </Card>
+      )}
+
+      {showRecents && (
+        <Card style={styles.recentsCard}>
+          <View style={styles.recentsHeader}>
+            <Text style={styles.recentsTitle}>Recent searches</Text>
+            <TouchableOpacity onPress={handleClearRecents} hitSlop={10}>
+              <Text style={styles.recentsClear}>Clear</Text>
+            </TouchableOpacity>
+          </View>
+          {recentSearches.map((term) => (
+            <TouchableOpacity
+              key={term}
+              style={styles.recentRow}
+              onPress={() => pickRecentSearch(term)}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Search again for ${term}`}
+            >
+              <Ionicons name="time-outline" size={16} color={colors.iconMuted} />
+              <Text style={styles.recentText} numberOfLines={1}>{term}</Text>
+              <Ionicons name="arrow-up-outline" size={15} color={colors.iconMuted} style={styles.recentArrow} />
+            </TouchableOpacity>
+          ))}
         </Card>
       )}
 
@@ -97,11 +192,15 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => (
             <Card style={styles.card}>
               <TouchableOpacity
                 style={styles.row}
-                onPress={() => navigation.navigate('SubcategoryForm', { categoryId, subcategoryId: item.id })}
+                onPress={() => {
+                  rememberSearch(query);
+                  navigation.navigate('SubcategoryForm', { categoryId, subcategoryId: item.id });
+                }}
                 activeOpacity={0.8}
               >
                 {item.imageUrl ? (
@@ -133,7 +232,10 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.catalogLink}
-                onPress={() => navigation.navigate('SubcategoryCatalog', { subcategoryId: item.id, subcategoryName: item.name })}
+                onPress={() => {
+                  rememberSearch(query);
+                  navigation.navigate('SubcategoryCatalog', { subcategoryId: item.id, subcategoryName: item.name });
+                }}
               >
                 <Ionicons name="document-text-outline" size={14} color={colors.primary} />
                 <Text style={styles.catalogLinkText}>Catalog PDF</Text>
@@ -155,6 +257,19 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   addButtonText: { ...typography.bodySmSemibold, color: colors.primary },
+  recentsCard: { marginTop: -spacing.xs, marginBottom: spacing.md, paddingVertical: spacing.sm },
+  recentsHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingBottom: spacing.xs,
+  },
+  recentsTitle: { ...typography.caption, color: colors.textLabel },
+  recentsClear: { ...typography.bodySmSemibold, color: colors.primary },
+  recentRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    paddingVertical: spacing.sm + 2, borderTopWidth: 1, borderTopColor: colors.divider,
+  },
+  recentText: { ...typography.body, color: colors.text, flex: 1 },
+  recentArrow: { transform: [{ rotate: '-45deg' }] },
   searchCard: {
     flexDirection: 'row',
     alignItems: 'center',

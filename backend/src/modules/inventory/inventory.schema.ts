@@ -45,7 +45,15 @@ export const scanSellSchema = z
     salePrice: z.coerce.number().positive().optional(),
     // 'store' = handed over at the counter, done. 'whatsapp' = sold over
     // chat, still needs shipping, so it enters the To Ship queue instead.
-    channel: z.enum(['store', 'whatsapp']).default('store'),
+    //
+    // Required, with no default. It used to default to 'store', and the app
+    // pre-selected Offline Store to match — so a WhatsApp order rung up
+    // without anyone touching the selector was silently closed out as a
+    // counter sale and never reached To Ship. Staff now have to say where the
+    // sale happened, and the server refuses a sale that doesn't say.
+    channel: z.enum(['store', 'whatsapp'], {
+      error: 'Choose where this sale is happening: Offline Store or Through WhatsApp',
+    }),
     customer: whatsappCustomerSchema.optional(),
   })
   .refine((data) => (data.items && data.items.length > 0) || data.code, {

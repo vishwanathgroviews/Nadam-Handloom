@@ -370,6 +370,35 @@ describe('scan-to-lookup / scan-to-sell', () => {
     expect(res.body.data.invoice.channel).toBe('whatsapp');
   });
 
+  // Where the sale happened is a required answer, not a default. A sale that
+  // doesn't say must not go through as a counter sale by assumption — a
+  // WhatsApp order closed out that way never reaches To Ship.
+  it('refuses a sale that does not say where it happened, and moves no stock', async () => {
+    const staffToken = await createStaffToken('9000000153', 'STAFF');
+    const category = seedCategory();
+    const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 2 });
+
+    const res = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
+      .send({ items: [{ code: product.sku }] });
+
+    expect(res.status).toBe(400);
+    expect(JSON.stringify(res.body)).toMatch(/where this sale is happening/i);
+    expect(fake.db.order).toHaveLength(0);
+    expect(fake.db.product.find((p: any) => p.id === product.id).stock).toBe(2);
+  });
+
+  it('refuses a location that is not one of the two options', async () => {
+    const staffToken = await createStaffToken('9000000154', 'STAFF');
+    const category = seedCategory();
+    const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 2 });
+
+    const res = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
+      .send({ items: [{ code: product.sku }], channel: 'online' });
+
+    expect(res.status).toBe(400);
+    expect(fake.db.order).toHaveLength(0);
+  });
+
   it('refuses a WhatsApp sale that has no customer details attached', async () => {
     const staffToken = await createStaffToken('9000000151', 'STAFF');
     const category = seedCategory();
@@ -418,7 +447,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 3 });
 
     const res = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
-      .send({ code: product.sku });
+      .send({ channel: 'store', code: product.sku });
     expect(res.status).toBe(200);
     expect(res.body.data.overridden).toBe(false);
 
@@ -437,7 +466,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 2, subcategoryId: subcategory.id });
 
     const res = await request(app).post('/api/v1/admin/inventory/scan-sell')
-      .set('Authorization', `Bearer ${staffToken}`).send({ code: product.sku });
+      .set('Authorization', `Bearer ${staffToken}`).send({ channel: 'store', code: product.sku });
 
     expect(res.status).toBe(200);
     expect(res.body.data.invoice).toBeTruthy();
@@ -459,7 +488,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     const piece = seedPiece(product.id);
 
     const res = await request(app).post('/api/v1/admin/inventory/scan-sell')
-      .set('Authorization', `Bearer ${staffToken}`).send({ code: piece.barcode, salePrice: 3500 });
+      .set('Authorization', `Bearer ${staffToken}`).send({ channel: 'store', code: piece.barcode, salePrice: 3500 });
 
     expect(res.status).toBe(200);
     expect(Number(res.body.data.invoice.totalAmount)).toBe(3500);
@@ -475,7 +504,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     (storageProvider.isConfigured as ReturnType<typeof vi.fn>).mockReturnValue(false);
 
     const res = await request(app).post('/api/v1/admin/inventory/scan-sell')
-      .set('Authorization', `Bearer ${staffToken}`).send({ code: product.sku });
+      .set('Authorization', `Bearer ${staffToken}`).send({ channel: 'store', code: product.sku });
 
     expect(res.status).toBe(200);
     expect(res.body.data.invoice).toBeNull();
@@ -499,7 +528,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
       .set('Authorization', `Bearer ${staffToken}`).send({ barcodes: [barcode] });
 
     const res = await request(app).post('/api/v1/admin/inventory/scan-sell')
-      .set('Authorization', `Bearer ${staffToken}`).send({ code: barcode.toLowerCase() });
+      .set('Authorization', `Bearer ${staffToken}`).send({ channel: 'store', code: barcode.toLowerCase() });
 
     expect(res.status).toBe(200);
     expect(fake.db.piece.find((p: any) => p.barcode === barcode).status).toBe('sold_offline');
@@ -512,7 +541,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 3, subcategoryId: subcategory.id });
 
     const res = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
-      .send({ code: product.sku, salePrice: 1750 });
+      .send({ channel: 'store', code: product.sku, salePrice: 1750 });
     expect(res.status).toBe(200);
 
     const order = fake.db.order.find((o: any) => o.id === res.body.data.orderId);
@@ -539,7 +568,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     const sibling = seedProduct(category.id, { trackingMode: 'quantity', stock: 3, subcategoryId: subcategory.id });
 
     await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
-      .send({ code: product.sku, salePrice: 1750 });
+      .send({ channel: 'store', code: product.sku, salePrice: 1750 });
 
     // The subcategory's configured prices are untouched.
     const after = fake.db.subcategory.find((sc: any) => sc.id === subcategory.id);
@@ -549,13 +578,13 @@ describe('scan-to-lookup / scan-to-sell', () => {
     // A different product in the same subcategory still sells at the
     // configured counter price.
     const second = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
-      .send({ code: sibling.sku });
+      .send({ channel: 'store', code: sibling.sku });
     const secondOrder = fake.db.order.find((o: any) => o.id === second.body.data.orderId);
     expect(Number(secondOrder.total)).toBe(2000);
 
     // And so does the very same product on its next sale.
     const third = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
-      .send({ code: product.sku });
+      .send({ channel: 'store', code: product.sku });
     const thirdOrder = fake.db.order.find((o: any) => o.id === third.body.data.orderId);
     expect(Number(thirdOrder.total)).toBe(2000);
   });
@@ -574,7 +603,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     expect(lookup.body.data.onlinePrice).toBeUndefined();
 
     const sale = await request(app).post('/api/v1/admin/inventory/scan-sell')
-      .set('Authorization', `Bearer ${staffToken}`).send({ code: product.sku });
+      .set('Authorization', `Bearer ${staffToken}`).send({ channel: 'store', code: product.sku });
     const order = fake.db.order.find((o: any) => o.id === sale.body.data.orderId);
     expect(Number(order.total)).toBe(2000);
   });
@@ -586,7 +615,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 3, subcategoryId: subcategory.id });
 
     const res = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
-      .send({ code: product.sku });
+      .send({ channel: 'store', code: product.sku });
     expect(res.status).toBe(200);
 
     const order = fake.db.order.find((o: any) => o.id === res.body.data.orderId);
@@ -608,17 +637,17 @@ describe('scan-to-lookup / scan-to-sell', () => {
     });
 
     const blockedRes = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
-      .send({ code: piece.barcode });
+      .send({ channel: 'store', code: piece.barcode });
     expect(blockedRes.status).toBe(409);
     expect(blockedRes.body.code).toBe('RESERVED_ONLINE');
 
     // STAFF cannot self-authorize an override — ADMIN (owner) only.
     const staffOverrideRes = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
-      .send({ code: piece.barcode, override: true });
+      .send({ channel: 'store', code: piece.barcode, override: true });
     expect(staffOverrideRes.status).toBe(403);
 
     const overrideRes = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${adminToken}`)
-      .send({ code: piece.barcode, override: true });
+      .send({ channel: 'store', code: piece.barcode, override: true });
     expect(overrideRes.status).toBe(200);
     expect(overrideRes.body.data.overridden).toBe(true);
 
@@ -635,7 +664,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     const res = await request(app)
       .post('/api/v1/admin/inventory/scan-sell')
       .set('Authorization', 'Bearer ' + staffToken)
-      .send({ items: [{ code: pieces[0].barcode }, { code: pieces[1].barcode }, { code: pieces[2].barcode }] });
+      .send({ channel: 'store', items: [{ code: pieces[0].barcode }, { code: pieces[1].barcode }, { code: pieces[2].barcode }] });
 
     expect(res.status).toBe(200);
     expect(res.body.data.items).toHaveLength(3);
@@ -663,7 +692,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     const res = await request(app)
       .post('/api/v1/admin/inventory/scan-sell')
       .set('Authorization', 'Bearer ' + staffToken)
-      .send({ items: [{ code: pieces[0].barcode, salePrice: 1111 }, { code: pieces[1].barcode }] });
+      .send({ channel: 'store', items: [{ code: pieces[0].barcode, salePrice: 1111 }, { code: pieces[1].barcode }] });
 
     expect(res.status).toBe(200);
     const [bargained, fullPrice] = res.body.data.items;
@@ -688,7 +717,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     await request(app)
       .post('/api/v1/admin/inventory/scan-sell')
       .set('Authorization', 'Bearer ' + staffToken)
-      .send({ items: [{ code: pieces[0].barcode, salePrice: 555 }] });
+      .send({ channel: 'store', items: [{ code: pieces[0].barcode, salePrice: 555 }] });
 
     const after = fake.db.subcategory.find((x: any) => x.id === subcategory.id);
     expect(Number(after.storePrice)).toBe(storePrice);
@@ -706,7 +735,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     const res = await request(app)
       .post('/api/v1/admin/inventory/scan-sell')
       .set('Authorization', 'Bearer ' + staffToken)
-      .send({ items: [{ code: pieces[0].barcode }, { code: pieces[1].barcode }] });
+      .send({ channel: 'store', items: [{ code: pieces[0].barcode }, { code: pieces[1].barcode }] });
 
     expect(res.status).toBe(409);
     // The first piece is still on the shelf, and no order exists.
@@ -721,7 +750,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     const res = await request(app)
       .post('/api/v1/admin/inventory/scan-sell')
       .set('Authorization', 'Bearer ' + staffToken)
-      .send({ items: [{ code: pieces[0].barcode }, { code: pieces[0].barcode }] });
+      .send({ channel: 'store', items: [{ code: pieces[0].barcode }, { code: pieces[0].barcode }] });
 
     expect(res.status).toBe(400);
     expect(fake.db.order.filter((o: any) => o.channel === 'store')).toHaveLength(0);
@@ -762,7 +791,7 @@ describe('scan-to-lookup / scan-to-sell', () => {
     const piece = seedPiece(product.id, { status: 'sold_offline' });
 
     const res = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
-      .send({ code: piece.barcode });
+      .send({ channel: 'store', code: piece.barcode });
     expect(res.status).toBe(409);
     expect(res.body.code).toBe('ALREADY_SOLD');
   });

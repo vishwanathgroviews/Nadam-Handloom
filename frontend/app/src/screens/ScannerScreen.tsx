@@ -108,7 +108,12 @@ export default function ScannerScreen({ navigation }: Props) {
   // these lines intact, and Complete Sale turns the whole list into ONE
   // order with ONE invoice.
   const [bill, setBill] = useState<BillLine[]>([]);
-  const [saleChannel, setSaleChannel] = useState<SaleChannel>('store');
+  // No default. Pre-selecting Offline Store meant a WhatsApp order rung up
+  // without anyone touching the selector was closed out as a counter sale and
+  // never reached To Ship. Staff have to choose, every sale — the server
+  // enforces the same rule (inventory.schema.ts).
+  const [saleChannel, setSaleChannel] = useState<SaleChannel | null>(null);
+  const [channelMissing, setChannelMissing] = useState(false);
   // Only used for a WhatsApp sale — it's a remote order, so it can't be
   // completed without somewhere to send the parcel.
   const [customer, setCustomer] = useState({ ...EMPTY_CUSTOMER });
@@ -130,7 +135,8 @@ export default function ScannerScreen({ navigation }: Props) {
     setScannedLock(false);
     setSalePriceInput('');
     setBill([]);
-    setSaleChannel('store');
+    setSaleChannel(null);
+    setChannelMissing(false);
     setCustomer({ ...EMPTY_CUSTOMER });
   }, []);
 
@@ -192,6 +198,14 @@ export default function ScannerScreen({ navigation }: Props) {
       if (lines.length === 0) {
         setError('Add at least one product to the bill first.');
         setPhase('result');
+        return;
+      }
+
+      // Checked here, before anything is sent, and shown next to the selector
+      // rather than as a result-screen error: the bill has to stay on screen
+      // so the choice can simply be made and the sale completed.
+      if (!saleChannel) {
+        setChannelMissing(true);
         return;
       }
 
@@ -560,8 +574,23 @@ export default function ScannerScreen({ navigation }: Props) {
 
                 <View style={styles.billSeparator} />
 
-                <Text style={styles.label}>Where is this sale happening?</Text>
-                <SegmentedControl options={SALE_CHANNEL_OPTIONS} value={saleChannel} onChange={setSaleChannel} />
+                <Text style={styles.label}>
+                  Where is this sale happening? <Text style={styles.requiredMark}>*</Text>
+                </Text>
+                <SegmentedControl
+                  options={SALE_CHANNEL_OPTIONS}
+                  value={saleChannel}
+                  onChange={(key) => {
+                    setSaleChannel(key);
+                    setChannelMissing(false);
+                  }}
+                  invalid={channelMissing}
+                />
+                {channelMissing && (
+                  <Text style={styles.fieldError} accessibilityLiveRegion="polite">
+                    Choose Offline Store or Through WhatsApp to complete this sale.
+                  </Text>
+                )}
 
           {saleChannel === 'whatsapp' && (
             <View style={styles.customerForm}>
@@ -628,6 +657,8 @@ const styles = StyleSheet.create({
     width: 84, textAlign: 'right', backgroundColor: colors.inputBg, borderRadius: radius.md,
     paddingHorizontal: spacing.sm, paddingVertical: spacing.sm, ...typography.bodySm, color: colors.text,
   },
+  requiredMark: { color: colors.error },
+  fieldError: { ...typography.bodySm, color: colors.error, marginTop: spacing.sm },
   billSeparator: {
     borderBottomWidth: 1.5,
     borderStyle: 'dashed',

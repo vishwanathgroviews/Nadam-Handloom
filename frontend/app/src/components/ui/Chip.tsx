@@ -44,13 +44,20 @@ export function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
+  invalid = false,
 }: {
   options: { key: T; label: string }[];
-  value: T;
+  /** null = nothing chosen yet; no segment is highlighted. */
+  value: T | null;
   onChange: (key: T) => void;
+  /** Outlines the control in the error colour when a required choice was skipped. */
+  invalid?: boolean;
 }) {
   return (
-    <View style={styles.track}>
+    <View
+      style={[styles.track, invalid && styles.trackInvalid]}
+      accessibilityRole="radiogroup"
+    >
       {options.map((opt) => {
         const active = opt.key === value;
         return (
@@ -59,6 +66,8 @@ export function SegmentedControl<T extends string>({
             style={[styles.segment, active && styles.segmentActive]}
             onPress={() => onChange(opt.key)}
             activeOpacity={0.8}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: active }}
           >
             <Text style={[styles.segmentText, active && styles.segmentTextActive]} numberOfLines={1}>{opt.label}</Text>
           </TouchableOpacity>
@@ -69,6 +78,7 @@ export function SegmentedControl<T extends string>({
 }
 
 const styles = StyleSheet.create({
+  trackInvalid: { borderWidth: 1.5, borderColor: colors.error },
   badge: {
     borderRadius: radius.pill,
     paddingHorizontal: spacing.sm + 2,
