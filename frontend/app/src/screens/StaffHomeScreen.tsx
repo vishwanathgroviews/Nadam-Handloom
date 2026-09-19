@@ -7,9 +7,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { goToTab } from '../navigation/tabs';
 import { useAuth } from '../context/AuthContext';
-import { getDashboard, DashboardStats } from '../api/admin';
+import { getDashboard, DashboardStats, listAdminOrders } from '../api/admin';
 import ScreenHeader from '../components/ui/ScreenHeader';
-import ShipmentsCard from '../components/ShipmentsCard';
+import StatCard from '../components/ui/StatCard';
 import BrandMark from '../components/BrandMark';
 import QuickActionsCarousel, { QuickAction } from '../components/QuickActionsCarousel';
 import { colors, radius, shadow, spacing, typography } from '../utils/theme';
@@ -20,11 +20,18 @@ export default function StaffHomeScreen({ navigation }: Props) {
   const { accessToken } = useAuth();
   const tabBarHeight = useBottomTabBarHeight();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [shipCounts, setShipCounts] = useState<{ toShip: number; shipped: number } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       if (!accessToken) return;
       getDashboard(accessToken).then((res) => setStats(res.data)).catch(() => {});
+      Promise.all([
+        listAdminOrders(accessToken, { status: ['processing'], page: 1, pageSize: 1 }),
+        listAdminOrders(accessToken, { status: ['shipped'], page: 1, pageSize: 1 }),
+      ])
+        .then(([toShip, shipped]) => setShipCounts({ toShip: toShip.data.total, shipped: shipped.data.total }))
+        .catch(() => {});
     }, [accessToken])
   );
 
@@ -60,7 +67,24 @@ export default function StaffHomeScreen({ navigation }: Props) {
           <Text style={styles.welcomeSub}>Scan to sell, check stock, or ship what's waiting.</Text>
         </View>
 
-        <ShipmentsCard accessToken={accessToken} navigation={navigation} />
+        {/* The same stat tiles as before, two to a row so the row is filled:
+            orders waiting to be packed, and orders already on their way. */}
+        <View style={styles.statRow}>
+          <TouchableOpacity
+            style={styles.statTouchable}
+            onPress={() => goToTab(navigation, 'OrdersTab', { tab: 'to_ship' })}
+            activeOpacity={0.8}
+          >
+            <StatCard icon="cube-outline" iconColor={colors.warning} iconBg={colors.warningBg} label="To ship" value={shipCounts?.toShip ?? '—'} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.statTouchable}
+            onPress={() => goToTab(navigation, 'OrdersTab', { tab: 'shipped' })}
+            activeOpacity={0.8}
+          >
+            <StatCard icon="paper-plane-outline" iconColor={colors.success} iconBg={colors.successBg} label="Shipped" value={shipCounts?.shipped ?? '—'} />
+          </TouchableOpacity>
+        </View>
 
         <Text style={[typography.caption, styles.sectionLabel]}>Quick actions</Text>
         <QuickActionsCarousel actions={quickActions} />
@@ -84,6 +108,8 @@ export default function StaffHomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
+  statRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg },
+  statTouchable: { flex: 1 },
   screen: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1, paddingHorizontal: spacing.md },
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

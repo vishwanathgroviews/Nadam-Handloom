@@ -14,15 +14,13 @@ import { SkeletonList } from '../components/ui/Skeleton';
 import { usePagedList } from '../hooks/usePagedList';
 import Button from '../components/ui/Button';
 import DatePickerModal from '../components/DatePickerModal';
-import { Badge, SegmentedControl } from '../components/ui/Chip';
+import { Badge, FilterChip, SegmentedControl } from '../components/ui/Chip';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Invoices'>;
 
-// SegmentedControl (same connected-pill-track component the channel filter
-// below and Analytics' own date-range picker already use) rather than
-// independently-wrapped chips — its segments are guaranteed equal-width and
-// single-line (numberOfLines=1 inside), which is what actually keeps five
-// options aligned edge-to-edge with no ragged heights or leftover space.
+// Filter chips that wrap onto a second line, the same as the date filter on
+// Orders and the Audit Log. Six options squeezed into one segmented bar left
+// each about 55px wide on a phone, which cut labels like "This Month" short.
 const DATE_FILTERS: { key: string; label: string; days?: number }[] = [
   { key: 'all', label: 'All Time' },
   { key: 'today', label: 'Today', days: 0 },
@@ -146,8 +144,10 @@ export default function InvoicesScreen({ navigation }: Props) {
       <SegmentedControl options={CHANNEL_OPTIONS} value={channel} onChange={setChannel} />
 
       <Text style={[typography.caption, styles.filterLabel]}>Date Range</Text>
-      <View style={styles.dateControlWrap}>
-        <SegmentedControl options={DATE_FILTERS} value={dateKey} onChange={setDateKey} />
+      <View style={styles.dateRow}>
+        {DATE_FILTERS.map((f) => (
+          <FilterChip key={f.key} label={f.label} active={dateKey === f.key} onPress={() => setDateKey(f.key)} />
+        ))}
       </View>
 
       {dateKey === 'custom' && (
@@ -239,7 +239,7 @@ export default function InvoicesScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.md },
   filterLabel: { color: colors.textLabel, marginTop: spacing.lg, marginBottom: spacing.sm },
-  dateControlWrap: { marginBottom: spacing.lg },
+  dateRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.lg },
   customRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.lg },
   dateField: {
     flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm,

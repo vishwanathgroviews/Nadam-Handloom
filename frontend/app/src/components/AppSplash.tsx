@@ -77,10 +77,10 @@ export default function AppSplash({ ready }: Props) {
             ]),
           ]),
         ]),
-        Animated.delay(260),
+        Animated.delay(300),
         Animated.parallel([
-          Animated.timing(layerOpacity, { toValue: 0, duration: 320, easing: Easing.in(Easing.quad), useNativeDriver: true }),
-          Animated.timing(layerScale, { toValue: 1.06, duration: 320, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+          Animated.timing(layerOpacity, { toValue: 0, duration: 480, easing: Easing.bezier(0.4, 0, 0.2, 1), useNativeDriver: true }),
+          Animated.timing(layerScale, { toValue: 1.03, duration: 480, easing: Easing.bezier(0.4, 0, 0.2, 1), useNativeDriver: true }),
         ]),
       ]).start(finish);
     })();
@@ -116,7 +116,6 @@ export default function AppSplash({ ready }: Props) {
       </View>
       <Animated.View style={[styles.nameWrap, { opacity: nameOpacity, transform: [{ translateY: nameShift }] }]}>
         <Text style={styles.name}>NANDAM HANDLOOMS</Text>
-        <Text style={styles.tagline}>Staff</Text>
       </Animated.View>
     </Animated.View>
   );
@@ -145,5 +144,4 @@ const styles = StyleSheet.create({
   // exactly where the native launch screen drew it.
   nameWrap: { position: 'absolute', top: '50%', marginTop: LOGO_SIZE / 2 + 28, alignItems: 'center' },
   name: { color: GOLD, fontSize: 15, letterSpacing: 4, fontFamily: 'Outfit_600SemiBold' },
-  tagline: { color: 'rgba(228,197,138,0.7)', fontSize: 11.5, letterSpacing: 3, marginTop: 6, fontFamily: 'Outfit_500Medium' },
 });
