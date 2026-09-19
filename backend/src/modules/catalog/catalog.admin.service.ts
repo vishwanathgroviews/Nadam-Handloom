@@ -1,5 +1,5 @@
 import { prisma } from '../../config/prisma';
-import { planReposition, nextPosition } from './displayOrder';
+import { planReposition, nextPosition, PositionUpdate } from './displayOrder';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { AppError, BadRequestError, ConflictError, NotFoundError } from '../../utils/errors';
 import { PAID_STATUSES } from '../../utils/constants';
@@ -49,11 +49,27 @@ const uniqueSlug = async (model: 'category' | 'product', base: string, excludeId
 // transaction so the pair is never visible half-swapped.
 type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
+// All the position writes go to the database as ONE statement. Writing them
+// row by row cost one database round trip each (~60 ms to the database), so
+// renumbering a large category — Handloom Pattu Saree has ~100 subcategories
+// — ran past the transaction's time limit and every save failed with an
+// Internal Server Error.
+const applyPositions = async (tx: Tx, table: 'Category' | 'Subcategory', updates: PositionUpdate[]) => {
+  if (updates.length === 0) return;
+  const ids = updates.map((u) => u.id);
+  const positions = updates.map((u) => u.sortOrder);
+  if (table === 'Category') {
+    await tx.$executeRaw`UPDATE "Category" AS t SET "sortOrder" = v.pos, "updatedAt" = now()
+      FROM unnest(${ids}::text[], ${positions}::int[]) AS v(id, pos) WHERE t.id = v.id`;
+  } else {
+    await tx.$executeRaw`UPDATE "Subcategory" AS t SET "sortOrder" = v.pos, "updatedAt" = now()
+      FROM unnest(${ids}::text[], ${positions}::int[]) AS v(id, pos) WHERE t.id = v.id`;
+  }
+};
+
 const repositionCategory = async (tx: Tx, categoryId: string, requested: number) => {
   const siblings = await tx.category.findMany({ select: { id: true, sortOrder: true, name: true } });
-  for (const update of planReposition(siblings, categoryId, requested)) {
-    await tx.category.update({ where: { id: update.id }, data: { sortOrder: update.sortOrder } });
-  }
+  await applyPositions(tx, 'Category', planReposition(siblings, categoryId, requested));
 };
 
 const repositionSubcategory = async (tx: Tx, parentCategoryId: string, subcategoryId: string, requested: number) => {
@@ -61,9 +77,7 @@ const repositionSubcategory = async (tx: Tx, parentCategoryId: string, subcatego
     where: { categoryId: parentCategoryId },
     select: { id: true, sortOrder: true, name: true },
   });
-  for (const update of planReposition(siblings, subcategoryId, requested)) {
-    await tx.subcategory.update({ where: { id: update.id }, data: { sortOrder: update.sortOrder } });
-  }
+  await applyPositions(tx, 'Subcategory', planReposition(siblings, subcategoryId, requested));
 };
 
 export const listAllCategories = async () => {

@@ -495,6 +495,25 @@ export function createFakePrisma() {
     }
   };
 
+  // The one raw statement the app runs: the bulk position write in
+  // catalog.admin.service (UPDATE "<Model>" ... FROM unnest(ids, positions)).
+  client.$executeRaw = async (strings: TemplateStringsArray, ...values: any[]) => {
+    const match = /UPDATE "(\w+)"/.exec(strings.join('?'));
+    if (!match || !/unnest/.test(strings.join('?'))) throw new Error(`fakePrisma: unsupported raw SQL: ${strings.join('?')}`);
+    const model = match[1]!.charAt(0).toLowerCase() + match[1]!.slice(1);
+    const [ids, positions] = values as [string[], number[]];
+    let count = 0;
+    ids.forEach((id, i) => {
+      const row = ((db as any)[model] as any[]).find((r) => r.id === id);
+      if (row) {
+        row.sortOrder = positions[i];
+        row.updatedAt = new Date();
+        count += 1;
+      }
+    });
+    return count;
+  };
+
   client.$transaction = async (arg: any) => {
     if (typeof arg !== 'function') return Promise.all(arg);
     const before = snapshot();
