@@ -9,6 +9,7 @@ import { logAuthEvent } from '../auth/auditLog.service';
 import { getLowStock } from '../inventory/inventory.service';
 import { getProductStats } from '../catalog/catalog.admin.service';
 import { presentAuditEvents } from './auditLog.present';
+import { AUDIT_GROUPS, AuditGroup } from './auditLog.groups';
 
 /**
  * Invites someone into the staff app.
@@ -412,12 +413,16 @@ export const markOrderShipped = async (
 
 export const getAuditLog = async (query: {
   eventType?: string;
+  group?: AuditGroup;
+  from?: Date;
   source?: 'customer_web' | 'staff_app';
   page: number;
   pageSize: number;
 }) => {
   const where: any = {};
   if (query.eventType) where.eventType = query.eventType;
+  else if (query.group) where.eventType = { in: [...AUDIT_GROUPS[query.group]] };
+  if (query.from) where.createdAt = { gte: query.from };
   // Admin's Audit Log only shows staff-app activity by default — customer-web
   // registrations/logins/etc. would otherwise drown out real staff actions.
   // Pass ?source=customer_web explicitly to opt back into seeing those.

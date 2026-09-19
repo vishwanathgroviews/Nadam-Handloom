@@ -236,3 +236,46 @@ describe('audit log readability', () => {
     expect(new Set(seen).size).toBe(seen.length);
   });
 });
+
+describe('audit log filters', () => {
+  const seedEvent = (eventType: string, createdAt: Date, source = 'staff_app') => {
+    fake.db.authEvent.push({
+      id: `44444444-0000-4000-8000-${String(fake.db.authEvent.length).padStart(12, '0')}`,
+      authAccountId: null, eventType, source, ipAddress: null, userAgent: null, metadata: {}, createdAt,
+    });
+  };
+
+  it('shows only the chosen kind of activity', async () => {
+    const { token } = await createToken('ADMIN', '9300000060');
+    fake.db.authEvent.length = 0;
+    const now = new Date();
+    seedEvent('product_updated', now);
+    seedEvent('order_marked_shipped', now);
+    seedEvent('subcategory_price_changed', now);
+
+    const res = await request(app).get('/api/v1/admin/audit-log?group=catalog').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(res.body.data.items.map((e: any) => e.eventType)).toEqual(['subcategory_price_changed']);
+  });
+
+  it('shows only entries from the chosen date onwards', async () => {
+    const { token } = await createToken('ADMIN', '9300000061');
+    fake.db.authEvent.length = 0;
+    const today = new Date();
+    const lastWeek = new Date(Date.now() - 8 * 86_400_000);
+    seedEvent('product_updated', today);
+    seedEvent('product_created', lastWeek);
+
+    const from = new Date(Date.now() - 7 * 86_400_000).toISOString();
+    const res = await request(app)
+      .get(`/api/v1/admin/audit-log?group=products&from=${encodeURIComponent(from)}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.body.data.items.map((e: any) => e.eventType)).toEqual(['product_updated']);
+  });
+
+  it('refuses a filter that is not one of the groups', async () => {
+    const { token } = await createToken('ADMIN', '9300000062');
+    const res = await request(app).get('/api/v1/admin/audit-log?group=everything').set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(400);
+  });
+});

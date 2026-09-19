@@ -1,10 +1,11 @@
-import React, { useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, Text, FlatList, StyleSheet, RefreshControl, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
-import { getAuditLog, AuditLogEntry } from '../api/admin';
+import { getAuditLog, AuditLogEntry, AuditGroup } from '../api/admin';
+import { FilterChip } from '../components/ui/Chip';
 import { colors, radius, spacing, typography } from '../utils/theme';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
@@ -14,6 +15,30 @@ import { AuditTone, dayLabel, describeAuditEntry, timeLabel } from '../utils/aud
 
 type Props = NativeStackScreenProps<AppStackParamList, 'AuditLog'>;
 type IconName = keyof typeof Ionicons.glyphMap;
+
+const GROUP_FILTERS: { key: AuditGroup | 'all'; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'sales', label: 'Sales' },
+  { key: 'orders', label: 'Orders' },
+  { key: 'products', label: 'Products' },
+  { key: 'catalog', label: 'Categories & prices' },
+  { key: 'team', label: 'Team' },
+  { key: 'signin', label: 'Sign-ins' },
+];
+
+// Entries are only kept for 30 days (see the server's retention sweep), so
+// "All" already means the last 30 days.
+const DATE_FILTERS: { key: 'all' | 'today' | 'week'; label: string }[] = [
+  { key: 'all', label: 'Last 30 days' },
+  { key: 'today', label: 'Today' },
+  { key: 'week', label: 'Last 7 days' },
+];
+
+const startOfToday = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
 
 const TONE_COLORS: Record<AuditTone, { bg: string; fg: string }> = {
   sale: { bg: colors.primaryBg, fg: colors.primary },
@@ -33,14 +58,32 @@ const TONE_COLORS: Record<AuditTone, { bg: string; fg: string }> = {
  */
 export default function AuditLogScreen(_props: Props) {
   const { accessToken } = useAuth();
+  const [group, setGroup] = useState<AuditGroup | 'all'>('all');
+  const [dateKey, setDateKey] = useState<'all' | 'today' | 'week'>('all');
 
+  const from = useMemo(() => {
+    if (dateKey === 'today') return startOfToday().toISOString();
+    if (dateKey === 'week') {
+      const d = startOfToday();
+      d.setDate(d.getDate() - 6);
+      return d.toISOString();
+    }
+    return undefined;
+  }, [dateKey]);
+
+  // A new filter is a new fetchPage, which starts the list over (usePagedList).
   const fetchPage = useCallback(
     async (page: number, pageSize: number) => {
       if (!accessToken) return { items: [], total: 0 };
-      const res = await getAuditLog(accessToken, { page, pageSize });
+      const res = await getAuditLog(accessToken, {
+        page,
+        pageSize,
+        ...(group !== 'all' ? { group } : {}),
+        ...(from ? { from } : {}),
+      });
       return { items: res.data.items, total: res.data.total };
     },
-    [accessToken]
+    [accessToken, group, from]
   );
 
   const { items, loading, loadingMore, refreshing, error, loadMore, refresh } = usePagedList<AuditLogEntry>(
@@ -90,6 +133,23 @@ export default function AuditLogScreen(_props: Props) {
       <View style={styles.container}>
         <ScreenHeader title="Audit Log" subtitle="What was done in the app, who did it, and when." />
 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterRow}
+          style={styles.filterScroll}
+        >
+          {GROUP_FILTERS.map((f) => (
+            <FilterChip key={f.key} label={f.label} active={group === f.key} onPress={() => setGroup(f.key)} />
+          ))}
+        </ScrollView>
+        <View style={styles.dateRow}>
+          {DATE_FILTERS.map((f) => (
+            <FilterChip key={f.key} label={f.label} active={dateKey === f.key} onPress={() => setDateKey(f.key)} />
+          ))}
+        </View>
+        <Text style={styles.retention}>Entries are kept for 30 days, then removed automatically.</Text>
+
         {loading ? (
           <SkeletonList count={7} variant="text" />
         ) : error && items.length === 0 ? (
@@ -106,7 +166,11 @@ export default function AuditLogScreen(_props: Props) {
             refreshControl={
               <RefreshControl refreshing={refreshing} onRefresh={() => refresh({ pull: true })} tintColor={colors.primary} />
             }
-            ListEmptyComponent={<Text style={styles.empty}>Nothing recorded yet.</Text>}
+            ListEmptyComponent={
+              <Text style={styles.empty}>
+                {group === 'all' && dateKey === 'all' ? 'Nothing recorded yet.' : 'Nothing matches these filters.'}
+              </Text>
+            }
             ListFooterComponent={loadingMore ? <SkeletonList count={2} variant="text" /> : null}
           />
         )}
@@ -118,6 +182,10 @@ export default function AuditLogScreen(_props: Props) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   container: { flex: 1, paddingHorizontal: spacing.md },
+  filterScroll: { flexGrow: 0 },
+  filterRow: { gap: spacing.sm, paddingRight: spacing.md },
+  dateRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
+  retention: { ...typography.bodySm, fontSize: 11.5, color: colors.textMuted, marginTop: spacing.sm },
   dayHeading: {
     ...typography.caption, color: colors.textLabel,
     marginTop: spacing.md, marginBottom: spacing.sm, marginLeft: spacing.xs,

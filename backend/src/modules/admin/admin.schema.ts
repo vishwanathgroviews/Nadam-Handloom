@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AUDIT_GROUP_KEYS } from './auditLog.groups';
 
 export const provisionUserSchema = z.object({
   name: z.string().trim().min(2, 'Name is required').max(100),
@@ -36,6 +37,9 @@ export const listAdminOrdersQuerySchema = z.object({
 
 export const auditLogQuerySchema = z.object({
   eventType: z.string().trim().optional(),
+  // Filter by kind of activity (see auditLog.groups.ts) and by how far back.
+  group: z.enum(AUDIT_GROUP_KEYS).optional(),
+  from: z.coerce.date().optional(),
   source: z.enum(['customer_web', 'staff_app']).optional(),
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(100).default(50),

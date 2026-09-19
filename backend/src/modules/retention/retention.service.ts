@@ -1,5 +1,6 @@
 import { prisma } from '../../config/prisma';
 import { storageProvider } from '../../providers/storage';
+import { AUDIT_LOG_RETENTION_DAYS } from '../admin/auditLog.groups';
 
 // SOW hard constraint: order data retained 6 months.
 const RETENTION_MONTHS = 6;
@@ -93,6 +94,20 @@ export const exportOrdersCsvToStorage = async (): Promise<{ key: string | null; 
   }
 };
 
+/**
+ * Removes Audit Log entries older than 30 days.
+ *
+ * Only the staff-app activity the Audit Log shows is removed; the separate
+ * customer sign-in records are not part of that log and are left alone.
+ */
+export const purgeOldAuditLogs = async (now: Date = new Date()): Promise<{ cutoffDate: Date; purgedCount: number }> => {
+  const cutoffDate = new Date(now.getTime() - AUDIT_LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+  const { count } = await prisma.authEvent.deleteMany({
+    where: { source: 'staff_app', createdAt: { lt: cutoffDate } },
+  });
+  return { cutoffDate, purgedCount: count };
+};
+
 let lastCsvExportMonthKey: string | null = null;
 
 const runDailyRetentionTasks = async (): Promise<void> => {
@@ -101,6 +116,13 @@ const runDailyRetentionTasks = async (): Promise<void> => {
     if (purgedCount) console.log(`Retention: purged ${purgedCount} order(s) older than ${cutoffDate.toISOString()}`);
   } catch (error) {
     console.error('Order purge failed:', error);
+  }
+
+  try {
+    const { purgedCount, cutoffDate } = await purgeOldAuditLogs();
+    if (purgedCount) console.log(`Retention: removed ${purgedCount} audit log entr${purgedCount === 1 ? 'y' : 'ies'} older than ${cutoffDate.toISOString()}`);
+  } catch (error) {
+    console.error('Audit log purge failed:', error);
   }
 
   const now = new Date();

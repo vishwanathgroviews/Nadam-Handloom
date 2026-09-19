@@ -214,9 +214,16 @@ export interface AuditLogEntry {
   } | null;
 }
 
-export const getAuditLog = (token: string, params: { eventType?: string; page?: number; pageSize?: number } = {}) => {
+export type AuditGroup = 'sales' | 'orders' | 'products' | 'catalog' | 'team' | 'signin';
+
+export const getAuditLog = (
+  token: string,
+  params: { eventType?: string; group?: AuditGroup; from?: string; page?: number; pageSize?: number } = {}
+) => {
   const qs = new URLSearchParams();
   if (params.eventType) qs.set('eventType', params.eventType);
+  if (params.group) qs.set('group', params.group);
+  if (params.from) qs.set('from', params.from);
   if (params.page) qs.set('page', String(params.page));
   if (params.pageSize) qs.set('pageSize', String(params.pageSize));
   const suffix = qs.toString() ? `?${qs.toString()}` : '';

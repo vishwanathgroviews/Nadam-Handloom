@@ -220,3 +220,24 @@ describe('retention: monthly CSV export', () => {
     expect(res.text).toContain(oldOrder.orderNumber);
   });
 });
+
+describe('audit log retention', () => {
+  it('removes staff-app entries older than 30 days and keeps everything else', async () => {
+    const { purgeOldAuditLogs } = await import('./retention.service');
+    const fakeDb = (await import('../../config/prisma') as any).__fake.db;
+    fakeDb.authEvent.length = 0;
+    const now = new Date('2026-09-19T12:00:00Z');
+    const daysAgo = (d: number) => new Date(now.getTime() - d * 86_400_000);
+    const push = (id: string, createdAt: Date, source = 'staff_app') =>
+      fakeDb.authEvent.push({ id, authAccountId: null, eventType: 'product_updated', source, ipAddress: null, userAgent: null, metadata: {}, createdAt });
+
+    push('old-staff', daysAgo(31));
+    push('recent-staff', daysAgo(29));
+    push('old-customer', daysAgo(45), 'customer_web');
+
+    const result = await purgeOldAuditLogs(now);
+
+    expect(result.purgedCount).toBe(1);
+    expect(fakeDb.authEvent.map((e: any) => e.id).sort()).toEqual(['old-customer', 'recent-staff']);
+  });
+});
