@@ -1077,3 +1077,43 @@ describe('piece intake (receivePieces) and inventory reads', () => {
     expect(res.body.data.items.map((p: any) => p.name)).toEqual(['Low Qty', 'Low Serialized', 'Low Hybrid']);
   });
 });
+
+// A walk-in customer's mobile is used on the phone to send the invoice on
+// WhatsApp and must never be stored. The app doesn't send it; this proves the
+// server throws it away even if a client does.
+describe('counter sales store no customer data', () => {
+  it('keeps no customer details on the order or the invoice of a store sale', async () => {
+    const staffToken = await createStaffToken('9000000170', 'STAFF');
+    const category = seedCategory();
+    const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 2 });
+
+    const res = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
+      .send({
+        items: [{ code: product.sku }],
+        channel: 'store',
+        customer: { phone: '9876512345', address: 'Should never be kept' },
+      });
+    expect(res.status).toBe(200);
+
+    const order = fake.db.order.find((o: any) => o.id === res.body.data.orderId);
+    expect(JSON.stringify(order)).not.toContain('9876512345');
+    expect(JSON.stringify(order)).not.toContain('Should never be kept');
+
+    const invoice = fake.db.invoice.find((i: any) => i.orderId === order.id);
+    expect(invoice).toBeTruthy(); // the invoice itself is still generated and kept
+    expect(invoice.customerMobile ?? null).toBeNull();
+    expect(JSON.stringify(invoice)).not.toContain('9876512345');
+  });
+
+  it('still keeps the delivery number and address on a WhatsApp order', async () => {
+    const staffToken = await createStaffToken('9000000171', 'STAFF');
+    const category = seedCategory();
+    const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 2 });
+
+    const res = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
+      .send({ items: [{ code: product.sku }], channel: 'whatsapp', customer: { phone: '9876512345', address: '12 Temple St, Guntur' } });
+
+    const order = fake.db.order.find((o: any) => o.id === res.body.data.orderId);
+    expect(order.shippingAddress.phone).toBe('9876512345');
+  });
+});

@@ -512,7 +512,14 @@ export const scanSell = async (
     for (const item of input.items) {
       lines.push(await resolveAndClaimOfflineSaleItem(tx, item.code, item, actorId, orderNumber));
     }
-    const order = await createOfflineOrder(tx, orderNumber, lines, input.customer, channel);
+    // A counter sale records no customer, full stop. The app sends none (a
+    // mobile typed to share the invoice on WhatsApp stays on the phone), and
+    // anything a client did send is dropped here, so nothing about a walk-in
+    // customer can reach the order — or the invoice, which copies its
+    // customer details from the order. Only a WhatsApp order, which has to be
+    // couriered, keeps a delivery number and address.
+    const customer = channel === 'whatsapp' ? input.customer : undefined;
+    const order = await createOfflineOrder(tx, orderNumber, lines, customer, channel);
 
     return {
       orderId: order.id,

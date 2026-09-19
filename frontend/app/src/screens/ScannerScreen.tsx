@@ -22,6 +22,7 @@ import OfflineBanner from '../components/OfflineBanner';
 import { savePdfBytes, printPdf, sharePdf } from '../utils/pdf';
 import { colors, radius, shadow, spacing, typography } from '../utils/theme';
 import { openWhatsAppChat } from '../utils/whatsapp';
+import { cleanMobile, invoiceWhatsAppMessage } from '../utils/invoiceShare';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -114,6 +115,13 @@ export default function ScannerScreen({ navigation }: Props) {
   // enforces the same rule (inventory.schema.ts).
   const [saleChannel, setSaleChannel] = useState<SaleChannel | null>(null);
   const [channelMissing, setChannelMissing] = useState(false);
+  // A counter customer's mobile, typed only so their invoice can be sent to
+  // them on WhatsApp. It stays in this screen's memory: it is never sent to
+  // the server (runSell has no field for it on a store sale, and the server
+  // drops customer details on store sales anyway), never written to the
+  // phone's storage, and is cleared when the next sale starts.
+  const [invoiceMobile, setInvoiceMobile] = useState('');
+  const [invoiceMobileError, setInvoiceMobileError] = useState('');
   // Only used for a WhatsApp sale — it's a remote order, so it can't be
   // completed without somewhere to send the parcel.
   const [customer, setCustomer] = useState({ ...EMPTY_CUSTOMER });
@@ -137,6 +145,8 @@ export default function ScannerScreen({ navigation }: Props) {
     setBill([]);
     setSaleChannel(null);
     setChannelMissing(false);
+    setInvoiceMobile('');
+    setInvoiceMobileError('');
     setCustomer({ ...EMPTY_CUSTOMER });
   }, []);
 
@@ -285,6 +295,23 @@ export default function ScannerScreen({ navigation }: Props) {
     },
     [sellResult]
   );
+
+  // One tap: opens WhatsApp straight at the customer's chat with the invoice
+  // link and amount already written. The number is used here and nowhere else.
+  const shareInvoiceOnWhatsApp = useCallback(() => {
+    const invoice = sellResult?.invoice;
+    if (!invoice) return;
+    const mobile = cleanMobile(invoiceMobile);
+    if (!mobile) {
+      setInvoiceMobileError("Enter the customer's 10-digit mobile number.");
+      return;
+    }
+    setInvoiceMobileError('');
+    openWhatsAppChat(
+      mobile,
+      invoiceWhatsAppMessage({ invoiceNumber: invoice.invoiceNumber, totalAmount: invoice.totalAmount, url: invoice.url })
+    );
+  }, [sellResult, invoiceMobile]);
 
   // Puts the product just scanned onto the bill, carrying over whatever
   // price was typed on the confirm step, and stays on the bill. It
@@ -466,6 +493,33 @@ export default function ScannerScreen({ navigation }: Props) {
 
                 {shareError ? <Text style={styles.error}>{shareError}</Text> : null}
 
+                {sellResult.channel === 'store' && sellResult.invoice ? (
+                  <View style={styles.whatsappShareBlock}>
+                    {/* The number can still be typed here if it wasn't given
+                        before the sale — it is used only for this message. */}
+                    {!cleanMobile(invoiceMobile) || invoiceMobileError ? (
+                      <TextInput
+                        style={styles.customerInput}
+                        placeholder="Customer mobile number"
+                        placeholderTextColor={colors.textMuted}
+                        keyboardType="phone-pad"
+                        maxLength={14}
+                        value={invoiceMobile}
+                        onChangeText={(v) => {
+                          setInvoiceMobile(v);
+                          setInvoiceMobileError('');
+                        }}
+                      />
+                    ) : null}
+                    {invoiceMobileError ? <Text style={styles.fieldError}>{invoiceMobileError}</Text> : null}
+                    <TouchableOpacity style={styles.whatsappInvoiceButton} onPress={shareInvoiceOnWhatsApp} activeOpacity={0.85}>
+                      <Ionicons name="logo-whatsapp" size={18} color="#fff" />
+                      <Text style={styles.whatsappInvoiceText}>Share Invoice on WhatsApp</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.helper}>The number is not saved anywhere.</Text>
+                  </View>
+                ) : null}
+
                 {busySharing ? (
                   <ActivityIndicator style={{ marginTop: spacing.lg }} color={colors.primary} />
                 ) : sellResult.invoice ? (
@@ -515,7 +569,7 @@ export default function ScannerScreen({ navigation }: Props) {
                       Applies to this item on this bill only — the catalogue price never changes.
                     </Text>
 
-                    <Button title="Add to Bill" onPress={addToBill} style={styles.markSoldButton} />
+                    <Button title="Sell Now" onPress={addToBill} style={styles.markSoldButton} />
                     <TouchableOpacity style={styles.whatsappButton} onPress={sellViaWhatsApp} activeOpacity={0.85}>
                       <Ionicons name="logo-whatsapp" size={18} color={colors.success} />
                       <Text style={styles.whatsappButtonText}>Just share this item on WhatsApp</Text>
@@ -591,6 +645,26 @@ export default function ScannerScreen({ navigation }: Props) {
                     Choose Offline Store or Through WhatsApp to complete this sale.
                   </Text>
                 )}
+
+          {saleChannel === 'store' && (
+            <View style={styles.customerForm}>
+              <TextInput
+                style={styles.customerInput}
+                placeholder="Customer mobile (to send the invoice on WhatsApp)"
+                placeholderTextColor={colors.textMuted}
+                keyboardType="phone-pad"
+                maxLength={14}
+                value={invoiceMobile}
+                onChangeText={(v) => {
+                  setInvoiceMobile(v);
+                  setInvoiceMobileError('');
+                }}
+              />
+              <Text style={styles.helper}>
+                Optional. Used only to send the invoice on WhatsApp — it is not saved anywhere.
+              </Text>
+            </View>
+          )}
 
           {saleChannel === 'whatsapp' && (
             <View style={styles.customerForm}>
@@ -744,6 +818,13 @@ const styles = StyleSheet.create({
   soldMeta: { ...typography.bodyMedium, color: colors.success, marginTop: spacing.sm, textAlign: 'center' },
   soldAmount: { ...typography.display, color: colors.text, marginTop: spacing.xs },
   soldActions: { alignSelf: 'stretch', marginTop: spacing.lg },
+  whatsappShareBlock: { alignSelf: 'stretch', marginTop: spacing.lg },
+  whatsappInvoiceButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm,
+    backgroundColor: colors.success, borderRadius: radius.pill,
+    paddingVertical: spacing.md + 2, marginTop: spacing.sm,
+  },
+  whatsappInvoiceText: { ...typography.bodySemibold, color: '#fff' },
   soldSecondAction: { marginTop: spacing.sm },
   scanNextButton: {
     backgroundColor: colors.text,

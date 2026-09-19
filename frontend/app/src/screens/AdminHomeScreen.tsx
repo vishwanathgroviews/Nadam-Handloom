@@ -61,6 +61,7 @@ export default function AdminHomeScreen({ navigation }: Props) {
 
   const manageItems: ManageItem[] = [
     { key: 'products', label: 'Products', hint: stats ? `${stats.products.activeCount} live` : '—', icon: 'shirt-outline', onPress: () => goToTab(navigation, 'ProductsTab') },
+    { key: 'orders', label: 'Orders', hint: 'Online, store & WhatsApp', icon: 'receipt-outline', onPress: () => navigation.navigate('AllOrders') },
     { key: 'catalog', label: 'Catalog', hint: 'Categories & pricing', icon: 'albums-outline', onPress: () => navigation.navigate('Categories') },
     { key: 'invoices', label: 'Invoices', hint: 'Generated invoices & reports', icon: 'document-text-outline', onPress: () => navigation.navigate('Invoices') },
     { key: 'team', label: 'Team', hint: 'Staff & roles', icon: 'people-outline', onPress: () => navigation.navigate('StaffList') },
