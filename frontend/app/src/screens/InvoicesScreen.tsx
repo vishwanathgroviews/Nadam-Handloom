@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -10,6 +10,8 @@ import { savePdfBytes, printPdf, sharePdf } from '../utils/pdf';
 import { colors, radius, spacing, typography } from '../utils/theme';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
+import { SkeletonList } from '../components/ui/Skeleton';
+import { usePagedList } from '../hooks/usePagedList';
 import Button from '../components/ui/Button';
 import DatePickerModal from '../components/DatePickerModal';
 import { Badge, SegmentedControl } from '../components/ui/Chip';
@@ -68,14 +70,10 @@ export default function InvoicesScreen({ navigation }: Props) {
   const [channel, setChannel] = useState<InvoiceChannelFilter>('all');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState('');
   const [datePickerFor, setDatePickerFor] = useState<'from' | 'to' | null>(null);
   const [generatingReport, setGeneratingReport] = useState(false);
+  // Kept apart from the list's own error, so a failed PDF doesn't read as the list failing to load.
+  const [reportError, setReportError] = useState('');
 
   // Custom range needs both ends filled in and parseable before it's usable
   // as a filter — until then just hold off rather than firing a bad request.
@@ -97,31 +95,21 @@ export default function InvoicesScreen({ navigation }: Props) {
     return dateFilter?.days !== undefined ? { from: startOfDaysAgo(dateFilter.days) } : {};
   }, [dateKey, customFrom, customTo]);
 
-  const load = useCallback(
-    async (targetPage = 1) => {
-      if (!accessToken) return;
-      if (!customRangeReady) return;
-      if (targetPage === 1) setLoading(true);
-      else setLoadingMore(true);
-      setError('');
-      try {
-        const res = await listInvoices(accessToken, { channel, ...activeRange, page: targetPage });
-        setInvoices((prev) => (targetPage === 1 ? res.data.items : [...prev, ...res.data.items]));
-        setTotal(res.data.total);
-        setPage(targetPage);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load invoices');
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-      }
+  // Ten invoices at a time; a new channel or date range starts the list
+  // over. A half-filled custom range doesn't fetch at all (see
+  // customRangeReady) — the previous list stays until both dates are set.
+  const fetchPage = useCallback(
+    async (page: number, pageSize: number) => {
+      if (!accessToken) return { items: [], total: 0 };
+      const res = await listInvoices(accessToken, { channel, ...activeRange, page, pageSize });
+      return { items: res.data.items, total: res.data.total };
     },
-    [accessToken, channel, customRangeReady, activeRange]
+    [accessToken, channel, activeRange]
   );
 
-  useEffect(() => {
-    load(1);
-  }, [load]);
+  const {
+    items: invoices, total, loading, loadingMore, refreshing, error, loadMore, refresh,
+  } = usePagedList<Invoice>(fetchPage, { maxPageSize: 50, enabled: Boolean(accessToken) && customRangeReady });
 
   // One consolidated invoice for the whole selected period — every sale in
   // range across all three channels (online, in-store, WhatsApp), grouped by
@@ -130,18 +118,18 @@ export default function InvoicesScreen({ navigation }: Props) {
     async (action: 'print' | 'share') => {
       if (!accessToken) return;
       if (dateKey === 'custom' && !customRangeReady) {
-        setError('Pick both a From and a To date first.');
+        setReportError('Pick both a From and a To date first.');
         return;
       }
       setGeneratingReport(true);
-      setError('');
+      setReportError('');
       try {
         const result = await generateSalesReportPdf(accessToken, { ...activeRange, channel });
         const uri = savePdfBytes(result.bytes, `sales-summary-${Date.now()}.pdf`);
         if (action === 'print') await printPdf(uri);
         else await sharePdf(uri);
       } catch (err: any) {
-        setError(err.message || 'Failed to generate the complete invoice');
+        setReportError(err.message || 'Failed to generate the complete invoice');
       } finally {
         setGeneratingReport(false);
       }
@@ -149,7 +137,6 @@ export default function InvoicesScreen({ navigation }: Props) {
     [accessToken, activeRange, channel, dateKey, customRangeReady]
   );
 
-  const hasMore = invoices.length < total;
 
   return (
     <View style={styles.container}>
@@ -199,10 +186,11 @@ export default function InvoicesScreen({ navigation }: Props) {
         One consolidated invoice for the selected period — online, store and WhatsApp sales together.
       </Text>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {reportError ? <Text style={styles.error}>{reportError}</Text> : null}
+      {error && !loadingMore ? <Text style={styles.error}>{error}</Text> : null}
 
       {loading && invoices.length === 0 ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
+        <SkeletonList count={6} variant="compact" />
       ) : invoices.length === 0 ? (
         <Text style={styles.empty}>No invoices in this view.</Text>
       ) : (
@@ -210,13 +198,11 @@ export default function InvoicesScreen({ navigation }: Props) {
           data={invoices}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={() => load(1)} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refresh({ pull: true })} tintColor={colors.primary} />}
           contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
-          onEndReachedThreshold={0.4}
-          onEndReached={() => {
-            if (hasMore && !loadingMore) load(page + 1);
-          }}
-          ListFooterComponent={loadingMore ? <ActivityIndicator style={{ marginTop: 12 }} color={colors.primary} /> : null}
+          onEndReachedThreshold={0.5}
+          onEndReached={loadMore}
+          ListFooterComponent={loadingMore ? <SkeletonList count={2} variant="compact" /> : null}
           renderItem={({ item }) => (
             <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('InvoiceDetail', { invoiceId: item.id })}>
               <Card style={styles.invoiceCard}>

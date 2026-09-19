@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -9,6 +9,7 @@ import { listCategories, AdminCategory } from '../api/catalog';
 import { saveToCache, loadFromCache } from '../utils/offlineCache';
 import OfflineBanner from '../components/OfflineBanner';
 import ScreenHeader from '../components/ui/ScreenHeader';
+import { SkeletonList } from '../components/ui/Skeleton';
 import Card from '../components/ui/Card';
 import { colors, radius, spacing, typography } from '../utils/theme';
 
@@ -66,7 +67,7 @@ export default function CategoryListScreen({ navigation }: Props) {
       {offlineSince && <OfflineBanner cachedAt={offlineSince} />}
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
+        <SkeletonList count={5} variant="media" />
       ) : error ? (
         <Text style={styles.error}>{error}</Text>
       ) : (

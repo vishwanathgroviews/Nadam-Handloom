@@ -6,6 +6,10 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 48px;
+  /* Each column only as tall as its own content. The default (stretch) made
+     the details column as tall as the photo, and that is what let the price
+     row's auto margin push everything below the title to the bottom. */
+  align-items: start;
 }
 
 .product-gallery-main {
@@ -66,6 +70,11 @@
 
 .product-price-row {
   font-size: 1.1rem;
+  /* .price-row pins the price to the bottom of a product *card* with
+     margin-top: auto. On this page the price belongs right under the title,
+     so that rule is cancelled here. */
+  margin-top: 4px;
+  padding-top: 0;
 }
 
 .product-price-row .price-current {
@@ -106,6 +115,15 @@
   gap: 12px;
   width: 100%;
   margin-top: 16px;
+}
+
+/* On wide screens the details stay in view beside a tall photo while it
+   scrolls, instead of leaving an empty column once they are read. */
+@media (min-width: 801px) {
+  .product-info {
+    position: sticky;
+    top: calc(var(--header-height) + 24px);
+  }
 }
 
 @media (max-width: 800px) {

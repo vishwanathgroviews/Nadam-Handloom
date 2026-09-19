@@ -8,10 +8,9 @@ import type { AppStackParamList } from '../navigation/RootNavigator';
 import { goToTab } from '../navigation/tabs';
 import { useAuth } from '../context/AuthContext';
 import { getDashboard, DashboardStats, SoldProductLine } from '../api/admin';
-import { listAdminOrders } from '../api/admin';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
-import StatCard from '../components/ui/StatCard';
+import ShipmentsCard from '../components/ShipmentsCard';
 import BrandMark from '../components/BrandMark';
 import QuickActionsCarousel, { QuickAction } from '../components/QuickActionsCarousel';
 import { colors, radius, shadow, spacing, typography } from '../utils/theme';
@@ -38,13 +37,11 @@ export default function AdminHomeScreen({ navigation }: Props) {
   const { accessToken } = useAuth();
   const tabBarHeight = useBottomTabBarHeight();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [toShipCount, setToShipCount] = useState<number | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       if (!accessToken) return;
       getDashboard(accessToken).then((res) => setStats(res.data)).catch(() => {});
-      listAdminOrders(accessToken, { status: ['processing'], page: 1 }).then((res) => setToShipCount(res.data.total)).catch(() => {});
     }, [accessToken])
   );
 
@@ -118,13 +115,7 @@ export default function AdminHomeScreen({ navigation }: Props) {
           )}
         </View>
 
-        {/* See StaffHomeScreen: single-piece listings have no stock level to
-            run low on, so the tile is gone for the owner too. */}
-        <View style={styles.statRow}>
-          <TouchableOpacity style={styles.statTouchable} onPress={() => goToTab(navigation, 'OrdersTab')} activeOpacity={0.8}>
-            <StatCard icon="cube-outline" iconColor={colors.success} iconBg={colors.successBg} label="to ship" value={toShipCount ?? '—'} />
-          </TouchableOpacity>
-        </View>
+        <ShipmentsCard accessToken={accessToken} navigation={navigation} />
 
         <Text style={[typography.caption, styles.sectionLabel]}>Quick actions</Text>
         <QuickActionsCarousel actions={quickActions} />
@@ -204,8 +195,6 @@ const styles = StyleSheet.create({
   heroSplitLabel: { ...typography.bodySm, fontSize: 11.5, color: 'rgba(255,255,255,0.6)' },
   heroSplitValue: { ...typography.bodySemibold, fontSize: 13.5, color: '#fff', marginTop: 3 },
   heroDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)' },
-  statRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg },
-  statTouchable: { flex: 1 },
   sectionLabel: { color: colors.textLabel, marginTop: spacing.xl + 2, marginBottom: spacing.md },
   soldCard: { paddingVertical: 0, paddingHorizontal: spacing.lg },
   // Caps the list at roughly 4 rows tall and scrolls internally past that —

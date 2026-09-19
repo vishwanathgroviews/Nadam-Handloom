@@ -212,6 +212,24 @@ export const updateCategory = (token: string, categoryId: string, data: Partial<
 export const listSubcategories = (token: string, categoryId: string) =>
   apiRequest<{ data: AdminSubcategory[] }>(`/admin/categories/${categoryId}/subcategories`, { token });
 
+/**
+ * One page of a category's subcategories, optionally filtered by name.
+ * listSubcategories above (the whole list at once) stays for the pickers
+ * that genuinely need every row, like the product form.
+ */
+export const listSubcategoriesPage = (
+  token: string,
+  categoryId: string,
+  params: { page: number; pageSize: number; q?: string }
+) => {
+  const qs = new URLSearchParams({ page: String(params.page), pageSize: String(params.pageSize) });
+  if (params.q) qs.set('q', params.q);
+  return apiRequest<{ data: { items: AdminSubcategory[]; total: number; page: number; pageSize: number } }>(
+    `/admin/categories/${categoryId}/subcategories?${qs.toString()}`,
+    { token }
+  );
+};
+
 export const createSubcategory = (token: string, categoryId: string, data: SubcategoryInput) =>
   apiRequest<{ data: AdminSubcategory }>(`/admin/categories/${categoryId}/subcategories`, {
     method: 'POST',

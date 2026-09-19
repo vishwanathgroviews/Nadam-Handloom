@@ -67,7 +67,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
         setImageUrl(subcategory.imageUrl);
         setHasOwnImage(subcategory.hasOwnImage);
       } catch (err: any) {
-        setError(err.message || 'Failed to load subcategory');
+        setError(err.message || 'Could not open this subcategory. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -91,7 +91,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
         setPendingImage({ uri: compressed.uri, name: 'subcategory.jpg', type: 'image/jpeg' });
         setImageUrl(compressed.uri);
       } catch (err: any) {
-        setError(err.message || 'Failed to prepare the image');
+        setError(err.message || 'Could not use this picture. Please try another one.');
       } finally {
         setUploadingImage(false);
       }
@@ -102,7 +102,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
   const handleChooseFromLibrary = useCallback(async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      setError('Photo library permission is required to add a subcategory image');
+      setError('Please allow access to your photos to add a picture');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -116,7 +116,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
   const handleTakePhoto = useCallback(async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      setError('Camera permission is required to take a subcategory photo');
+      setError('Please allow camera access to take a picture');
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -133,12 +133,12 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
     if (!accessToken) return;
     setError('');
 
-    if (name.trim().length < 2) return setError('Enter a subcategory name');
-    if (description.trim().length < 1) return setError('Enter a description');
+    if (name.trim().length < 2) return setError('Please enter a name');
+    if (description.trim().length < 1) return setError('Please enter a short description');
     const online = Number(onlinePrice);
     const store = Number(storePrice);
-    if (!online || online <= 0) return setError('Enter a valid online price');
-    if (!store || store <= 0) return setError('Enter a valid store price');
+    if (!online || online <= 0) return setError('Please enter the website price');
+    if (!store || store <= 0) return setError('Please enter the store price');
 
     setSaving(true);
     try {
@@ -173,7 +173,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
       }
       navigation.goBack();
     } catch (err: any) {
-      setError(err.message || 'Failed to save subcategory');
+      setError(err.message || 'Could not save. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -187,7 +187,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
     showDialog({
       title: `Delete "${name || 'this subcategory'}"?`,
       message:
-        'This permanently removes the subcategory, every product listed under it and their photos. It cannot be undone.\n\nTo take it off the website but keep everything, use "Visible on customer web" instead.',
+        'This deletes the subcategory, all its products and their pictures. You cannot undo this.\n\nTo only hide it from the website and keep everything, turn off "Show on website" instead.',
       tone: 'danger',
       dismissOnBackdrop: false,
       actions: [
@@ -212,7 +212,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
             } catch (err: any) {
               // The server refuses when real sales history is at stake; its
               // message names the reason and points at hiding instead.
-              setError(err.message || 'Could not delete this subcategory');
+              setError(err.message || 'Could not delete. Please try again.');
             } finally {
               setDeleting(false);
             }
@@ -239,7 +239,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
       {!canEdit && (
         <View style={styles.notice}>
           <Ionicons name="information-circle-outline" size={16} color={colors.warning} />
-          <Text style={styles.noticeText}>Only owners can edit subcategory pricing. You can view details below.</Text>
+          <Text style={styles.noticeText}>Only the owner can make changes here. You can still see the details.</Text>
         </View>
       )}
 
@@ -254,7 +254,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
         <Text style={styles.cardTitle}>Details</Text>
 
         <Text style={styles.fieldLabel}>Name</Text>
-        <Text style={styles.helper}>Matches the item name customers filter by, e.g. "Double Zari lines".</Text>
+        <Text style={styles.helper}>The name customers see on the website, e.g. "Double Zari lines".</Text>
         <TextInput
           style={styles.input}
           value={name}
@@ -265,20 +265,20 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
         />
 
         <Text style={styles.fieldLabel}>Description</Text>
-        <Text style={styles.helper}>Shown on every product in this subcategory.</Text>
+        <Text style={styles.helper}>Customers see this on every product in this subcategory.</Text>
         <TextInput
           style={[styles.input, styles.textarea]}
           value={description}
           onChangeText={setDescription}
           editable={canEdit}
           multiline
-          placeholder="Describe this subcategory of products"
+          placeholder="Write a few words about these products"
           placeholderTextColor={colors.textMuted}
         />
       </Card>
 
       <Card style={styles.card}>
-        <Text style={styles.cardTitle}>Pricing</Text>
+        <Text style={styles.cardTitle}>Prices</Text>
         <View style={styles.row}>
           <View style={styles.rowItem}>
             <Text style={styles.fieldLabel}>Website Price (₹)</Text>
@@ -292,7 +292,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
             />
           </View>
           <View style={styles.rowItem}>
-            <Text style={styles.fieldLabel}>Counter Price (₹)</Text>
+            <Text style={styles.fieldLabel}>Store Price (₹)</Text>
             <TextInput
               style={styles.input}
               value={storePrice}
@@ -304,14 +304,15 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
           </View>
         </View>
         <Text style={styles.helper}>
-          Website price is what the customer site shows and Razorpay charges — it is set here and appears nowhere
-          else in this app. Counter price is what this app sells at when you scan a tag; you can still change the
-          amount on an individual sale without touching either of these.
+          Website Price: the price customers pay on the website.{'\n'}
+          Store Price: the price used when you sell in the shop with this app. You can still change the price for one
+          sale without changing these.
         </Text>
 
-        <Text style={styles.fieldLabel}>Display order</Text>
+        <Text style={styles.fieldLabel}>Position</Text>
         <Text style={styles.helper}>
-          Lower numbers show first within this category. Leave blank to keep its current position.
+          1 shows first in this category, 2 shows second, and so on. If another subcategory already has this number,
+          the two swap places. Leave empty to keep it where it is.
         </Text>
         <TextInput
           style={styles.input}
@@ -319,21 +320,21 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
           onChangeText={setSortOrder}
           editable={canEdit}
           keyboardType="numeric"
-          placeholder="e.g. 0"
+          placeholder="e.g. 1"
           placeholderTextColor={colors.textMuted}
         />
       </Card>
 
       {isEdit && canEdit && (
         <Card style={styles.card}>
-          <Text style={styles.cardTitle}>Subcategory Photo</Text>
+          <Text style={styles.cardTitle}>Picture</Text>
           <View style={styles.imageSection}>
             {imageUrl ? (
               <Image source={{ uri: imageUrl }} style={styles.imagePreview} />
             ) : (
               <View style={[styles.imagePreview, styles.imagePlaceholder]}>
                 <Ionicons name="image-outline" size={26} color={colors.iconMuted} />
-                <Text style={styles.imagePlaceholderText}>No photo yet</Text>
+                <Text style={styles.imagePlaceholderText}>No picture yet</Text>
               </View>
             )}
             <View style={styles.imageSectionActions}>
@@ -343,10 +344,10 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
                   uploaded here. */}
               <Text style={styles.helper}>
                 {hasOwnImage
-                  ? 'Shown on the category page and product listings for this subcategory on the customer website.'
-                  : 'This subcategory has no photo yet, so its card shows a placeholder on the customer website. Add one below.'}
+                  ? 'Customers see this picture on the website.'
+                  : 'There is no picture yet, so the website shows an empty box. Please add one.'}
               </Text>
-              {pendingImage && <Text style={styles.pendingPhotoHint}>New photo ready — tap Save Changes to apply it.</Text>}
+              {pendingImage && <Text style={styles.pendingPhotoHint}>New picture added. Tap Save to keep it.</Text>}
               <TouchableOpacity style={styles.imageButton} onPress={handlePickImage} disabled={uploadingImage}>
                 <Text style={styles.imageButtonText}>{uploadingImage ? 'Preparing…' : imageUrl ? 'Change Photo' : 'Add Photo'}</Text>
               </TouchableOpacity>
@@ -358,8 +359,8 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
       {isEdit && (
         <Card style={[styles.card, styles.switchRow]}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.fieldLabelInline}>Visible on customer web</Text>
-            <Text style={styles.helper}>Turn off to hide just this subcategory — and its products — from the website. The category and its other subcategories stay visible.</Text>
+            <Text style={styles.fieldLabelInline}>Show on website</Text>
+            <Text style={styles.helper}>Turn off to hide this subcategory and its products from the website. Nothing is deleted.</Text>
           </View>
           <Switch
             value={isActive}
@@ -373,7 +374,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
 
       {canEdit && (
         <Button
-          title={isEdit ? 'Update Price & Details' : 'Create Subcategory'}
+          title={isEdit ? 'Save' : 'Add Subcategory'}
           onPress={handleSave}
           loading={saving}
           style={styles.saveButton}
@@ -389,7 +390,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
         >
           <Ionicons name="trash-outline" size={16} color={colors.error} />
           <Text style={styles.deleteButtonText}>
-            {deleting ? 'Deleting…' : 'Delete subcategory'}
+            {deleting ? 'Deleting…' : 'Delete Subcategory'}
           </Text>
         </TouchableOpacity>
       )}

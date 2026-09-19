@@ -68,20 +68,6 @@ export interface StockLedgerEntry {
   piece: { barcode: string } | null;
 }
 
-export interface LowStockProduct {
-  id: string;
-  name: string;
-  sku: string;
-  category: { name: string };
-  stock: number;
-  availableCount: number;
-}
-
-export interface LowStockResult {
-  items: LowStockProduct[];
-  threshold: number;
-}
-
 export const scanLookup = (token: string, code: string) =>
   apiRequest<{ data: ScanLookupResult }>('/admin/inventory/scan-lookup', { method: 'POST', token, body: { code } });
 
@@ -105,13 +91,6 @@ export const scanSell = (
     body: { items, ...options } as any,
   });
 
-export const receivePieces = (token: string, productId: string, barcodes: string[]) =>
-  apiRequest<{ data: { id: string; barcode: string }[] }>(`/admin/inventory/products/${productId}/pieces`, {
-    method: 'POST',
-    token,
-    body: { barcodes },
-  });
-
 export interface Piece {
   id: string;
   barcode: string;
@@ -133,6 +112,3 @@ export const getLedger = (token: string, params: { productId?: string; page?: nu
     { token }
   );
 };
-
-export const getLowStock = (token: string) =>
-  apiRequest<{ data: LowStockResult }>('/admin/inventory/low-stock', { token });

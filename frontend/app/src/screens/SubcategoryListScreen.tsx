@@ -1,11 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Image, TextInput, Keyboard } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, TextInput, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
-import { listSubcategories, AdminSubcategory } from '../api/catalog';
+import { listSubcategoriesPage, AdminSubcategory } from '../api/catalog';
+import { SkeletonList } from '../components/ui/Skeleton';
+import { usePagedList, useRefreshOnReturn } from '../hooks/usePagedList';
 import {
   addRecentSearch,
   clearRecentSearches,
@@ -23,10 +24,13 @@ type Props = NativeStackScreenProps<AppStackParamList, 'SubcategoryList'>;
 export default function SubcategoryListScreen({ route, navigation }: Props) {
   const { categoryId, categoryName } = route.params;
   const { accessToken, user } = useAuth();
-  const [subcategories, setSubcategories] = useState<AdminSubcategory[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  // The search sent to the server trails the typing by a moment, so a word
+  // typed quickly is one request rather than one per letter.
+  const [appliedQuery, setAppliedQuery] = useState('');
+  // Whether the category has any subcategories at all, from the last
+  // unfiltered load — the search box stays even when a search finds nothing.
+  const [categoryHasAny, setCategoryHasAny] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [searchFocused, setSearchFocused] = useState(false);
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -80,34 +84,34 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
   // once the person starts typing, the live results take over.
   const showRecents = searchFocused && !query.trim() && recentSearches.length > 0;
 
-  const load = useCallback(async () => {
-    if (!accessToken) return;
-    setLoading(true);
-    setError('');
-    try {
-      const res = await listSubcategories(accessToken, categoryId);
-      setSubcategories(res.data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load subcategories');
-    } finally {
-      setLoading(false);
-    }
-  }, [accessToken, categoryId]);
+  useEffect(() => {
+    const handle = setTimeout(() => setAppliedQuery(query.trim()), 300);
+    return () => clearTimeout(handle);
+  }, [query]);
 
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load])
+  // Ten subcategories at a time. The search runs on the server, so it finds
+  // a match anywhere in the category — not just among the rows loaded so far.
+  const fetchPage = useCallback(
+    async (page: number, pageSize: number) => {
+      if (!accessToken) return { items: [], total: 0 };
+      const res = await listSubcategoriesPage(accessToken, categoryId, {
+        page,
+        pageSize,
+        q: appliedQuery || undefined,
+      });
+      if (!appliedQuery) setCategoryHasAny(res.data.total > 0);
+      return { items: res.data.items, total: res.data.total };
+    },
+    [accessToken, categoryId, appliedQuery]
   );
 
-  // Filtered on the device rather than through the API: a category holds a
-  // handful of subcategories, they are already all loaded, and matching
-  // locally keeps the list responsive on every keystroke with no round trip.
-  const visible = useMemo(() => {
-    const term = query.trim().toLowerCase();
-    if (!term) return subcategories;
-    return subcategories.filter((item) => item.name.toLowerCase().includes(term));
-  }, [subcategories, query]);
+  const {
+    items: subcategories, loading, loadingMore, error, loadMore, refresh,
+  } = usePagedList<AdminSubcategory>(fetchPage, { maxPageSize: 50, enabled: Boolean(accessToken) });
+
+  // Back from editing one: refresh what's on screen (name, price, photo or
+  // position may have changed).
+  useRefreshOnReturn(refresh);
 
   return (
     <View style={styles.container}>
@@ -122,7 +126,7 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
         }
       />
 
-      {subcategories.length > 0 && (
+      {(categoryHasAny || appliedQuery) && (
         <Card style={styles.searchCard}>
           <Ionicons name="search" size={17} color={colors.textLabel} />
           <TextInput
@@ -179,16 +183,19 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
       )}
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
-      ) : error ? (
+        <SkeletonList count={6} variant="media" />
+      ) : error && subcategories.length === 0 ? (
         <Text style={styles.error}>{error}</Text>
+      ) : subcategories.length === 0 && appliedQuery ? (
+        <Text style={styles.empty}>No subcategory matches "{appliedQuery}".</Text>
       ) : subcategories.length === 0 ? (
         <Text style={styles.empty}>No subcategories yet — tap "+ New" to add one.</Text>
-      ) : visible.length === 0 ? (
-        <Text style={styles.empty}>No subcategory matches "{query.trim()}".</Text>
       ) : (
         <FlatList
-          data={visible}
+          data={subcategories}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={loadingMore ? <SkeletonList count={2} variant="media" /> : null}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
@@ -214,7 +221,7 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
                   <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
                   <View style={styles.metaLine}>
                     <Text style={styles.cardMeta} numberOfLines={1}>
-                      {item._count?.products ?? 0} product{item._count?.products === 1 ? '' : 's'}{item.isActive ? '' : ' ·'}
+                      {item._count?.products ?? 0} piece{item._count?.products === 1 ? '' : 's'}{item.isActive ? '' : ' ·'}
                     </Text>
                     {!item.isActive && <Badge label="Hidden" tone="error" />}
                     {/* Falls back to the parent category's photo until one is

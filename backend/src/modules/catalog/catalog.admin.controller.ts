@@ -31,10 +31,13 @@ export const updateCategory = async (req: AuthenticatedRequest, res: Response, n
   }
 };
 
-export const getSubcategories = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const getSubcategories = async (req: AuthenticatedRequest & QueryValidatedRequest, res: Response, next: NextFunction) => {
   try {
-    const subcategories = await catalogAdminService.listSubcategories(req.params.categoryId as string);
-    res.status(200).json({ success: true, data: subcategories });
+    const query = req.validatedQuery;
+    const data = query.page
+      ? await catalogAdminService.listSubcategoriesPage(req.params.categoryId as string, query)
+      : await catalogAdminService.listSubcategories(req.params.categoryId as string);
+    res.status(200).json({ success: true, data });
   } catch (error) {
     next(error);
   }

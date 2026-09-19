@@ -29,7 +29,8 @@ const IN_STOCK: Prisma.ProductWhereInput = {
 export const listCategories = async () => {
   return prisma.category.findMany({
     where: { isActive: true },
-    orderBy: { sortOrder: 'asc' },
+    // Same order the app shows: position, then name for any leftover ties.
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
   });
 };
 
@@ -50,7 +51,7 @@ export const listSubcategoriesForCategory = async (categorySlug: string) => {
 
   const subcategories = await prisma.subcategory.findMany({
     where: { categoryId: category.id, isActive: true },
-    orderBy: { sortOrder: 'asc' },
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
   });
   return {
     category: { id: category.id, name: category.name, slug: category.slug, description: category.description, imageUrl: category.imageUrl },

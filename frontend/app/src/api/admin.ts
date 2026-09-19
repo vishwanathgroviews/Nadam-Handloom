@@ -69,6 +69,7 @@ export interface AdminOrdersFilter {
   to?: string;
   search?: string;
   page?: number;
+  pageSize?: number;
 }
 
 export interface AdminOrderDetail extends AdminOrderSummary {
@@ -108,6 +109,7 @@ export const listAdminOrders = (token: string, filter: AdminOrdersFilter = {}) =
   if (filter.to) qs.set('to', filter.to);
   if (filter.search) qs.set('search', filter.search);
   if (filter.page) qs.set('page', String(filter.page));
+  if (filter.pageSize) qs.set('pageSize', String(filter.pageSize));
   const suffix = qs.toString() ? `?${qs.toString()}` : '';
   return apiRequest<{ data: { items: AdminOrderSummary[]; total: number; page: number; pageSize: number } }>(
     `/admin/orders${suffix}`,
@@ -179,12 +181,31 @@ export const provisionUser = (
   body: data,
 });
 
+export interface AuditPerson {
+  id: string;
+  name: string;
+  /** 'Owner' | 'Staff' | 'Customer' */
+  role: string | null;
+}
+
 export interface AuditLogEntry {
   id: string;
   eventType: string;
   ipAddress: string | null;
   metadata: Record<string, unknown> | null;
   createdAt: string;
+  /** Who performed the action; null when an older entry never recorded it. */
+  actor?: AuditPerson | null;
+  /** The person the action was done to (an invited teammate, a customer whose order shipped). */
+  subject?: AuditPerson | null;
+  /** Names looked up from the ids in `metadata`. */
+  context?: {
+    productName?: string;
+    productSku?: string;
+    subcategoryName?: string;
+    categoryName?: string;
+    orderNumber?: string;
+  };
   authAccount?: {
     email: string | null;
     phone: string | null;
@@ -193,31 +214,11 @@ export interface AuditLogEntry {
   } | null;
 }
 
-export const getAuditLog = (token: string, params: { eventType?: string; page?: number } = {}) => {
+export const getAuditLog = (token: string, params: { eventType?: string; page?: number; pageSize?: number } = {}) => {
   const qs = new URLSearchParams();
   if (params.eventType) qs.set('eventType', params.eventType);
   if (params.page) qs.set('page', String(params.page));
+  if (params.pageSize) qs.set('pageSize', String(params.pageSize));
   const suffix = qs.toString() ? `?${qs.toString()}` : '';
   return apiRequest<{ data: { items: AuditLogEntry[]; total: number } }>(`/admin/audit-log${suffix}`, { token });
 };
-
-export interface AdminSession {
-  id: string;
-  platform: string | null;
-  deviceName: string | null;
-  ipAddress: string | null;
-  createdAt: string;
-  expiresAt: string;
-  authAccountId: string;
-  authAccount: {
-    email: string | null;
-    phone: string | null;
-    adminProfile?: { firstName: string; lastName: string } | null;
-    roles: { role: { name: string } }[];
-  };
-}
-
-export const listSessions = (token: string) => apiRequest<{ data: AdminSession[] }>('/admin/sessions', { token });
-
-export const revokeSession = (token: string, sessionId: string) =>
-  apiRequest(`/admin/sessions/${sessionId}`, { method: 'DELETE', token });

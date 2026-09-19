@@ -50,7 +50,7 @@ export default function CategoryFormScreen({ route, navigation }: Props) {
         setImageUrl(category.imageUrl);
         setSubcategoryCount(category._count?.subcategories ?? 0);
       } catch (err: any) {
-        setError(err.message || 'Failed to load category');
+        setError(err.message || 'Could not open this category. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -74,7 +74,7 @@ export default function CategoryFormScreen({ route, navigation }: Props) {
         setPendingImage({ uri: compressed.uri, name: 'category.jpg', type: 'image/jpeg' });
         setImageUrl(compressed.uri);
       } catch (err: any) {
-        setError(err.message || 'Failed to prepare the image');
+        setError(err.message || 'Could not use this picture. Please try another one.');
       } finally {
         setUploadingImage(false);
       }
@@ -85,7 +85,7 @@ export default function CategoryFormScreen({ route, navigation }: Props) {
   const handleChooseFromLibrary = useCallback(async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      setError('Photo library permission is required to add a category image');
+      setError('Please allow access to your photos to add a picture');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -99,7 +99,7 @@ export default function CategoryFormScreen({ route, navigation }: Props) {
   const handleTakePhoto = useCallback(async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      setError('Camera permission is required to take a category photo');
+      setError('Please allow camera access to take a picture');
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -117,8 +117,8 @@ export default function CategoryFormScreen({ route, navigation }: Props) {
     if (!accessToken) return;
     setError('');
 
-    if (name.trim().length < 2) return setError('Enter a category name');
-    if (description.trim().length < 1) return setError('Enter a description');
+    if (name.trim().length < 2) return setError('Please enter a name');
+    if (description.trim().length < 1) return setError('Please enter a short description');
 
     setSaving(true);
     try {
@@ -149,7 +149,7 @@ export default function CategoryFormScreen({ route, navigation }: Props) {
       }
       navigation.goBack();
     } catch (err: any) {
-      setError(err.message || 'Failed to save category');
+      setError(err.message || 'Could not save. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -171,7 +171,7 @@ export default function CategoryFormScreen({ route, navigation }: Props) {
       {!canEdit && (
         <View style={styles.notice}>
           <Ionicons name="information-circle-outline" size={16} color={colors.warning} />
-          <Text style={styles.noticeText}>Only owners can edit categories. You can view details below.</Text>
+          <Text style={styles.noticeText}>Only the owner can make changes here. You can still see the details.</Text>
         </View>
       )}
 
@@ -196,47 +196,47 @@ export default function CategoryFormScreen({ route, navigation }: Props) {
         />
 
         <Text style={styles.fieldLabel}>Description</Text>
-        <Text style={styles.helper}>A short blurb shown on the category page — pricing and per-item descriptions live on its subcategories.</Text>
+        <Text style={styles.helper}>A few words about this category. Customers see this on the website.</Text>
         <TextInput
           style={[styles.input, styles.textarea]}
           value={description}
           onChangeText={setDescription}
           editable={canEdit}
           multiline
-          placeholder="Describe this category"
+          placeholder="Write a few words about this category"
           placeholderTextColor={colors.textMuted}
         />
 
-        <Text style={styles.fieldLabel}>Display order</Text>
-        <Text style={styles.helper}>Lower numbers show first on the homepage and storefront nav. Leave blank to keep its current position.</Text>
+        <Text style={styles.fieldLabel}>Position</Text>
+        <Text style={styles.helper}>1 shows first on the website, 2 shows second, and so on. If another category already has this number, the two swap places. Leave empty to keep it where it is.</Text>
         <TextInput
           style={styles.input}
           value={sortOrder}
           onChangeText={setSortOrder}
           editable={canEdit}
           keyboardType="numeric"
-          placeholder="e.g. 0"
+          placeholder="e.g. 1"
           placeholderTextColor={colors.textMuted}
         />
       </Card>
 
       {isEdit && canEdit && (
         <Card style={styles.card}>
-          <Text style={styles.cardTitle}>Category Photo</Text>
+          <Text style={styles.cardTitle}>Picture</Text>
           <View style={styles.imageSection}>
             {imageUrl ? (
               <Image source={{ uri: imageUrl }} style={styles.imagePreview} />
             ) : (
               <View style={[styles.imagePreview, styles.imagePlaceholder]}>
                 <Ionicons name="image-outline" size={26} color={colors.iconMuted} />
-                <Text style={styles.imagePlaceholderText}>No photo yet</Text>
+                <Text style={styles.imagePlaceholderText}>No picture yet</Text>
               </View>
             )}
             <View style={styles.imageSectionActions}>
-              <Text style={styles.helper}>Shown on the "Shop by Category" grid and category page banner on the customer website.</Text>
-              {pendingImage && <Text style={styles.pendingPhotoHint}>New photo ready — tap Save Changes to apply it.</Text>}
+              <Text style={styles.helper}>Customers see this picture on the website.</Text>
+              {pendingImage && <Text style={styles.pendingPhotoHint}>New picture added. Tap Save to keep it.</Text>}
               <TouchableOpacity style={styles.imageButton} onPress={handlePickImage} disabled={uploadingImage}>
-                <Text style={styles.imageButtonText}>{uploadingImage ? 'Preparing…' : imageUrl ? 'Replace Photo' : 'Add Photo'}</Text>
+                <Text style={styles.imageButtonText}>{uploadingImage ? 'Preparing…' : imageUrl ? 'Change Picture' : 'Add Photo'}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -252,7 +252,7 @@ export default function CategoryFormScreen({ route, navigation }: Props) {
             <View style={{ flex: 1 }}>
               <Text style={styles.linkTitle}>Subcategories</Text>
               <Text style={styles.helper}>
-                Price, description, and Hide/Unhide live here — {subcategoryCount} subcategor{subcategoryCount === 1 ? 'y' : 'ies'} so far.
+                Set prices, descriptions and what shows on the website — {subcategoryCount} subcategor{subcategoryCount === 1 ? 'y' : 'ies'} now.
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.iconMuted} />
@@ -272,7 +272,7 @@ export default function CategoryFormScreen({ route, navigation }: Props) {
 
       {canEdit && (
         <Button
-          title={isEdit ? 'Save Changes' : 'Create Category'}
+          title={isEdit ? 'Save' : 'Add Category'}
           onPress={handleSave}
           loading={saving}
           style={styles.saveButton}

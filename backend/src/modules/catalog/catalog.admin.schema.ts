@@ -36,6 +36,16 @@ export const updateSubcategorySchema = createSubcategorySchema.partial().extend(
   isActive: z.boolean().optional(),
 });
 
+// Paging for the subcategory list is opt-in: only a request that sends
+// `page` gets the paged shape back. Everything that already calls this
+// endpoint (the product form's picker, and every app build already on staff
+// phones) keeps receiving the plain array it expects.
+export const listSubcategoriesQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(50).default(10),
+  q: z.string().trim().max(100).optional(),
+});
+
 export const listAdminProductsQuerySchema = z.object({
   category: z.string().uuid().optional(),
   q: z.string().trim().optional(),

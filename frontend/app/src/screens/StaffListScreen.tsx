@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { listUsers, revokeUserAccess, AdminUser } from '../api/admin';
 import { colors, radius, spacing, typography } from '../utils/theme';
 import ScreenHeader from '../components/ui/ScreenHeader';
+import { SkeletonList } from '../components/ui/Skeleton';
 import Card from '../components/ui/Card';
 import { Badge } from '../components/ui/Chip';
 import { useDialog } from '../components/DialogProvider';
@@ -102,7 +103,7 @@ export default function StaffListScreen({ navigation }: Props) {
       />
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
+        <SkeletonList count={5} variant="text" />
       ) : error ? (
         <Text style={styles.error}>{error}</Text>
       ) : (

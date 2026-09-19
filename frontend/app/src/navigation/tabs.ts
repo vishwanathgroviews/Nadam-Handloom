@@ -19,7 +19,8 @@ export const goToTab = (
   // and from screens typed against the tab navigator, and the action bubbles
   // to whichever ancestor owns the 'Home' route in either case.
   navigation: { navigate: (...args: any[]) => void },
-  tab: RootTabName
+  tab: RootTabName,
+  params?: Record<string, unknown>
 ) => {
-  navigation.navigate('Home', { screen: tab });
+  navigation.navigate('Home', { screen: tab, ...(params ? { params } : {}) });
 };

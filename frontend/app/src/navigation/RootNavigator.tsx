@@ -24,19 +24,15 @@ import SubcategoryCatalogScreen from '../screens/SubcategoryCatalogScreen';
 import ProductListScreen from '../screens/ProductListScreen';
 import ProductFormScreen from '../screens/ProductFormScreen';
 import ScannerScreen from '../screens/ScannerScreen';
-import InventoryScreen from '../screens/InventoryScreen';
-import ReceiveStockScreen from '../screens/ReceiveStockScreen';
 import StaffListScreen from '../screens/StaffListScreen';
 import StaffInviteScreen from '../screens/StaffInviteScreen';
 import AuditLogScreen from '../screens/AuditLogScreen';
-import SessionsScreen from '../screens/SessionsScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import InvoicesScreen from '../screens/InvoicesScreen';
 import InvoiceDetailScreen from '../screens/InvoiceDetailScreen';
 import TabBar from '../components/TabBar';
 import { colors } from '../utils/theme';
-import type { TrackingMode } from '../api/catalog';
 
 export type AuthStackParamList = {
   MpinLogin: undefined;
@@ -59,12 +55,9 @@ export type AppStackParamList = {
   SubcategoryForm: { categoryId: string; subcategoryId?: string };
   SubcategoryCatalog: { subcategoryId: string; subcategoryName?: string };
   ProductForm: { productId?: string; initialBarcode?: string };
-  Inventory: undefined;
-  ReceiveStock: { productId: string; productName?: string; trackingMode?: TrackingMode };
   StaffList: undefined;
   StaffInvite: undefined;
   AuditLog: undefined;
-  Sessions: undefined;
   Analytics: undefined;
   Invoices: undefined;
   InvoiceDetail: { invoiceId: string };
@@ -75,7 +68,8 @@ const AppStack = createNativeStackNavigator<AppStackParamList>();
 
 export type RootTabParamList = {
   HomeTab: undefined;
-  OrdersTab: undefined;
+  // Which list to open on — the Home Shipments card links to each.
+  OrdersTab: { tab?: 'to_ship' | 'shipped' } | undefined;
   ScannerTab: undefined;
   ProductsTab: undefined;
   ProfileTab: undefined;
@@ -147,12 +141,9 @@ export default function RootNavigator() {
           <AppStack.Screen name="SubcategoryForm" component={SubcategoryFormScreen} />
           <AppStack.Screen name="SubcategoryCatalog" component={SubcategoryCatalogScreen} />
           <AppStack.Screen name="ProductForm" component={ProductFormScreen} />
-          <AppStack.Screen name="Inventory" component={InventoryScreen} />
-          <AppStack.Screen name="ReceiveStock" component={ReceiveStockScreen} options={{ presentation: 'modal' }} />
           <AppStack.Screen name="StaffList" component={StaffListScreen} />
           <AppStack.Screen name="StaffInvite" component={StaffInviteScreen} />
           <AppStack.Screen name="AuditLog" component={AuditLogScreen} />
-          <AppStack.Screen name="Sessions" component={SessionsScreen} />
           <AppStack.Screen name="Analytics" component={AnalyticsScreen} />
           <AppStack.Screen name="Invoices" component={InvoicesScreen} />
           <AppStack.Screen name="InvoiceDetail" component={InvoiceDetailScreen} />

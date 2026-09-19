@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma';
+import { planReposition, nextPosition } from './displayOrder';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { AppError, BadRequestError, ConflictError, NotFoundError } from '../../utils/errors';
 import { PAID_STATUSES } from '../../utils/constants';
@@ -43,24 +44,54 @@ const uniqueSlug = async (model: 'category' | 'product', base: string, excludeId
 // per-item description, and hide/unhide all live on Subcategory instead.
 // ─────────────────────────────────────────────────────────────────
 
+// Display order: moving a category or subcategory to a position another
+// sibling holds swaps the two (see displayOrder.ts). Runs in the caller's
+// transaction so the pair is never visible half-swapped.
+type Tx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
+
+const repositionCategory = async (tx: Tx, categoryId: string, requested: number) => {
+  const siblings = await tx.category.findMany({ select: { id: true, sortOrder: true, name: true } });
+  for (const update of planReposition(siblings, categoryId, requested)) {
+    await tx.category.update({ where: { id: update.id }, data: { sortOrder: update.sortOrder } });
+  }
+};
+
+const repositionSubcategory = async (tx: Tx, parentCategoryId: string, subcategoryId: string, requested: number) => {
+  const siblings = await tx.subcategory.findMany({
+    where: { categoryId: parentCategoryId },
+    select: { id: true, sortOrder: true, name: true },
+  });
+  for (const update of planReposition(siblings, subcategoryId, requested)) {
+    await tx.subcategory.update({ where: { id: update.id }, data: { sortOrder: update.sortOrder } });
+  }
+};
+
 export const listAllCategories = async () => {
   return prisma.category.findMany({
-    orderBy: { sortOrder: 'asc' },
+    // Name breaks ties so the order is always the same order, including for
+    // older rows that still share a position.
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     include: { _count: { select: { products: true, subcategories: true } } },
   });
 };
 
 export const createCategory = async (data: CreateCategoryInput, req: AuthenticatedRequest) => {
   const slug = await uniqueSlug('category', data.name);
-  const sortOrder = data.sortOrder ?? (await prisma.category.count());
 
-  const category = await prisma.category.create({
-    data: {
-      name: data.name,
-      slug,
-      description: data.description,
-      sortOrder,
-    },
+  // Added at the end, then moved into the requested position (swapping with
+  // whoever holds it) — so a new row can never land on a taken position.
+  const category = await prisma.$transaction(async (tx) => {
+    const siblings = await tx.category.findMany({ select: { id: true, sortOrder: true, name: true } });
+    const created = await tx.category.create({
+      data: {
+        name: data.name,
+        slug,
+        description: data.description,
+        sortOrder: nextPosition(siblings),
+      },
+    });
+    if (data.sortOrder !== undefined) await repositionCategory(tx, created.id, data.sortOrder);
+    return tx.category.findUniqueOrThrow({ where: { id: created.id } });
   });
 
   await logAuthEvent({
@@ -82,15 +113,18 @@ export const updateCategory = async (categoryId: string, data: UpdateCategoryInp
     ? await uniqueSlug('category', data.name, categoryId)
     : undefined;
 
-  const category = await prisma.category.update({
-    where: { id: categoryId },
-    data: {
-      ...(data.name !== undefined ? { name: data.name } : {}),
-      ...(slug !== undefined ? { slug } : {}),
-      ...(data.description !== undefined ? { description: data.description } : {}),
-      ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
-      ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
-    },
+  const category = await prisma.$transaction(async (tx) => {
+    await tx.category.update({
+      where: { id: categoryId },
+      data: {
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(slug !== undefined ? { slug } : {}),
+        ...(data.description !== undefined ? { description: data.description } : {}),
+        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+      },
+    });
+    if (data.sortOrder !== undefined) await repositionCategory(tx, categoryId, data.sortOrder);
+    return tx.category.findUniqueOrThrow({ where: { id: categoryId } });
   });
 
   await logAuthEvent({
@@ -115,7 +149,7 @@ export const listSubcategories = async (categoryId: string) => {
   if (!category) throw new NotFoundError('Category not found');
   const subcategories = await prisma.subcategory.findMany({
     where: { categoryId },
-    orderBy: { sortOrder: 'asc' },
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     include: { _count: { select: { products: true } } },
   });
 
@@ -130,6 +164,43 @@ export const listSubcategories = async (categoryId: string) => {
   return subcategories.map((s) => ({ ...s, hasOwnImage: Boolean(s.imageUrl) }));
 };
 
+/**
+ * One page of a category's subcategories, optionally narrowed by a name
+ * search — so the list loads ten at a time instead of all at once, and the
+ * search covers every subcategory rather than only the ones already loaded.
+ */
+export const listSubcategoriesPage = async (
+  categoryId: string,
+  query: { page: number; pageSize: number; q?: string }
+) => {
+  const category = await prisma.category.findUnique({ where: { id: categoryId } });
+  if (!category) throw new NotFoundError('Category not found');
+
+  const where = {
+    categoryId,
+    ...(query.q ? { name: { contains: query.q, mode: 'insensitive' as const } } : {}),
+  };
+  const [rows, total] = await Promise.all([
+    prisma.subcategory.findMany({
+      where,
+      // id last so a page boundary can never fall between two rows the
+      // database considers equal (see listAllProducts).
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }, { id: 'asc' }],
+      skip: (query.page - 1) * query.pageSize,
+      take: query.pageSize,
+      include: { _count: { select: { products: true } } },
+    }),
+    prisma.subcategory.count({ where }),
+  ]);
+
+  return {
+    items: rows.map((s) => ({ ...s, hasOwnImage: Boolean(s.imageUrl) })),
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  };
+};
+
 export const createSubcategory = async (
   categoryId: string,
   data: CreateSubcategoryInput,
@@ -138,18 +209,24 @@ export const createSubcategory = async (
   const category = await prisma.category.findUnique({ where: { id: categoryId } });
   if (!category) throw new NotFoundError('Category not found');
 
-  const sortOrder = data.sortOrder ?? (await prisma.subcategory.count({ where: { categoryId } }));
-
-  const subcategory = await prisma.subcategory.create({
-    data: {
-      categoryId,
-      name: data.name,
-      description: data.description,
-      onlinePrice: data.onlinePrice,
-      storePrice: data.storePrice,
-      mrp: data.mrp ?? null,
-      sortOrder,
-    },
+  const subcategory = await prisma.$transaction(async (tx) => {
+    const siblings = await tx.subcategory.findMany({
+      where: { categoryId },
+      select: { id: true, sortOrder: true, name: true },
+    });
+    const created = await tx.subcategory.create({
+      data: {
+        categoryId,
+        name: data.name,
+        description: data.description,
+        onlinePrice: data.onlinePrice,
+        storePrice: data.storePrice,
+        mrp: data.mrp ?? null,
+        sortOrder: nextPosition(siblings),
+      },
+    });
+    if (data.sortOrder !== undefined) await repositionSubcategory(tx, categoryId, created.id, data.sortOrder);
+    return tx.subcategory.findUniqueOrThrow({ where: { id: created.id } });
   });
 
   await logAuthEvent({
@@ -177,17 +254,22 @@ export const updateSubcategory = async (
     (data.mrp !== undefined && Number(data.mrp) !== Number(existing.mrp ?? 0)) ||
     (data.description !== undefined && data.description !== existing.description);
 
-  const subcategory = await prisma.subcategory.update({
-    where: { id: subcategoryId },
-    data: {
-      ...(data.name !== undefined ? { name: data.name } : {}),
-      ...(data.description !== undefined ? { description: data.description } : {}),
-      ...(data.onlinePrice !== undefined ? { onlinePrice: data.onlinePrice } : {}),
-      ...(data.storePrice !== undefined ? { storePrice: data.storePrice } : {}),
-      ...(data.mrp !== undefined ? { mrp: data.mrp } : {}),
-      ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
-      ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
-    },
+  const subcategory = await prisma.$transaction(async (tx) => {
+    await tx.subcategory.update({
+      where: { id: subcategoryId },
+      data: {
+        ...(data.name !== undefined ? { name: data.name } : {}),
+        ...(data.description !== undefined ? { description: data.description } : {}),
+        ...(data.onlinePrice !== undefined ? { onlinePrice: data.onlinePrice } : {}),
+        ...(data.storePrice !== undefined ? { storePrice: data.storePrice } : {}),
+        ...(data.mrp !== undefined ? { mrp: data.mrp } : {}),
+        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+      },
+    });
+    if (data.sortOrder !== undefined) {
+      await repositionSubcategory(tx, existing.categoryId, subcategoryId, data.sortOrder);
+    }
+    return tx.subcategory.findUniqueOrThrow({ where: { id: subcategoryId } });
   });
 
   if (priceOrDescriptionChanged) {

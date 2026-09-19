@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, RefreshControl } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -10,6 +10,8 @@ import { listAdminOrders, AdminOrderSummary } from '../api/admin';
 import { colors, radius, spacing, typography } from '../utils/theme';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
+import { SkeletonList } from '../components/ui/Skeleton';
+import { usePagedList, useRefreshOnReturn } from '../hooks/usePagedList';
 import { Badge, FilterChip, SegmentedControl } from '../components/ui/Chip';
 
 type Props = CompositeScreenProps<
@@ -52,55 +54,49 @@ const itemsSummary = (items: { nameSnapshot: string }[]): string => {
   return `${items[0]!.nameSnapshot} + ${items.length - 1} more`;
 };
 
-export default function AdminOrdersScreen({ navigation }: Props) {
+export default function AdminOrdersScreen({ navigation, route }: Props) {
   const { accessToken } = useAuth();
   // Only ever rendered as the "Orders" bottom tab now (Home's "to ship"
   // tile selects the tab rather than pushing a second copy), so the real
   // bar height is always available here.
   const bottomPadding = useBottomTabBarHeight() + spacing.xl;
-  const [tab, setTab] = useState<'to_ship' | 'shipped'>('to_ship');
-  const [dateKey, setDateKey] = useState('all');
+  const [tab, setTab] = useState<'to_ship' | 'shipped'>(route.params?.tab ?? 'to_ship');
 
-  const [orders, setOrders] = useState<AdminOrderSummary[]>([]);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState('');
+  // Opened from the Home Shipments card with a list in mind: switch to it.
+  // Cleared afterwards so tapping the Orders tab later doesn't force it again.
+  useEffect(() => {
+    const requested = route.params?.tab;
+    if (!requested) return;
+    setTab(requested);
+    navigation.setParams({ tab: undefined });
+  }, [route.params?.tab, navigation]);
+  const [dateKey, setDateKey] = useState('all');
 
   const activeTab = STATUS_TABS.find((t) => t.key === tab)!;
 
-  const load = useCallback(
-    async (targetPage = 1) => {
-      if (!accessToken) return;
-      if (targetPage === 1) setLoading(true);
-      else setLoadingMore(true);
-      setError('');
-      try {
-        const dateFilter = DATE_FILTERS.find((f) => f.key === dateKey);
-        const res = await listAdminOrders(accessToken, {
-          status: activeTab.status,
-          ...(dateFilter?.days !== undefined ? { from: startOfDaysAgo(dateFilter.days) } : {}),
-          page: targetPage,
-        });
-        setOrders((prev) => (targetPage === 1 ? res.data.items : [...prev, ...res.data.items]));
-        setTotal(res.data.total);
-        setPage(targetPage);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load orders');
-      } finally {
-        setLoading(false);
-        setLoadingMore(false);
-      }
+  // Ten orders at a time; a new tab or date filter starts the list over.
+  const fetchPage = useCallback(
+    async (page: number, pageSize: number) => {
+      if (!accessToken) return { items: [], total: 0 };
+      const dateFilter = DATE_FILTERS.find((f) => f.key === dateKey);
+      const res = await listAdminOrders(accessToken, {
+        status: activeTab.status,
+        ...(dateFilter?.days !== undefined ? { from: startOfDaysAgo(dateFilter.days) } : {}),
+        page,
+        pageSize,
+      });
+      return { items: res.data.items, total: res.data.total };
     },
     [accessToken, activeTab.status, dateKey]
   );
 
-  useEffect(() => {
-    load(1);
-  }, [load]);
+  const {
+    items: orders, total, loading, loadingMore, refreshing, error, loadMore, refresh,
+  } = usePagedList<AdminOrderSummary>(fetchPage, { maxPageSize: 50, enabled: Boolean(accessToken) });
 
-  const hasMore = orders.length < total;
+  // Back from an order (after adding its AWB, say): refresh what's on screen.
+  useRefreshOnReturn(refresh);
+
   const subtitle = `${total} ${tab === 'to_ship' ? 'waiting to ship' : 'shipped'}`;
 
   return (
@@ -119,10 +115,10 @@ export default function AdminOrdersScreen({ navigation }: Props) {
         ))}
       </View>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error && !loadingMore ? <Text style={styles.error}>{error}</Text> : null}
 
-      {loading && orders.length === 0 ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
+      {loading ? (
+        <SkeletonList count={6} variant="compact" />
       ) : orders.length === 0 ? (
         <Text style={styles.empty}>No orders in this view.</Text>
       ) : (
@@ -130,13 +126,11 @@ export default function AdminOrdersScreen({ navigation }: Props) {
           data={orders}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={loading} onRefresh={() => load(1)} tintColor={colors.primary} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refresh({ pull: true })} tintColor={colors.primary} />}
           contentContainerStyle={{ paddingBottom: bottomPadding }}
-          onEndReachedThreshold={0.4}
-          onEndReached={() => {
-            if (hasMore && !loadingMore) load(page + 1);
-          }}
-          ListFooterComponent={loadingMore ? <ActivityIndicator style={{ marginTop: 12 }} color={colors.primary} /> : null}
+          onEndReachedThreshold={0.5}
+          onEndReached={loadMore}
+          ListFooterComponent={loadingMore ? <SkeletonList count={2} variant="compact" /> : null}
           renderItem={({ item }) => (
             <TouchableOpacity
               activeOpacity={0.8}

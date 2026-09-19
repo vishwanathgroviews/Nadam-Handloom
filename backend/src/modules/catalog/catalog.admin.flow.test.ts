@@ -598,3 +598,128 @@ describe('admin product list paging', () => {
     expect(res.body.data.items.map((p: any) => p.slug)).toEqual(['paged-4', 'paged-3', 'paged-2']);
   });
 });
+
+// The reported fault: changing Display order in the app did not reliably
+// change the order on the website. Checked end to end — set in the admin API,
+// read back through the customer website's own endpoint.
+describe('display order reaches the customer website', () => {
+  const seedSubs = (names: string[], sameOrder: boolean) => {
+    const base = fake.db.subcategory[0];
+    fake.db.subcategory.length = 0;
+    return names.map((name, i) => {
+      const row = {
+        ...base,
+        id: `11111111-0000-4000-8000-${String(i).padStart(12, '0')}`,
+        name,
+        isActive: true,
+        // Older data: every subcategory created with the same position.
+        sortOrder: sameOrder ? 0 : i + 1,
+      };
+      fake.db.subcategory.push(row);
+      return row;
+    });
+  };
+
+  const websiteOrder = async () => {
+    const res = await request(app).get(`/api/v1/catalog/categories/${fixture.category.slug}/subcategories`);
+    expect(res.status).toBe(200);
+    return res.body.data.subcategories.map((s: any) => s.name);
+  };
+
+  const move = async (token: string, id: string, position: number) => {
+    const res = await request(app)
+      .patch(`/api/v1/admin/subcategories/${id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ sortOrder: position });
+    expect(res.status).toBe(200);
+  };
+
+  it('swaps two subcategories when one is moved into the other\'s position', async () => {
+    const token = await createToken('ADMIN', '9000000092');
+    const [, , silk] = seedSubs(['Cotton', 'Pattu', 'Silk', 'Linen'], false);
+
+    await move(token, silk!.id, 1);
+
+    expect(await websiteOrder()).toEqual(['Silk', 'Pattu', 'Cotton', 'Linen']);
+  });
+
+  it('works on older data where every subcategory shared one position', async () => {
+    const token = await createToken('ADMIN', '9000000093');
+    const subs = seedSubs(['Silk', 'Cotton', 'Pattu'], true);
+    const pattu = subs.find((s) => s.name === 'Pattu')!;
+
+    // Before: ties fall back to alphabetical, so the order is at least stable.
+    expect(await websiteOrder()).toEqual(['Cotton', 'Pattu', 'Silk']);
+
+    await move(token, pattu.id, 1);
+
+    expect(await websiteOrder()).toEqual(['Pattu', 'Cotton', 'Silk']);
+    // And the positions are now distinct, so the next move is exact too.
+    const positions = fake.db.subcategory.map((s: any) => s.sortOrder);
+    expect(new Set(positions).size).toBe(positions.length);
+  });
+
+  it('keeps swapping correctly across repeated moves', async () => {
+    const token = await createToken('ADMIN', '9000000094');
+    const [a, b, c] = seedSubs(['A', 'B', 'C'], false);
+
+    await move(token, c!.id, 1); // C B A
+    await move(token, a!.id, 2); // C A B
+    await move(token, b!.id, 1); // B A C
+
+    expect(await websiteOrder()).toEqual(['B', 'A', 'C']);
+  });
+});
+
+describe('subcategory list paging and search', () => {
+  const seedN = (n: number) => {
+    const base = fake.db.subcategory[0];
+    fake.db.subcategory.length = 0;
+    for (let i = 0; i < n; i++) {
+      fake.db.subcategory.push({
+        ...base,
+        id: `22222222-0000-4000-8000-${String(i).padStart(12, '0')}`,
+        name: i % 3 === 0 ? `Pattu ${i}` : `Cotton ${i}`,
+        sortOrder: i + 1,
+      });
+    }
+  };
+  const url = `/api/v1/admin/categories/${'CAT'}/subcategories`;
+
+  it('still returns the plain list when no page is asked for (older app builds, pickers)', async () => {
+    const token = await createToken('STAFF', '9000000095');
+    seedN(23);
+    const res = await request(app)
+      .get(url.replace('CAT', fixture.category.id))
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(res.body.data).toHaveLength(23);
+  });
+
+  it('pages ten at a time and returns every subcategory exactly once', async () => {
+    const token = await createToken('STAFF', '9000000096');
+    seedN(23);
+    const seen: string[] = [];
+    for (let page = 1; page <= 3; page++) {
+      const res = await request(app)
+        .get(`${url.replace('CAT', fixture.category.id)}?page=${page}&pageSize=10`)
+        .set('Authorization', `Bearer ${token}`);
+      expect(res.body.data.total).toBe(23);
+      seen.push(...res.body.data.items.map((s: any) => s.id));
+    }
+    expect(seen).toHaveLength(23);
+    expect(new Set(seen).size).toBe(23);
+  });
+
+  it('searches across all subcategories, not just the loaded page', async () => {
+    const token = await createToken('STAFF', '9000000097');
+    seedN(23);
+    const res = await request(app)
+      .get(`${url.replace('CAT', fixture.category.id)}?page=1&pageSize=10&q=pattu`)
+      .set('Authorization', `Bearer ${token}`);
+    // indexes 0,3,...,21 => 8 "Pattu" rows spread over what would be 3 pages
+    expect(res.body.data.total).toBe(8);
+    expect(res.body.data.items.every((s: any) => s.name.startsWith('Pattu'))).toBe(true);
+  });
+});

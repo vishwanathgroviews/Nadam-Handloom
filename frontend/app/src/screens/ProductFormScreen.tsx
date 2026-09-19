@@ -166,7 +166,7 @@ export default function ProductFormScreen({ route, navigation }: Props) {
   }, [reloadPieces]);
 
   // Re-checks availability/pieces whenever this screen regains focus — e.g.
-  // navigating back from ReceiveStock after scanning in new units.
+  // coming back to this screen after the product changed elsewhere.
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       if (!accessToken || !productId) return;
@@ -553,14 +553,9 @@ export default function ProductFormScreen({ route, navigation }: Props) {
       <Text style={styles.sectionLabel}>Barcodes{!isEdit && <Text style={styles.required}> *</Text>}</Text>
       {isEdit && productId ? (
         <Card style={styles.card}>
-          <Text style={styles.helper}>{availableCount} in stock right now. Every physical unit is barcoded before it's received.</Text>
-          <TouchableOpacity
-            style={styles.receiveChip}
-            onPress={() => navigation.navigate('ReceiveStock', { productId, productName: productName ?? sku ?? undefined, trackingMode })}
-          >
-            <Ionicons name="barcode-outline" size={15} color={colors.text} />
-            <Text style={styles.receiveChipText}>Scan Barcode</Text>
-          </TouchableOpacity>
+          {/* Read-only: each product is one piece with its barcode attached
+              when it is created, and stock is never topped up afterwards. */}
+          <Text style={styles.helper}>{availableCount > 0 ? 'In stock' : 'Sold'}</Text>
 
           {trackingMode === 'serialized' && (
             <View style={{ marginTop: spacing.md }}>
@@ -700,18 +695,6 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.divider,
   },
   pieceCode: { ...typography.bodySmSemibold, color: colors.text },
-  receiveChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs + 2,
-    alignSelf: 'flex-start',
-    marginTop: spacing.sm,
-    borderRadius: radius.pill,
-    backgroundColor: colors.inputBg,
-    paddingVertical: spacing.sm + 1,
-    paddingHorizontal: spacing.md + 2,
-  },
-  receiveChipText: { ...typography.bodySmSemibold, color: colors.text },
   manualBarcodeRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   input: {
     backgroundColor: colors.inputBg,

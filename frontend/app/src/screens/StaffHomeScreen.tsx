@@ -7,9 +7,9 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { goToTab } from '../navigation/tabs';
 import { useAuth } from '../context/AuthContext';
-import { getDashboard, DashboardStats, listAdminOrders } from '../api/admin';
+import { getDashboard, DashboardStats } from '../api/admin';
 import ScreenHeader from '../components/ui/ScreenHeader';
-import StatCard from '../components/ui/StatCard';
+import ShipmentsCard from '../components/ShipmentsCard';
 import BrandMark from '../components/BrandMark';
 import QuickActionsCarousel, { QuickAction } from '../components/QuickActionsCarousel';
 import { colors, radius, shadow, spacing, typography } from '../utils/theme';
@@ -20,13 +20,11 @@ export default function StaffHomeScreen({ navigation }: Props) {
   const { accessToken } = useAuth();
   const tabBarHeight = useBottomTabBarHeight();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [toShipCount, setToShipCount] = useState<number | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       if (!accessToken) return;
       getDashboard(accessToken).then((res) => setStats(res.data)).catch(() => {});
-      listAdminOrders(accessToken, { status: ['processing'], page: 1 }).then((res) => setToShipCount(res.data.total)).catch(() => {});
     }, [accessToken])
   );
 
@@ -62,14 +60,7 @@ export default function StaffHomeScreen({ navigation }: Props) {
           <Text style={styles.welcomeSub}>Scan to sell, check stock, or ship what's waiting.</Text>
         </View>
 
-        {/* No "running low" count: every listing here is a single piece, so
-            stock is either on the shelf or sold — there is no level to run low
-            on, and the tile only ever restated the product count. */}
-        <View style={styles.statRow}>
-          <TouchableOpacity style={styles.statTouchable} onPress={() => goToTab(navigation, 'OrdersTab')} activeOpacity={0.8}>
-            <StatCard icon="cube-outline" iconColor={colors.success} iconBg={colors.successBg} label="to ship" value={toShipCount ?? '—'} />
-          </TouchableOpacity>
-        </View>
+        <ShipmentsCard accessToken={accessToken} navigation={navigation} />
 
         <Text style={[typography.caption, styles.sectionLabel]}>Quick actions</Text>
         <QuickActionsCarousel actions={quickActions} />
@@ -106,8 +97,6 @@ const styles = StyleSheet.create({
   },
   welcomeTitle: { ...typography.h2, color: '#fff' },
   welcomeSub: { ...typography.bodySm, color: 'rgba(255,255,255,0.75)', marginTop: 4 },
-  statRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.lg },
-  statTouchable: { flex: 1 },
   sectionLabel: { color: colors.textLabel, marginTop: spacing.xl + 2, marginBottom: spacing.md },
   manageGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   // flexGrow: 0, matching AdminHomeScreen's identical grid — an odd-count

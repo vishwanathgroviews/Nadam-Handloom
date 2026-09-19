@@ -177,3 +177,62 @@ describe('sessions', () => {
     expect(listRes.body.data.some((s: any) => s.authAccountId === customerAccount.id)).toBe(false);
   });
 });
+
+// The Audit Log credited some actions to the wrong person: for events like
+// "order marked shipped" the stored account is the customer, not the staff
+// member who shipped it. Entries now carry who acted and what it was done to.
+describe('audit log readability', () => {
+  it('credits an action to the person who did it, and names the person it was done to', async () => {
+    const { token: adminToken, accountId: adminId } = await createToken('ADMIN', '9300000050');
+
+    const invite = await request(app)
+      .post('/api/v1/admin/users')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'New Helper', mobile: '9300000051', email: 'helper@example.com', role: 'STAFF' });
+    expect(invite.status).toBe(201);
+
+    const log = await request(app).get('/api/v1/admin/audit-log').set('Authorization', `Bearer ${adminToken}`);
+    if (log.status !== 200) throw new Error(JSON.stringify(log.body));
+    const entry = log.body.data.items.find((e: any) => e.eventType === 'admin_provisioned_user');
+
+    expect(entry.actor).toMatchObject({ id: adminId, role: 'Owner' });
+    expect(entry.subject).toMatchObject({ name: 'New Helper' });
+    // The original fields are still there for app builds that read them.
+    expect(entry.authAccount).toBeTruthy();
+  });
+
+  it('names the product an action was about, not just its id', async () => {
+    const { token: adminToken } = await createToken('ADMIN', '9300000052');
+    const product = fixture.products[0]!;
+
+    await request(app)
+      .patch(`/api/v1/admin/products/${product.id}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ color: 'Teal' });
+
+    const log = await request(app).get('/api/v1/admin/audit-log').set('Authorization', `Bearer ${adminToken}`);
+    const entry = log.body.data.items.find((e: any) => e.eventType === 'product_updated');
+
+    expect(entry.context).toMatchObject({ productName: product.name, productSku: product.sku });
+  });
+
+  it('pages ten at a time without repeating entries', async () => {
+    const { token: adminToken } = await createToken('ADMIN', '9300000053');
+    const at = new Date();
+    for (let i = 0; i < 25; i++) {
+      fake.db.authEvent.push({
+        id: `33333333-0000-4000-8000-${String(i).padStart(12, '0')}`,
+        authAccountId: null, eventType: 'product_updated', source: 'staff_app',
+        ipAddress: null, userAgent: null, metadata: {}, createdAt: at,
+      });
+    }
+    const seen: string[] = [];
+    for (let page = 1; page <= 4; page++) {
+      const res = await request(app)
+        .get(`/api/v1/admin/audit-log?page=${page}&pageSize=10`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      seen.push(...res.body.data.items.map((e: any) => e.id));
+    }
+    expect(new Set(seen).size).toBe(seen.length);
+  });
+});

@@ -12,6 +12,7 @@ import {
   createProductSchema,
   updateProductSchema,
   listAdminProductsQuerySchema,
+  listSubcategoriesQuerySchema,
 } from './catalog.admin.schema';
 
 const router = Router();
@@ -34,7 +35,7 @@ router.post(
 // Subcategories carry price + description + hide/unhide — owner (ADMIN)
 // only to write, per the doc's "staff can manage catalog but not edit
 // prices" rule; STAFF can still read them (needed for the product form).
-router.get('/categories/:categoryId/subcategories', requireRoles('ADMIN', 'STAFF'), controller.getSubcategories);
+router.get('/categories/:categoryId/subcategories', requireRoles('ADMIN', 'STAFF'), validateQuery(listSubcategoriesQuerySchema), controller.getSubcategories);
 router.post(
   '/categories/:categoryId/subcategories',
   requireRoles('ADMIN'),

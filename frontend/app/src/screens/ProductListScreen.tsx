@@ -1,6 +1,5 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, TextInput, Image } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, TextInput, Image, RefreshControl } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -11,6 +10,8 @@ import { useAuth } from '../context/AuthContext';
 import { listProducts, AdminProductSummary } from '../api/catalog';
 import { saveToCache, loadFromCache } from '../utils/offlineCache';
 import OfflineBanner from '../components/OfflineBanner';
+import { SkeletonList } from '../components/ui/Skeleton';
+import { usePagedList, useRefreshOnReturn } from '../hooks/usePagedList';
 import BarcodeScanModal from '../components/BarcodeScanModal';
 import { useDialog } from '../components/DialogProvider';
 import type { ScanLookupResult } from '../api/inventory';
@@ -40,37 +41,18 @@ interface ProductsCachePayload {
   total?: number;
 }
 
-// The API's maximum. Big pages mean fewer round trips while scrolling a
-// catalog of a few hundred listings.
-const PAGE_SIZE = 100;
-
 export default function ProductListScreen({ navigation }: Props) {
   const { accessToken } = useAuth();
   const tabBarHeight = useBottomTabBarHeight();
   const showDialog = useDialog();
-  const [products, setProducts] = useState<AdminProductSummary[]>([]);
   const [activeCount, setActiveCount] = useState(0);
   const [cap, setCap] = useState(5000);
+  // What is typed vs. what is being searched for: the list only reloads when
+  // a search is submitted (or the box is cleared), not on every keystroke.
   const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
   const [offlineSince, setOfflineSince] = useState<string | null>(null);
   const [scannerVisible, setScannerVisible] = useState(false);
-  const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [loadingMore, setLoadingMore] = useState(false);
-  // Every fetch is tagged; a response that arrives after a newer search or
-  // refresh has started is dropped, so a slow page from the old query can't
-  // land on top of the new results.
-  const requestSeq = useRef(0);
-  const loadingMoreRef = useRef(false);
-  // Read by the focus effect below, which is only re-created when `load`
-  // changes — reading `page`/`query` state there would capture their values
-  // from the first render and always reload just page 1 of an empty search.
-  const pageRef = useRef(1);
-  const queryRef = useRef('');
-  pageRef.current = page;
-  queryRef.current = query;
 
   const handleScanFound = useCallback(
     (result: ScanLookupResult) => {
@@ -99,104 +81,48 @@ export default function ProductListScreen({ navigation }: Props) {
     [navigation, showDialog]
   );
 
-  /**
-   * Loads the list from the top.
-   *
-   * The API returns products a page at a time, and this screen used to ask
-   * for page 1 only — so it showed the newest 20 and silently stopped there.
-   * `keepPages` refetches as many pages as were already on screen, so coming
-   * back from editing a product deep in the list doesn't collapse it back to
-   * the first page.
-   */
-  const load = useCallback(
-    async (q?: string, keepPages = 1) => {
-      if (!accessToken) return;
-      const seq = ++requestSeq.current;
-      setLoading(true);
-      setError('');
+  // Ten products at a time (see usePagedList). If the very first page of the
+  // full list can't be fetched, the last list saved on this phone is shown
+  // instead, so staff can still browse the catalog with no signal.
+  const fetchPage = useCallback(
+    async (page: number, pageSize: number) => {
+      if (!accessToken) return { items: [], total: 0 };
       try {
-        let collected: AdminProductSummary[] = [];
-        let lastPage = 0;
-        let latest: Awaited<ReturnType<typeof listProducts>> | null = null;
-        for (let p = 1; p <= Math.max(1, keepPages); p++) {
-          const res = await listProducts(accessToken, { q: q || undefined, page: p, pageSize: PAGE_SIZE });
-          if (seq !== requestSeq.current) return;
-          latest = res;
-          collected = mergeById(collected, res.data.items);
-          lastPage = p;
-          if (collected.length >= res.data.total || res.data.items.length === 0) break;
-        }
-        if (!latest) return;
-        setProducts(collected);
-        setTotal(latest.data.total);
-        setPage(lastPage);
-        setActiveCount(latest.data.activeCount);
-        setCap(latest.data.cap);
+        const res = await listProducts(accessToken, { q: appliedQuery || undefined, page, pageSize });
+        setActiveCount(res.data.activeCount);
+        setCap(res.data.cap);
         setOfflineSince(null);
-        // Only the unfiltered list is cached — offline browsing is for the
-        // whole catalog, not for reproducing every past search.
-        if (!q) {
-          saveToCache<ProductsCachePayload>(CACHE_KEY, {
-            items: collected, activeCount: latest.data.activeCount, cap: latest.data.cap, total: latest.data.total,
-          });
+        return { items: res.data.items, total: res.data.total };
+      } catch (err) {
+        if (page === 1 && !appliedQuery) {
+          const cached = await loadFromCache<ProductsCachePayload>(CACHE_KEY);
+          if (cached) {
+            setActiveCount(cached.data.activeCount);
+            setCap(cached.data.cap);
+            setOfflineSince(cached.savedAt);
+            return { items: cached.data.items, total: cached.data.items.length };
+          }
         }
-      } catch (err: any) {
-        if (seq !== requestSeq.current) return;
-        const cached = !q ? await loadFromCache<ProductsCachePayload>(CACHE_KEY) : null;
-        if (cached) {
-          setProducts(cached.data.items);
-          setTotal(cached.data.total ?? cached.data.items.length);
-          setActiveCount(cached.data.activeCount);
-          setCap(cached.data.cap);
-          setOfflineSince(cached.savedAt);
-        } else {
-          setError(err.message || 'Failed to load products');
-        }
-      } finally {
-        if (seq === requestSeq.current) setLoading(false);
+        throw err;
       }
     },
-    [accessToken]
+    [accessToken, appliedQuery]
   );
 
-  // Fetches the next page when the list is scrolled near its end.
-  const loadMore = useCallback(async () => {
-    if (!accessToken || loading || offlineSince) return;
-    if (products.length >= total) return;
-    // A ref, not state: FlatList can fire onEndReached several times before
-    // React re-renders, and each would otherwise request the same page.
-    if (loadingMoreRef.current) return;
-    loadingMoreRef.current = true;
-    const seq = requestSeq.current;
-    setLoadingMore(true);
-    try {
-      const next = page + 1;
-      const res = await listProducts(accessToken, { q: query || undefined, page: next, pageSize: PAGE_SIZE });
-      if (seq !== requestSeq.current) return;
-      setProducts((prev) => {
-        const merged = mergeById(prev, res.data.items);
-        if (!query) {
-          saveToCache<ProductsCachePayload>(CACHE_KEY, {
-            items: merged, activeCount: res.data.activeCount, cap: res.data.cap, total: res.data.total,
-          });
-        }
-        return merged;
-      });
-      setTotal(res.data.total);
-      setPage(next);
-    } catch (err: any) {
-      if (seq === requestSeq.current) setError(err.message || 'Failed to load more products');
-    } finally {
-      loadingMoreRef.current = false;
-      setLoadingMore(false);
-    }
-  }, [accessToken, loading, offlineSince, products.length, total, page, query]);
+  const {
+    items: products, total, loading, loadingMore, refreshing, error, hasMore, loadMore, refresh,
+  } = usePagedList<AdminProductSummary>(fetchPage, { maxPageSize: 100, enabled: Boolean(accessToken) });
 
-  useFocusEffect(
-    useCallback(() => {
-      load(queryRef.current, pageRef.current);
-    }, [load])
-  );
+  // Coming back from a product (after editing it, say) refreshes the rows
+  // already on screen without jumping back to the top.
+  useRefreshOnReturn(refresh);
+
+  // Whatever of the full list has been loaded is kept for offline browsing.
+  // Only the unfiltered list — a past search isn't worth keeping.
+  useEffect(() => {
+    if (appliedQuery || offlineSince || products.length === 0) return;
+    saveToCache<ProductsCachePayload>(CACHE_KEY, { items: products, activeCount, cap, total });
+  }, [products, appliedQuery, offlineSince, activeCount, cap, total]);
 
   const progressPct = Math.min(100, cap > 0 ? (activeCount / cap) * 100 : 0);
 
@@ -224,9 +150,9 @@ export default function ProductListScreen({ navigation }: Props) {
             setQuery(text);
             // Clearing the box brings the full list back without needing a
             // second tap on search.
-            if (!text.trim()) load('');
+            if (!text.trim()) setAppliedQuery('');
           }}
-          onSubmitEditing={() => load(query)}
+          onSubmitEditing={() => setAppliedQuery(query.trim())}
           returnKeyType="search"
         />
         <TouchableOpacity onPress={() => setScannerVisible(true)}>
@@ -246,8 +172,8 @@ export default function ProductListScreen({ navigation }: Props) {
       {offlineSince && <OfflineBanner cachedAt={offlineSince} />}
 
       {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={colors.primary} />
-      ) : error ? (
+        <SkeletonList count={7} variant="media" />
+      ) : error && products.length === 0 ? (
         <Text style={styles.error}>{error}</Text>
       ) : (
         <FlatList
@@ -256,18 +182,32 @@ export default function ProductListScreen({ navigation }: Props) {
           contentContainerStyle={{ paddingBottom: tabBarHeight + spacing.xl }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.6}
+          onEndReached={offlineSince ? undefined : loadMore}
+          onEndReachedThreshold={0.5}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={() => refresh({ pull: true })} tintColor={colors.primary} />
+          }
           ListEmptyComponent={
-            <Text style={styles.emptyText}>{query ? `No products match "${query}".` : 'No products yet.'}</Text>
+            <Text style={styles.emptyText}>
+              {appliedQuery ? `No products match "${appliedQuery}".` : 'No products yet.'}
+            </Text>
           }
           ListFooterComponent={
             products.length > 0 ? (
-              <View style={styles.footer}>
-                {loadingMore ? <ActivityIndicator color={colors.primary} /> : null}
-                <Text style={styles.footerText}>
-                  Showing {products.length} of {total} {total === 1 ? 'product' : 'products'}
-                </Text>
+              <View>
+                {loadingMore ? <SkeletonList count={2} variant="media" /> : null}
+                {error && !loadingMore ? (
+                  <TouchableOpacity onPress={loadMore} style={styles.footer}>
+                    <Text style={styles.retryText}>Couldn't load more. Tap to try again.</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.footer}>
+                    <Text style={styles.footerText}>
+                      Showing {products.length} of {total} {total === 1 ? 'product' : 'products'}
+                      {hasMore ? ' — scroll for more' : ''}
+                    </Text>
+                  </View>
+                )}
               </View>
             ) : null
           }
@@ -323,15 +263,10 @@ export default function ProductListScreen({ navigation }: Props) {
   );
 }
 
-/** Appends a page, dropping any product already on screen. */
-const mergeById = (existing: AdminProductSummary[], incoming: AdminProductSummary[]) => {
-  const seen = new Set(existing.map((item) => item.id));
-  return [...existing, ...incoming.filter((item) => !seen.has(item.id))];
-};
-
 const styles = StyleSheet.create({
   footer: { alignItems: 'center', paddingVertical: spacing.lg, gap: spacing.sm },
   footerText: { ...typography.bodySm, color: colors.textMuted },
+  retryText: { ...typography.bodySmSemibold, color: colors.primary },
   emptyText: { ...typography.body, color: colors.textMuted, textAlign: 'center', marginTop: 40 },
   container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.md },
   addChip: {

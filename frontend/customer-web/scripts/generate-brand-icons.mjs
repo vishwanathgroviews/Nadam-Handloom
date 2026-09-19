@@ -56,6 +56,15 @@ async function run() {
       .toBuffer(),
   ]);
 
+  // splash-logo.png: the mark alone on transparency. The native launch
+  // screen draws it on the brand colour, and the animated in-app splash
+  // (components/AppSplash.tsx) draws the very same file at the same size,
+  // so the hand-over between the two is invisible.
+  outputs.push([
+    path.join(APP_ASSETS, 'splash-logo.png'),
+    await sharp(SRC).resize(600, 600, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } }).png().toBuffer(),
+  ]);
+
   // favicon.png for Expo's web target.
   outputs.push([
     path.join(APP_ASSETS, 'favicon.png'),

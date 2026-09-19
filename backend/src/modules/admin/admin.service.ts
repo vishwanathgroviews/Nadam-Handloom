@@ -8,6 +8,7 @@ import { env } from '../../config/env';
 import { logAuthEvent } from '../auth/auditLog.service';
 import { getLowStock } from '../inventory/inventory.service';
 import { getProductStats } from '../catalog/catalog.admin.service';
+import { presentAuditEvents } from './auditLog.present';
 
 /**
  * Invites someone into the staff app.
@@ -425,7 +426,8 @@ export const getAuditLog = async (query: {
   const [items, total] = await Promise.all([
     prisma.authEvent.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      // id breaks ties so paging never skips or repeats an entry.
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,
       include: {
@@ -437,7 +439,9 @@ export const getAuditLog = async (query: {
     prisma.authEvent.count({ where }),
   ]);
 
-  return { items, total, page: query.page, pageSize: query.pageSize };
+  // Existing fields are left as they were (older app builds read them); the
+  // readable actor/subject/context are added alongside.
+  return { items: await presentAuditEvents(items), total, page: query.page, pageSize: query.pageSize };
 };
 
 // ─────────────────────────────────────────────────────────────────
