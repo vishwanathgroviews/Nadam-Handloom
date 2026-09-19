@@ -59,7 +59,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#5C1420"
         }
-      ]
+      ],
+      "./plugins/withWhatsAppQueries"
     ],
     "extra": {
       "eas": {

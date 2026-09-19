@@ -22,7 +22,8 @@ import OfflineBanner from '../components/OfflineBanner';
 import { savePdfBytes, printPdf, sharePdf } from '../utils/pdf';
 import { colors, radius, shadow, spacing, typography } from '../utils/theme';
 import { openWhatsAppChat } from '../utils/whatsapp';
-import { cleanMobile, invoiceWhatsAppMessage } from '../utils/invoiceShare';
+import { cleanMobile, invoiceCaption } from '../utils/invoiceShare';
+import { sendPdfToWhatsAppChat, WhatsAppNotInstalledError } from '../utils/whatsappPdf';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -296,9 +297,10 @@ export default function ScannerScreen({ navigation }: Props) {
     [sellResult]
   );
 
-  // One tap: opens WhatsApp straight at the customer's chat with the invoice
-  // link and amount already written. The number is used here and nowhere else.
-  const shareInvoiceOnWhatsApp = useCallback(() => {
+  // One tap: opens the customer's WhatsApp chat with the invoice PDF already
+  // attached (staff press WhatsApp's own Send). The number goes only to
+  // WhatsApp on this phone — never to the server.
+  const shareInvoiceOnWhatsApp = useCallback(async () => {
     const invoice = sellResult?.invoice;
     if (!invoice) return;
     const mobile = cleanMobile(invoiceMobile);
@@ -307,10 +309,27 @@ export default function ScannerScreen({ navigation }: Props) {
       return;
     }
     setInvoiceMobileError('');
-    openWhatsAppChat(
-      mobile,
-      invoiceWhatsAppMessage({ invoiceNumber: invoice.invoiceNumber, totalAmount: invoice.totalAmount, url: invoice.url })
-    );
+    setShareError('');
+    setBusySharing(true);
+    try {
+      const res = await fetch(invoice.url);
+      if (!res.ok) throw new Error('Could not download the invoice PDF');
+      const bytes = new Uint8Array(await res.arrayBuffer());
+      const filename = `${invoice.invoiceNumber}.pdf`;
+      const uri = savePdfBytes(bytes, filename);
+      try {
+        await sendPdfToWhatsAppChat(uri, mobile, filename, invoiceCaption(invoice));
+      } catch (err) {
+        if (!(err instanceof WhatsAppNotInstalledError)) throw err;
+        // No WhatsApp on this phone: still get the PDF out, via the share menu.
+        setShareError('WhatsApp is not installed on this phone — choose another app to send the invoice.');
+        await sharePdf(uri);
+      }
+    } catch (err: any) {
+      setShareError(err?.message || 'Could not share the invoice');
+    } finally {
+      setBusySharing(false);
+    }
   }, [sellResult, invoiceMobile]);
 
   // Puts the product just scanned onto the bill, carrying over whatever
@@ -512,9 +531,20 @@ export default function ScannerScreen({ navigation }: Props) {
                       />
                     ) : null}
                     {invoiceMobileError ? <Text style={styles.fieldError}>{invoiceMobileError}</Text> : null}
-                    <TouchableOpacity style={styles.whatsappInvoiceButton} onPress={shareInvoiceOnWhatsApp} activeOpacity={0.85}>
-                      <Ionicons name="logo-whatsapp" size={18} color="#fff" />
-                      <Text style={styles.whatsappInvoiceText}>Share Invoice on WhatsApp</Text>
+                    <TouchableOpacity
+                      style={[styles.whatsappInvoiceButton, busySharing && styles.whatsappInvoiceBusy]}
+                      onPress={shareInvoiceOnWhatsApp}
+                      activeOpacity={0.85}
+                      disabled={busySharing}
+                    >
+                      {busySharing ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <>
+                          <Ionicons name="logo-whatsapp" size={18} color="#fff" />
+                          <Text style={styles.whatsappInvoiceText}>Share Invoice on WhatsApp</Text>
+                        </>
+                      )}
                     </TouchableOpacity>
                     <Text style={styles.helper}>The number is not saved anywhere.</Text>
                   </View>
@@ -825,6 +855,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md + 2, marginTop: spacing.sm,
   },
   whatsappInvoiceText: { ...typography.bodySemibold, color: '#fff' },
+  whatsappInvoiceBusy: { opacity: 0.7 },
   soldSecondAction: { marginTop: spacing.sm },
   scanNextButton: {
     backgroundColor: colors.text,

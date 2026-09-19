@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanMobile, invoiceWhatsAppMessage } from './invoiceShare';
+import { cleanMobile, invoiceCaption } from './invoiceShare';
 
 describe('cleanMobile', () => {
   it('accepts a 10-digit mobile however it was typed', () => {
@@ -17,20 +17,15 @@ describe('cleanMobile', () => {
   });
 });
 
-describe('invoiceWhatsAppMessage', () => {
-  const message = invoiceWhatsAppMessage({
-    invoiceNumber: 'NH-INV-0042',
-    totalAmount: '3500.00',
-    url: 'https://example.com/invoices/abc.pdf',
-  });
+describe('invoiceCaption', () => {
+  const caption = invoiceCaption({ invoiceNumber: 'NH-INV-0042', totalAmount: '3500.00' });
 
-  it('carries the invoice number, amount and link', () => {
-    expect(message).toContain('NH-INV-0042');
-    expect(message).toContain('₹3,500');
-    expect(message).toContain('https://example.com/invoices/abc.pdf');
+  it('carries the invoice number and amount', () => {
+    expect(caption).toContain('NH-INV-0042');
+    expect(caption).toContain('₹3,500');
   });
 
   it('says nothing about the customer', () => {
-    expect(message).not.toMatch(/\d{10}/);
+    expect(caption).not.toMatch(/\d{10}/);
   });
 });
