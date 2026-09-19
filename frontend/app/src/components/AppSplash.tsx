@@ -115,7 +115,7 @@ export default function AppSplash({ ready }: Props) {
         />
       </View>
       <Animated.View style={[styles.nameWrap, { opacity: nameOpacity, transform: [{ translateY: nameShift }] }]}>
-        <Text style={styles.name}>NANDAM HANDLOOMS</Text>
+        <Text style={styles.name} numberOfLines={1}>NANDAM HANDLOOMS</Text>
       </Animated.View>
     </Animated.View>
   );
@@ -142,6 +142,6 @@ const styles = StyleSheet.create({
   logo: { width: LOGO_SIZE, height: LOGO_SIZE },
   // Positioned below the centred logo without moving it, so the logo stays
   // exactly where the native launch screen drew it.
-  nameWrap: { position: 'absolute', top: '50%', marginTop: LOGO_SIZE / 2 + 28, alignItems: 'center' },
+  nameWrap: { position: 'absolute', left: 0, right: 0, top: '50%', marginTop: LOGO_SIZE / 2 + 28, alignItems: 'center' },
   name: { color: GOLD, fontSize: 15, letterSpacing: 4, fontFamily: 'Outfit_600SemiBold' },
 });

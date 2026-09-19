@@ -19,13 +19,13 @@ import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import StatCard from '../components/ui/StatCard';
 import { FilterChip, SegmentedControl } from '../components/ui/Chip';
+import { dayRange } from '../utils/dayRange';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Analytics'>;
 
 type Preset = 'today' | 'week' | 'month' | 'custom';
 
 const formatRupees = (amount: number) => `₹${Math.round(amount).toLocaleString('en-IN')}`;
-const BAR_CHART_HEIGHT = 96;
 
 const RANGE_OPTIONS: { key: Preset; label: string }[] = [
   { key: 'today', label: 'Today' },
@@ -40,22 +40,6 @@ const CHANNEL_OPTIONS: { value: ChannelFilter; label: string }[] = [
   { value: 'store', label: 'Store' },
   { value: 'whatsapp', label: 'WhatsApp' },
 ];
-
-// Inline "▲ x%" / "▼ x%" indicator next to the revenue figure — only ever
-// rendered when previousPeriod.revenueChangePct is a real, computed number
-// (see call site below), so this never fabricates a comparison.
-function ChangeIndicator({ pct }: { pct: number }) {
-  const rounded = Math.round(pct);
-  if (rounded === 0) {
-    return <Text style={[typography.bodySmSemibold, styles.changeNeutral]}>No change</Text>;
-  }
-  const positive = rounded > 0;
-  return (
-    <Text style={[typography.bodySmSemibold, positive ? styles.changePositive : styles.changeNegative]}>
-      {positive ? '▲' : '▼'} {Math.abs(rounded)}%
-    </Text>
-  );
-}
 
 const rangeForPreset = (preset: Preset): { from: Date; to: Date; groupBy: GroupBy } => {
   const to = new Date();
@@ -89,9 +73,10 @@ export default function AnalyticsScreen({ navigation }: Props) {
 
   const range = useMemo(() => {
     if (preset === 'custom') {
-      const from = customFrom ? new Date(customFrom) : undefined;
-      const to = customTo ? new Date(customTo) : undefined;
-      return { from, to, groupBy: 'day' as GroupBy };
+      // Whole local days — see dayRange for why new Date('YYYY-MM-DD') was
+      // wrong: it made a single chosen day a zero-length range.
+      const days = dayRange(customFrom, customTo);
+      return { from: days?.from, to: days?.to, groupBy: 'day' as GroupBy };
     }
     return rangeForPreset(preset);
   }, [preset, customFrom, customTo]);
@@ -129,21 +114,6 @@ export default function AnalyticsScreen({ navigation }: Props) {
   }, [load]);
 
   const maxSubcategoryRevenue = Math.max(1, ...topSubcategories.map((s) => s.revenue));
-
-  // Real, already-fetched revenue figures for this period vs the prior one —
-  // rendered as a two-bar chart (current period highlighted in primary) on a
-  // visible full-height track, with its rupee value labeled above the fill,
-  // so a short bar still reads clearly instead of floating in empty space.
-  // Nothing here is invented: both values come straight off `summary`.
-  const periodBars = summary
-    ? (() => {
-        const maxValue = Math.max(1, summary.totalRevenue, summary.previousPeriod.totalRevenue);
-        return [
-          { key: 'previous', label: 'Previous', value: summary.previousPeriod.totalRevenue, color: colors.textFaint },
-          { key: 'current', label: 'This period', value: summary.totalRevenue, color: colors.primary },
-        ].map((bar) => ({ ...bar, height: Math.max(6, Math.round((bar.value / maxValue) * BAR_CHART_HEIGHT)) }));
-      })()
-    : [];
 
   return (
     <KeyboardAwareScreen style={styles.screen}>
@@ -192,23 +162,6 @@ export default function AnalyticsScreen({ navigation }: Props) {
               <Text style={[typography.caption, styles.revenueLabel]}>Revenue</Text>
               <View style={styles.revenueRow}>
                 <Text style={[typography.display, styles.revenueValue]}>{formatRupees(summary.totalRevenue)}</Text>
-                {summary.previousPeriod.revenueChangePct === null ? (
-                  <Text style={[typography.bodySmSemibold, styles.changeNeutral]}>New</Text>
-                ) : (
-                  <ChangeIndicator pct={summary.previousPeriod.revenueChangePct} />
-                )}
-              </View>
-
-              <View style={styles.barsRow}>
-                {periodBars.map((bar) => (
-                  <View key={bar.key} style={styles.barCol}>
-                    <Text style={styles.barValue} numberOfLines={1}>{formatRupees(bar.value)}</Text>
-                    <View style={styles.barTrack}>
-                      <View style={[styles.barFill, { height: bar.height, backgroundColor: bar.color }]} />
-                    </View>
-                    <Text style={styles.barLabel} numberOfLines={1}>{bar.label}</Text>
-                  </View>
-                ))}
               </View>
             </Card>
 
@@ -292,18 +245,6 @@ const styles = StyleSheet.create({
   revenueLabel: { color: colors.textLabel },
   revenueRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm, marginTop: spacing.sm },
   revenueValue: { color: colors.text },
-  changePositive: { color: colors.success },
-  changeNegative: { color: colors.error },
-  changeNeutral: { color: colors.textMuted },
-  barsRow: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.xl, alignItems: 'flex-end' },
-  barCol: { flex: 1, alignItems: 'center' },
-  barValue: { ...typography.bodySmSemibold, color: colors.text, marginBottom: spacing.sm },
-  barTrack: {
-    width: '100%', height: BAR_CHART_HEIGHT, borderRadius: radius.md,
-    backgroundColor: colors.divider, justifyContent: 'flex-end', overflow: 'hidden',
-  },
-  barFill: { width: '100%', borderRadius: radius.md },
-  barLabel: { ...typography.bodySm, fontSize: 10.5, color: colors.textLabel, marginTop: spacing.sm },
   statsRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
   channelCard: { marginTop: spacing.md },
   channelLabel: { color: colors.textLabel },

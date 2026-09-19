@@ -30,10 +30,36 @@ export function Badge({ label, tone = 'neutral' }: { label: string; tone?: Tone 
 
 // Standalone toggle chip — dark-fill when active, soft tan when not (matches
 // the source design's date-filter chips).
-export function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+export function FilterChip({
+  label,
+  active,
+  onPress,
+  fill = false,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+  /**
+   * Share the row equally with the other chips and keep the label on one
+   * line (shrinking it slightly if it must), so a fixed set of chips always
+   * sits on a single row instead of wrapping on a narrow phone.
+   */
+  fill?: boolean;
+}) {
   return (
-    <TouchableOpacity style={[styles.chip, active && styles.chipActive]} onPress={onPress} activeOpacity={0.8}>
-      <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
+    <TouchableOpacity
+      style={[styles.chip, fill && styles.chipFill, active && styles.chipActive]}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <Text
+        style={[styles.chipText, active && styles.chipTextActive]}
+        numberOfLines={fill ? 1 : undefined}
+        adjustsFontSizeToFit={fill}
+        minimumFontScale={0.8}
+      >
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -93,6 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.segmentTrack,
     alignItems: 'center',
   },
+  chipFill: { flex: 1, alignItems: 'center', paddingHorizontal: spacing.xs },
   chipActive: { backgroundColor: colors.text },
   chipText: { ...typography.bodySmSemibold, color: colors.textMuted },
   chipTextActive: { color: '#fff' },

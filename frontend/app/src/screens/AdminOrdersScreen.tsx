@@ -111,7 +111,7 @@ export default function AdminOrdersScreen({ navigation, route }: Props) {
 
       <View style={styles.dateRow}>
         {DATE_FILTERS.map((f) => (
-          <FilterChip key={f.key} label={f.label} active={dateKey === f.key} onPress={() => setDateKey(f.key)} />
+          <FilterChip key={f.key} label={f.label} active={dateKey === f.key} onPress={() => setDateKey(f.key)} fill />
         ))}
       </View>
 
@@ -165,7 +165,7 @@ export default function AdminOrdersScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.md },
-  dateRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md, marginBottom: spacing.lg },
+  dateRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md, marginBottom: spacing.lg },
   empty: { ...typography.body, color: colors.textMuted, textAlign: 'center', marginTop: 40 },
   error: {
     ...typography.bodySm,
