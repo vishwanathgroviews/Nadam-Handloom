@@ -1,0 +1,58 @@
+diff --git a/node_modules/react-native-share/android/src/main/java/cl/json/social/WhatsAppBusinessShare.java b/node_modules/react-native-share/android/src/main/java/cl/json/social/WhatsAppBusinessShare.java
+index 47b377a..7620c00 100644
+--- a/node_modules/react-native-share/android/src/main/java/cl/json/social/WhatsAppBusinessShare.java
++++ b/node_modules/react-native-share/android/src/main/java/cl/json/social/WhatsAppBusinessShare.java
+@@ -28,14 +28,19 @@ public class WhatsAppBusinessShare extends SingleShareIntent {
+         
+         if (options.hasKey("whatsAppNumber")) {
+             try {
+-                // create an empty conversation in case it's not on contacts
++                // Open the chat for that number directly, with whatever is
++                // being shared already attached. The component is set
++                // explicitly (rather than only the package) because the
++                // package alone lands on WhatsApp's contact picker, and the
++                // conversation is created here even if the number is not in
++                // the phone's contacts.
+                 this.getIntent().setComponent(new ComponentName(PACKAGE, START_CONVERSATION_CLASS));
+                 this.openIntentChooser();
+-
+-                // leave room for the conversation to be created
+-                Thread.sleep(START_ACTIVITY_TIME_GAP_MS);   
+-
++                return;
+             } catch (Exception ex) {
++                // That activity is missing or refused the request (an older
++                // or newer WhatsApp): fall through to the contact picker
++                // below, so the share still gets out.
+                 ex.printStackTrace();
+             }
+         }
+diff --git a/node_modules/react-native-share/android/src/main/java/cl/json/social/WhatsAppShare.java b/node_modules/react-native-share/android/src/main/java/cl/json/social/WhatsAppShare.java
+index 17fb272..2993d59 100644
+--- a/node_modules/react-native-share/android/src/main/java/cl/json/social/WhatsAppShare.java
++++ b/node_modules/react-native-share/android/src/main/java/cl/json/social/WhatsAppShare.java
+@@ -28,14 +28,19 @@ public class WhatsAppShare extends SingleShareIntent {
+         
+         if (options.hasKey("whatsAppNumber")) {
+             try {
+-                // create an empty conversation in case it's not on contacts
++                // Open the chat for that number directly, with whatever is
++                // being shared already attached. The component is set
++                // explicitly (rather than only the package) because the
++                // package alone lands on WhatsApp's contact picker, and the
++                // conversation is created here even if the number is not in
++                // the phone's contacts.
+                 this.getIntent().setComponent(new ComponentName(PACKAGE, START_CONVERSATION_CLASS));
+                 this.openIntentChooser();
+-
+-                // leave room for the conversation to be created
+-                Thread.sleep(START_ACTIVITY_TIME_GAP_MS);   
+-
++                return;
+             } catch (Exception ex) {
++                // That activity is missing or refused the request (an older
++                // or newer WhatsApp): fall through to the contact picker
++                // below, so the share still gets out.
+                 ex.printStackTrace();
+             }
+         }

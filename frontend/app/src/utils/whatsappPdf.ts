@@ -31,6 +31,12 @@ export const sendPdfToWhatsAppChat = async (fileUri: string, mobile: string, fil
     // whatsAppNumber is read by the library's Android code (it opens the chat
     // for that number, creating it if it isn't in contacts) and passed through
     // untouched by its JavaScript, but is missing from its TypeScript types.
+    //
+    // The library as published then fired a SECOND intent at WhatsApp with no
+    // chat attached, which landed on WhatsApp's contact picker and hid the
+    // chat it had just opened — staff had to pick the customer by hand. That
+    // second intent is now only a fallback: see
+    // patches/react-native-share+12.3.1.patch.
     const options: ShareSingleOptions & { whatsAppNumber: string } = {
       social: app.social,
       url: fileUri,
