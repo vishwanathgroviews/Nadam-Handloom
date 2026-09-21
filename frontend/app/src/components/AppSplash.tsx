@@ -77,7 +77,8 @@ export default function AppSplash({ ready }: Props) {
             ]),
           ]),
         ]),
-        Animated.delay(300),
+        // Long enough for the whole name to be read before the layer lifts.
+        Animated.delay(450),
         Animated.parallel([
           Animated.timing(layerOpacity, { toValue: 0, duration: 480, easing: Easing.bezier(0.4, 0, 0.2, 1), useNativeDriver: true }),
           Animated.timing(layerScale, { toValue: 1.03, duration: 480, easing: Easing.bezier(0.4, 0, 0.2, 1), useNativeDriver: true }),
@@ -115,7 +116,21 @@ export default function AppSplash({ ready }: Props) {
         />
       </View>
       <Animated.View style={[styles.nameWrap, { opacity: nameOpacity, transform: [{ translateY: nameShift }] }]}>
-        <Text style={styles.name} numberOfLines={1}>NANDAM HANDLOOMS</Text>
+        {/*
+          The whole name, always. It is held to one line and allowed to
+          shrink to fit a narrow screen, and it ignores the phone's font-size
+          setting — at "Large" the name grew wider than the screen and
+          Android cut it short, which is why only part of it showed up.
+        */}
+        <Text
+          style={styles.name}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          allowFontScaling={false}
+        >
+          NANDAM HANDLOOMS
+        </Text>
       </Animated.View>
     </Animated.View>
   );
@@ -142,6 +157,11 @@ const styles = StyleSheet.create({
   logo: { width: LOGO_SIZE, height: LOGO_SIZE },
   // Positioned below the centred logo without moving it, so the logo stays
   // exactly where the native launch screen drew it.
-  nameWrap: { position: 'absolute', left: 0, right: 0, top: '50%', marginTop: LOGO_SIZE / 2 + 28, alignItems: 'center' },
-  name: { color: GOLD, fontSize: 15, letterSpacing: 4, fontFamily: 'Outfit_600SemiBold' },
+  nameWrap: {
+    position: 'absolute', left: 0, right: 0, top: '50%',
+    marginTop: LOGO_SIZE / 2 + 28, alignItems: 'center',
+    // Room at both ends so the name is never flush against the screen edge.
+    paddingHorizontal: 24,
+  },
+  name: { color: GOLD, fontSize: 15, letterSpacing: 3, fontFamily: 'Outfit_600SemiBold', textAlign: 'center' },
 });

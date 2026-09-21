@@ -7,7 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { goToTab } from '../navigation/tabs';
 import { useAuth } from '../context/AuthContext';
-import { getDashboard, DashboardStats, listAdminOrders } from '../api/admin';
+import { getDashboard, DashboardStats } from '../api/admin';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import StatCard from '../components/ui/StatCard';
 import BrandMark from '../components/BrandMark';
@@ -20,18 +20,11 @@ export default function StaffHomeScreen({ navigation }: Props) {
   const { accessToken } = useAuth();
   const tabBarHeight = useBottomTabBarHeight();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [shipCounts, setShipCounts] = useState<{ toShip: number; shipped: number } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       if (!accessToken) return;
       getDashboard(accessToken).then((res) => setStats(res.data)).catch(() => {});
-      Promise.all([
-        listAdminOrders(accessToken, { status: ['processing'], page: 1, pageSize: 1 }),
-        listAdminOrders(accessToken, { status: ['shipped'], page: 1, pageSize: 1 }),
-      ])
-        .then(([toShip, shipped]) => setShipCounts({ toShip: toShip.data.total, shipped: shipped.data.total }))
-        .catch(() => {});
     }, [accessToken])
   );
 
@@ -75,14 +68,14 @@ export default function StaffHomeScreen({ navigation }: Props) {
             onPress={() => goToTab(navigation, 'OrdersTab', { tab: 'to_ship' })}
             activeOpacity={0.8}
           >
-            <StatCard icon="cube-outline" iconColor={colors.warning} iconBg={colors.warningBg} label="To ship" value={shipCounts?.toShip ?? '—'} />
+            <StatCard icon="cube-outline" iconColor={colors.warning} iconBg={colors.warningBg} label="To ship" />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.statTouchable}
             onPress={() => goToTab(navigation, 'OrdersTab', { tab: 'shipped' })}
             activeOpacity={0.8}
           >
-            <StatCard icon="paper-plane-outline" iconColor={colors.success} iconBg={colors.successBg} label="Shipped" value={shipCounts?.shipped ?? '—'} />
+            <StatCard icon="paper-plane-outline" iconColor={colors.success} iconBg={colors.successBg} label="Shipped" />
           </TouchableOpacity>
         </View>
 
