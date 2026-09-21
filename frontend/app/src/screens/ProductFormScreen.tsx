@@ -33,6 +33,14 @@ import { ClaimSet } from '../utils/concurrencyGuards';
 import { normalizeBarcode } from '../utils/barcode';
 import KeyboardAwareScreen from '../components/KeyboardAwareScreen';
 import SearchablePicker from '../components/SearchablePicker';
+import {
+  addRecentPick,
+  clearRecentPicks,
+  loadRecentPicks,
+  recentPicksKey,
+  RecentPick,
+  saveRecentPicks,
+} from '../utils/recentPicks';
 import PhotoSourceSheet from '../components/PhotoSourceSheet';
 import BarcodeScanModal from '../components/BarcodeScanModal';
 import { useDialog } from '../components/DialogProvider';
@@ -53,7 +61,7 @@ const VISIBILITY_OPTIONS: { value: ChannelVisibility; label: string }[] = [
 
 export default function ProductFormScreen({ route, navigation }: Props) {
   const initialProductId = route.params?.productId;
-  const { accessToken } = useAuth();
+  const { accessToken, user } = useAuth();
   const showDialog = useDialog();
 
   const [productId, setProductId] = useState<string | undefined>(initialProductId);
@@ -71,6 +79,10 @@ export default function ProductFormScreen({ route, navigation }: Props) {
   const [loadingSubcategories, setLoadingSubcategories] = useState(false);
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
   const [subcategoryPickerOpen, setSubcategoryPickerOpen] = useState(false);
+  // The subcategories picked from the search box recently, for this person in
+  // this category — offered above the list so the next product usually needs
+  // no typing at all.
+  const [recentSubcategories, setRecentSubcategories] = useState<RecentPick[]>([]);
   const [channelVisibility, setChannelVisibility] = useState<ChannelVisibility>('both');
   // No picker for this anymore (removed with "Stock display") — every new
   // product is barcode-tracked by default, matching the receive-stock flow.
@@ -152,6 +164,23 @@ export default function ProductFormScreen({ route, navigation }: Props) {
       .finally(() => setLoadingSubcategories(false));
   }, [accessToken, categoryId]);
 
+  // Recents belong to one person and one category, so they are reloaded
+  // whenever the chosen category changes.
+  const recentsKey = categoryId ? recentPicksKey(user?.id, categoryId) : '';
+  useEffect(() => {
+    if (!recentsKey) {
+      setRecentSubcategories([]);
+      return;
+    }
+    let cancelled = false;
+    loadRecentPicks(recentsKey).then((list) => {
+      if (!cancelled) setRecentSubcategories(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [recentsKey]);
+
   const reloadPieces = useCallback(() => {
     if (!accessToken || !productId || trackingMode !== 'serialized') return;
     setLoadingPieces(true);
@@ -186,7 +215,21 @@ export default function ProductFormScreen({ route, navigation }: Props) {
   const handleSubcategorySelect = useCallback((id: string) => {
     setSubcategoryId(id);
     setSubcategoryPickerOpen(false);
-  }, []);
+    // Remember the subcategory itself — what was opened, not what was typed
+    // to find it.
+    const picked = subcategories.find((s) => s.id === id);
+    if (!picked || !recentsKey) return;
+    setRecentSubcategories((prev) => {
+      const next = addRecentPick(prev, { id: picked.id, name: picked.name });
+      saveRecentPicks(recentsKey, next);
+      return next;
+    });
+  }, [subcategories, recentsKey]);
+
+  const handleClearRecents = useCallback(() => {
+    setRecentSubcategories([]);
+    if (recentsKey) clearRecentPicks(recentsKey);
+  }, [recentsKey]);
 
   const buildPayload = useCallback(() => {
     // No name field: the backend always derives a new product's name from
@@ -518,6 +561,8 @@ export default function ProductFormScreen({ route, navigation }: Props) {
                 onSelect={handleSubcategorySelect}
                 searchPlaceholder="Search subcategories…"
                 maxVisibleRows={6}
+                recents={recentSubcategories}
+                onClearRecents={handleClearRecents}
               />
             )}
           </>
