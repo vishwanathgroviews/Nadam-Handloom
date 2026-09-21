@@ -683,6 +683,36 @@ describe('scan-to-lookup / scan-to-sell', () => {
     }
   });
 
+  // A bill can mix a barcoded saree with several of a product counted by
+  // quantity — the app sends one line per code, with how many of it.
+  it('sells a mixed bill of pieces and quantities as one order with one invoice', async () => {
+    const staffToken = await createStaffToken('9400001110');
+    const { pieces, subcategory } = await seedSerializedProduct(1);
+    const counted = seedProduct(subcategory.categoryId, {
+      subcategoryId: subcategory.id, trackingMode: 'quantity', stock: 5,
+    });
+
+    const res = await request(app)
+      .post('/api/v1/admin/inventory/scan-sell')
+      .set('Authorization', 'Bearer ' + staffToken)
+      .send({
+        channel: 'store',
+        items: [{ code: pieces[0].barcode }, { code: counted.sku, quantity: 3, salePrice: 1500 }],
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.items).toHaveLength(2);
+    expect(res.body.data.items[1].quantity).toBe(3);
+
+    const orders = fake.db.order.filter((o: any) => o.channel === 'store');
+    expect(orders).toHaveLength(1);
+    expect(fake.db.invoice.filter((i: any) => i.orderId === orders[0].id)).toHaveLength(1);
+    // Three of the counted product left the shelf, and the bargained price
+    // applied to all three.
+    expect(fake.db.product.find((p: any) => p.id === counted.id).stock).toBe(2);
+    expect(res.body.data.total).toBe(Number(subcategory.storePrice) + 1500 * 3);
+  });
+
   // Bargaining is per line: one saree discounted, the next at full price,
   // on the same bill.
   it('applies a bargained price to only the line it was set on', async () => {

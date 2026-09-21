@@ -29,7 +29,7 @@ interface Props {
  * beneath it, and the whole layer lifts away to reveal the screen underneath.
  *
  * It waits for `ready` rather than a fixed timer, so it never uncovers a
- * half-loaded screen, and it is short (about 1.2s) so it never delays anyone.
+ * half-loaded screen, and it is brief (about 0.7s) so it never delays anyone.
  * If the phone has Reduce Motion on, it simply fades.
  */
 export default function AppSplash({ ready }: Props) {
@@ -57,7 +57,7 @@ export default function AppSplash({ ready }: Props) {
       const finish = () => setVisible(false);
 
       if (reduceMotion) {
-        Animated.timing(layerOpacity, { toValue: 0, duration: 250, useNativeDriver: true }).start(finish);
+        Animated.timing(layerOpacity, { toValue: 0, duration: 160, useNativeDriver: true }).start(finish);
         return;
       }
 
@@ -65,23 +65,23 @@ export default function AppSplash({ ready }: Props) {
       Animated.sequence([
         Animated.parallel([
           Animated.sequence([
-            Animated.timing(logoScale, { toValue: 0.92, duration: 180, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-            Animated.spring(logoScale, { toValue: 1, friction: 5, tension: 90, useNativeDriver: true }),
+            Animated.timing(logoScale, { toValue: 0.94, duration: 120, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+            Animated.spring(logoScale, { toValue: 1, friction: 6, tension: 140, useNativeDriver: true }),
           ]),
-          Animated.timing(ring, { toValue: 1, duration: 650, easing: ease, useNativeDriver: true }),
+          Animated.timing(ring, { toValue: 1, duration: 420, easing: ease, useNativeDriver: true }),
           Animated.sequence([
-            Animated.delay(180),
+            Animated.delay(90),
             Animated.parallel([
-              Animated.timing(nameOpacity, { toValue: 1, duration: 380, easing: ease, useNativeDriver: true }),
-              Animated.timing(nameShift, { toValue: 0, duration: 380, easing: ease, useNativeDriver: true }),
+              Animated.timing(nameOpacity, { toValue: 1, duration: 240, easing: ease, useNativeDriver: true }),
+              Animated.timing(nameShift, { toValue: 0, duration: 240, easing: ease, useNativeDriver: true }),
             ]),
           ]),
         ]),
-        // Long enough for the whole name to be read before the layer lifts.
-        Animated.delay(450),
+        // A beat to take the name in — no longer, so the app opens fast.
+        Animated.delay(180),
         Animated.parallel([
-          Animated.timing(layerOpacity, { toValue: 0, duration: 480, easing: Easing.bezier(0.4, 0, 0.2, 1), useNativeDriver: true }),
-          Animated.timing(layerScale, { toValue: 1.03, duration: 480, easing: Easing.bezier(0.4, 0, 0.2, 1), useNativeDriver: true }),
+          Animated.timing(layerOpacity, { toValue: 0, duration: 300, easing: Easing.bezier(0.4, 0, 0.2, 1), useNativeDriver: true }),
+          Animated.timing(layerScale, { toValue: 1.03, duration: 300, easing: Easing.bezier(0.4, 0, 0.2, 1), useNativeDriver: true }),
         ]),
       ]).start(finish);
     })();

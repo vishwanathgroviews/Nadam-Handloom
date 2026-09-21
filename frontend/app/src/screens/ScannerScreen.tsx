@@ -23,6 +23,15 @@ import { savePdfBytes, printPdf, sharePdf } from '../utils/pdf';
 import { colors, radius, shadow, spacing, typography } from '../utils/theme';
 import { openWhatsAppChat } from '../utils/whatsapp';
 import { cleanMobile, invoiceCaption } from '../utils/invoiceShare';
+import {
+  addLine,
+  billItemCount,
+  billTotal as sumBill,
+  findLine,
+  lineTotal,
+  toSellItems,
+  BillLine,
+} from '../utils/bill';
 import { sendPdfToWhatsAppChat, WhatsAppNotInstalledError } from '../utils/whatsappPdf';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
@@ -36,18 +45,6 @@ type Props = CompositeScreenProps<
 
 type Mode = 'sell' | 'lookup';
 
-/**
- * One product on the bill being built. `priceInput` is what staff typed for
- * this line — blank means sell at the store price. It is per line and per
- * bill: nothing here writes back to the subcategory's price.
- */
-interface BillLine {
-  code: string;
-  productName: string;
-  categoryName: string;
-  storePrice: string;
-  priceInput: string;
-}
 type Phase = 'scanning' | 'processing' | 'result';
 type BadgeTone = 'neutral' | 'primary' | 'success' | 'warning' | 'error';
 // Where the sale is actually happening: handed over at the counter, or
@@ -132,6 +129,9 @@ export default function ScannerScreen({ navigation }: Props) {
   // is already done, so it has to show inside the Sold panel instead of
   // replacing it with something that reads like the sale didn't go through.
   const [shareError, setShareError] = useState('');
+  // Said quietly under the camera — "that tag is already on the bill" is
+  // something to know, not a failure that should clear anything away.
+  const [scanNotice, setScanNotice] = useState('');
 
   const reset = useCallback(() => {
     setPhase('scanning');
@@ -148,6 +148,7 @@ export default function ScannerScreen({ navigation }: Props) {
     setChannelMissing(false);
     setInvoiceMobile('');
     setInvoiceMobileError('');
+    setScanNotice('');
     setCustomer({ ...EMPTY_CUSTOMER });
   }, []);
 
@@ -160,17 +161,24 @@ export default function ScannerScreen({ navigation }: Props) {
     setManualCode('');
     setScannedLock(false);
     setSalePriceInput('');
+    setScanNotice('');
   }, []);
 
-  const lineTotal = useCallback((line: BillLine): number => {
-    const typed = Number(line.priceInput.trim());
-    return line.priceInput.trim() && Number.isFinite(typed) && typed > 0 ? typed : Number(line.storePrice);
+  // Out of the camera (or out of an error) and back to the bill, with every
+  // line still on it. Nothing here clears the bill — only Scan Next, after a
+  // completed sale, does that.
+  const backToBill = useCallback(() => {
+    setPhase('result');
+    setLookup(null);
+    setError('');
+    setErrorCode('');
+    setScannedLock(false);
+    setSalePriceInput('');
+    setScanNotice('');
   }, []);
 
-  const billTotal = useMemo(
-    () => bill.reduce((sum, line) => sum + lineTotal(line), 0),
-    [bill, lineTotal]
-  );
+  const billTotal = useMemo(() => sumBill(bill), [bill]);
+  const itemCount = useMemo(() => billItemCount(bill), [bill]);
 
   const updateLinePrice = useCallback((code: string, value: string) => {
     setBill((prev) => prev.map((line) => (line.code === code ? { ...line, priceInput: value } : line)));
@@ -238,21 +246,11 @@ export default function ScannerScreen({ navigation }: Props) {
       setPhase('processing');
       setError('');
       setErrorCode('');
-      // Only send a price when staff actually typed a different number —
-      // blank, or the store price re-typed, sells at the catalogue price and
-      // raises no discount audit event.
-      const items: ScanSellItemInput[] = lines.map((line) => {
-        const typed = Number(line.priceInput.trim());
-        const bargained =
-          line.priceInput.trim() && Number.isFinite(typed) && typed > 0 && typed !== Number(line.storePrice)
-            ? typed
-            : undefined;
-        return {
-          code: line.code,
-          override,
-          ...(bargained !== undefined ? { salePrice: bargained } : {}),
-        };
-      });
+      // Every line of the bill goes in one request — the server claims them
+      // all in a single transaction and writes ONE order with ONE invoice
+      // (inventory.service.ts). Prices and quantities come from the bill as
+      // staff last edited them.
+      const items: ScanSellItemInput[] = toSellItems(lines, override);
 
       try {
         const res = await scanSell(accessToken, items, {
@@ -339,24 +337,28 @@ export default function ScannerScreen({ navigation }: Props) {
   // the same label still sitting under the lens got picked up again. Staff
   // choose what happens next from the bill itself — "Add More" goes back to
   // the camera, "Complete Sale" finishes.
-  const addToBill = useCallback(() => {
+  const addScannedToBill = useCallback(() => {
     if (!lookup) return;
     const code = lookup.barcode || lookup.sku;
     if (!code) return;
-    if (bill.some((line) => line.code.toUpperCase() === code.toUpperCase())) {
-      setError('That item is already on this bill.');
-      return;
-    }
-    setBill((prev) => [
-      ...prev,
-      {
-        code,
-        productName: lookup.productName,
-        categoryName: lookup.categoryName,
-        storePrice: String(lookup.storePrice),
-        priceInput: salePriceInput.trim(),
-      },
-    ]);
+    const { bill: next, outcome } = addLine(bill, {
+      code,
+      productName: lookup.productName,
+      categoryName: lookup.categoryName,
+      storePrice: String(lookup.storePrice),
+      priceInput: salePriceInput.trim(),
+      // A barcoded piece is one physical saree; a quantity product can go on
+      // the same line more than once.
+      serialized: lookup.mode !== 'quantity',
+    });
+    setBill(next);
+    setScanNotice(
+      outcome === 'duplicate'
+        ? `${lookup.productName} is already on this bill.`
+        : outcome === 'quantity'
+          ? `${lookup.productName} — now ${findLine(next, code)?.quantity} on the bill.`
+          : ''
+    );
     // Clear the confirm card but stay in the 'result' phase so the bill —
     // and its Add More / Complete Sale actions — is what's on screen.
     setLookup(null);
@@ -388,10 +390,21 @@ export default function ScannerScreen({ navigation }: Props) {
   const handleBarcodeScanned = useCallback(
     (code: string) => {
       if (scannedLock || phase !== 'scanning') return;
+      // The tag just added is usually still under the camera when it
+      // re-arms. Reading it again is not a mistake worth stopping for: the
+      // camera stays live, says so, and waits for the next tag. (A product
+      // counted by quantity does go through, since scanning it again really
+      // does mean one more of them.)
+      const already = findLine(bill, code);
+      if (mode === 'sell' && already?.serialized) {
+        setScanNotice(`${already.productName} is already on this bill — scan the next tag.`);
+        return;
+      }
+      setScanNotice('');
       setScannedLock(true);
       handleCode(code);
     },
-    [scannedLock, phase, handleCode]
+    [scannedLock, phase, handleCode, bill, mode]
   );
 
   const handleManualSubmit = () => {
@@ -454,6 +467,10 @@ export default function ScannerScreen({ navigation }: Props) {
               />
             </View>
 
+            {scanNotice ? (
+              <Text style={styles.scanNotice} accessibilityLiveRegion="polite">{scanNotice}</Text>
+            ) : null}
+
             <View style={styles.manualPill}>
               <TextInput
                 style={styles.manualInput}
@@ -466,6 +483,19 @@ export default function ScannerScreen({ navigation }: Props) {
                 onSubmitEditing={handleManualSubmit}
               />
             </View>
+
+            {/* The bill does not disappear while staff are scanning the next
+                item — it stays here as a running strip, one tap from being
+                opened in full. */}
+            {mode === 'sell' && bill.length > 0 && (
+              <TouchableOpacity style={styles.billStrip} onPress={backToBill} activeOpacity={0.85}>
+                <Ionicons name="receipt-outline" size={18} color={colors.primary} />
+                <Text style={styles.billStripText}>
+                  Bill · {itemCount} item{itemCount === 1 ? '' : 's'} · ₹{billTotal.toLocaleString('en-IN')}
+                </Text>
+                <Text style={styles.billStripAction}>View bill</Text>
+              </TouchableOpacity>
+            )}
           </>
         )}
 
@@ -482,9 +512,22 @@ export default function ScannerScreen({ navigation }: Props) {
                 {errorCode === 'RESERVED_ONLINE' && role !== 'ADMIN' && (
                   <Text style={styles.helper}>Only the owner can override a reserved item.</Text>
                 )}
-                <TouchableOpacity style={styles.linkButton} onPress={reset}>
-                  <Text style={styles.linkButtonText}>Scan Again</Text>
-                </TouchableOpacity>
+                {/* With items already on the bill, the way out of an error is
+                    back to that bill — every line still on it. Starting over
+                    (which clears the bill) is only offered when there is
+                    nothing to lose. */}
+                {bill.length > 0 && !sellResult ? (
+                  <>
+                    <Button title="Back to Bill" variant="secondary" onPress={backToBill} style={styles.overrideButton} />
+                    <TouchableOpacity style={styles.linkButton} onPress={scanAnother}>
+                      <Text style={styles.linkButtonText}>Scan Another Item</Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <TouchableOpacity style={styles.linkButton} onPress={reset}>
+                    <Text style={styles.linkButtonText}>Scan Again</Text>
+                  </TouchableOpacity>
+                )}
               </Card>
             ) : sellResult ? (
               <View style={styles.soldPanel}>
@@ -599,7 +642,15 @@ export default function ScannerScreen({ navigation }: Props) {
                       Applies to this item on this bill only — the catalogue price never changes.
                     </Text>
 
-                    <Button title="Sell Now" onPress={addToBill} style={styles.markSoldButton} />
+                    <Button
+                      title={bill.length > 0 ? 'Add to Bill' : 'Sell Now'}
+                      onPress={addScannedToBill}
+                      style={styles.markSoldButton}
+                    />
+                    <Text style={styles.helper}>
+                      Goes onto the bill — scan more items if the customer is buying several, then complete
+                      the sale once for all of them.
+                    </Text>
                     <TouchableOpacity style={styles.whatsappButton} onPress={sellViaWhatsApp} activeOpacity={0.85}>
                       <Ionicons name="logo-whatsapp" size={18} color={colors.success} />
                       <Text style={styles.whatsappButtonText}>Just share this item on WhatsApp</Text>
@@ -611,8 +662,10 @@ export default function ScannerScreen({ navigation }: Props) {
                   <Text style={styles.helper}>No stock available to sell.</Text>
                 )}
 
-                <TouchableOpacity style={styles.linkButton} onPress={reset}>
-                  <Text style={styles.linkButtonText}>Scan Again</Text>
+                <TouchableOpacity style={styles.linkButton} onPress={bill.length > 0 ? backToBill : reset}>
+                  <Text style={styles.linkButtonText}>
+                    {bill.length > 0 ? 'Back to Bill' : 'Scan Again'}
+                  </Text>
                 </TouchableOpacity>
               </Card>
             ) : null}
@@ -622,15 +675,28 @@ export default function ScannerScreen({ navigation }: Props) {
             {mode === 'sell' && bill.length > 0 && !sellResult && (
               <Card style={styles.resultCard}>
                 <Text style={styles.billHeading}>
-                  Bill — {bill.length} item{bill.length === 1 ? '' : 's'}
+                  Bill — {itemCount} item{itemCount === 1 ? '' : 's'}
+                </Text>
+                {scanNotice ? <Text style={styles.scanNotice}>{scanNotice}</Text> : null}
+                <Text style={styles.helper}>
+                  Bargained? Type the agreed price against any item — each one can be changed on its own,
+                  and the catalogue price never changes.
                 </Text>
 
                 {bill.map((line) => (
                   <View key={line.code} style={styles.billLine}>
                     <View style={styles.billLineInfo}>
-                      <Text style={styles.billLineName} numberOfLines={2}>{line.productName}</Text>
-                      <Text style={styles.billLineMeta}>{line.code} · store ₹{line.storePrice}</Text>
+                      <Text style={styles.billLineName} numberOfLines={2}>
+                        {line.productName}
+                        {line.quantity > 1 ? ` × ${line.quantity}` : ''}
+                      </Text>
+                      <Text style={styles.billLineMeta}>
+                        {line.code} · store ₹{line.storePrice}
+                        {line.quantity > 1 ? ` · ₹${lineTotal(line).toLocaleString('en-IN')}` : ''}
+                      </Text>
                     </View>
+                    {/* Every item keeps its own price box, so a discount
+                        given on one saree stays on that saree. */}
                     <TextInput
                       style={styles.billLinePrice}
                       placeholder={line.storePrice}
@@ -638,8 +704,13 @@ export default function ScannerScreen({ navigation }: Props) {
                       keyboardType="numeric"
                       value={line.priceInput}
                       onChangeText={(v) => updateLinePrice(line.code, v)}
+                      accessibilityLabel={`Price for ${line.productName}`}
                     />
-                    <TouchableOpacity onPress={() => removeLine(line.code)} hitSlop={10}>
+                    <TouchableOpacity
+                      onPress={() => removeLine(line.code)}
+                      hitSlop={10}
+                      accessibilityLabel={`Remove ${line.productName} from the bill`}
+                    >
                       <Ionicons name="close-circle" size={20} color={colors.iconMuted} />
                     </TouchableOpacity>
                   </View>
@@ -750,6 +821,17 @@ export default function ScannerScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
   billHeading: { ...typography.bodySemibold, color: colors.text, marginBottom: spacing.sm },
+  scanNotice: {
+    ...typography.bodySm, color: colors.primary, marginTop: spacing.sm,
+    textAlign: 'center',
+  },
+  billStrip: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    marginTop: spacing.md, paddingVertical: spacing.md, paddingHorizontal: spacing.lg,
+    backgroundColor: colors.primaryBg, borderRadius: radius.lg,
+  },
+  billStripText: { ...typography.bodySmSemibold, color: colors.text, flex: 1 },
+  billStripAction: { ...typography.bodySmSemibold, color: colors.primary },
   billLine: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.divider,
