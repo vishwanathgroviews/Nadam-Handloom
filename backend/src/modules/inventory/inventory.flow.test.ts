@@ -683,6 +683,39 @@ describe('scan-to-lookup / scan-to-sell', () => {
     }
   });
 
+  // "n products on one bill" is the whole point of Add More: there is no
+  // small ceiling, and every line lands on the same invoice at the price it
+  // was actually sold for.
+  it('bills sixty scanned products as one order and one invoice, bargained prices included', async () => {
+    const staffToken = await createStaffToken('9400001111');
+    const { pieces, storePrice } = await seedSerializedProduct(60);
+
+    // Every third saree was haggled down; the rest go at the store price.
+    const items = pieces.map((piece, i) =>
+      i % 3 === 0 ? { code: piece.barcode, salePrice: 1000 } : { code: piece.barcode }
+    );
+    const expectedTotal = items.reduce((sum, item) => sum + (item.salePrice ?? storePrice), 0);
+
+    const res = await request(app)
+      .post('/api/v1/admin/inventory/scan-sell')
+      .set('Authorization', 'Bearer ' + staffToken)
+      .send({ channel: 'store', items });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.items).toHaveLength(60);
+    expect(res.body.data.total).toBe(expectedTotal);
+
+    const orders = fake.db.order.filter((o: any) => o.channel === 'store');
+    expect(orders).toHaveLength(1);
+    expect(fake.db.orderItem.filter((i: any) => i.orderId === orders[0].id)).toHaveLength(60);
+
+    const invoices = fake.db.invoice.filter((i: any) => i.orderId === orders[0].id);
+    expect(invoices).toHaveLength(1);
+    // The bargained prices are what the invoice totals, not the catalogue.
+    expect(Number(invoices[0].totalAmount)).toBe(expectedTotal);
+    expect(expectedTotal).toBeLessThan(storePrice * 60);
+  });
+
   // A bill can mix a barcoded saree with several of a product counted by
   // quantity — the app sends one line per code, with how many of it.
   it('sells a mixed bill of pieces and quantities as one order with one invoice', async () => {

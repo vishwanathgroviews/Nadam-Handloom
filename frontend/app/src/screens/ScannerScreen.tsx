@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -132,6 +132,11 @@ export default function ScannerScreen({ navigation }: Props) {
   // Said quietly under the camera — "that tag is already on the bill" is
   // something to know, not a failure that should clear anything away.
   const [scanNotice, setScanNotice] = useState('');
+  // "Add More" put the camera back on screen but left the page scrolled
+  // where the bill had been, so staff were looking at empty space below a
+  // camera they could not see and nothing seemed to happen. Every step of
+  // the sale now starts at the top of the screen.
+  const scrollRef = useRef<ScrollView>(null);
 
   const reset = useCallback(() => {
     setPhase('scanning');
@@ -193,6 +198,10 @@ export default function ScannerScreen({ navigation }: Props) {
       setCustomer((prev) => ({ ...prev, [field]: value })),
     []
   );
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [phase, bill.length]);
 
   const runLookup = useCallback(
     async (code: string) => {
@@ -439,6 +448,7 @@ export default function ScannerScreen({ navigation }: Props) {
   return (
     <KeyboardAwareScreen style={styles.screen}>
       <ScrollView
+        ref={scrollRef}
         style={styles.container}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + spacing.xl }]}
         showsVerticalScrollIndicator={false}
@@ -683,6 +693,11 @@ export default function ScannerScreen({ navigation }: Props) {
                   and the catalogue price never changes.
                 </Text>
 
+                <View style={styles.billColumns}>
+                  <Text style={styles.billColumnLabel}>Item</Text>
+                  <Text style={styles.billColumnPrice}>Price ₹</Text>
+                </View>
+
                 {bill.map((line) => (
                   <View key={line.code} style={styles.billLine}>
                     <View style={styles.billLineInfo}>
@@ -715,6 +730,13 @@ export default function ScannerScreen({ navigation }: Props) {
                     </TouchableOpacity>
                   </View>
                 ))}
+
+                {/* Straight after the items, where staff look for it —
+                    there is no limit on how many products one bill holds. */}
+                <TouchableOpacity style={styles.addMoreButton} onPress={scanAnother} activeOpacity={0.85}>
+                  <Ionicons name="add-circle-outline" size={18} color={colors.primary} />
+                  <Text style={styles.addMoreText}>Add More Items</Text>
+                </TouchableOpacity>
 
                 {/* Receipt-style dashed rule closing off the item list, the
                     way the printed bill does — a dashed border rather than a
@@ -802,10 +824,6 @@ export default function ScannerScreen({ navigation }: Props) {
                   onPress={completeSale}
                   style={styles.markSoldButton}
                 />
-                <TouchableOpacity style={styles.addMoreButton} onPress={scanAnother} activeOpacity={0.85}>
-                  <Ionicons name="add-circle-outline" size={18} color={colors.primary} />
-                  <Text style={styles.addMoreText}>Add More</Text>
-                </TouchableOpacity>
                 <Text style={styles.helper}>
                   One order number and one invoice for everything on this bill.
                 </Text>
@@ -832,6 +850,9 @@ const styles = StyleSheet.create({
   },
   billStripText: { ...typography.bodySmSemibold, color: colors.text, flex: 1 },
   billStripAction: { ...typography.bodySmSemibold, color: colors.primary },
+  billColumns: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md },
+  billColumnLabel: { ...typography.micro, color: colors.textMuted, flex: 1 },
+  billColumnPrice: { ...typography.micro, color: colors.textMuted, width: 86, textAlign: 'center' },
   billLine: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.divider,

@@ -36,7 +36,10 @@ export const scanSellSchema = z
   .object({
     // The canonical form: one sale, any number of scanned lines, one order
     // and one invoice at the end.
-    items: z.array(scanSellItemSchema).min(1, 'Add at least one product').max(50).optional(),
+    // No practical ceiling on how many products one customer buys — the cap
+    // is only here so a malformed request cannot ask the server to claim an
+    // unbounded number of pieces in one transaction.
+    items: z.array(scanSellItemSchema).min(1, 'Add at least one product').max(200).optional(),
     // Single-line shorthand, normalised into `items` below so the service
     // only ever deals with one shape.
     code: z.string().trim().min(1).optional(),
