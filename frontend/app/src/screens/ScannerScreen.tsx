@@ -536,9 +536,6 @@ export default function ScannerScreen({ navigation }: Props) {
                 <Ionicons name="add" size={22} color="#fff" />
               </TouchableOpacity>
             </View>
-            <Text style={styles.manualHint}>
-              NANDAM3136, just 3136, or a scan — all find the same product.
-            </Text>
 
             {/* The bill does not disappear while staff are scanning the next
                 item — it stays here as a running strip, one tap from being
@@ -715,25 +712,39 @@ export default function ScannerScreen({ navigation }: Props) {
                   catalogue price never changes.
                 </Text>
 
-                <View style={styles.billColumns}>
-                  <Text style={styles.billColumnLabel}>Item</Text>
-                  <Text style={styles.billColumnPrice}>Selling price ₹</Text>
-                </View>
 
                 {bill.map((line) => (
                   <View key={line.code} style={styles.billLine}>
-                    <View style={styles.billLineInfo}>
-                      <Text style={styles.billLineName} numberOfLines={2}>
-                        {line.productName}
-                        {line.quantity > 1 ? ` × ${line.quantity}` : ''}
-                      </Text>
-                      <Text style={styles.billLineMeta}>
-                        {line.code} · store ₹{line.storePrice}
-                        {line.quantity > 1 ? ` · ₹${lineTotal(line).toLocaleString('en-IN')}` : ''}
-                      </Text>
+                    <View style={styles.billLineTop}>
+                      <View style={styles.billLineInfo}>
+                        <Text style={styles.billLineName} numberOfLines={2}>
+                          {line.productName}
+                          {line.quantity > 1 ? ` × ${line.quantity}` : ''}
+                        </Text>
+                        <Text style={styles.billLineMeta}>
+                          {line.code} · store ₹{line.storePrice}
+                          {line.quantity > 1 ? ` · ₹${lineTotal(line).toLocaleString('en-IN')}` : ''}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => shareLineOnWhatsApp(line)}
+                        hitSlop={8}
+                        accessibilityLabel={`Share ${line.productName} on WhatsApp`}
+                      >
+                        <Ionicons name="logo-whatsapp" size={19} color={colors.success} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => removeLine(line.code)}
+                        hitSlop={10}
+                        accessibilityLabel={`Remove ${line.productName} from the bill`}
+                      >
+                        <Ionicons name="close-circle" size={20} color={colors.iconMuted} />
+                      </TouchableOpacity>
                     </View>
                     {/* Every item keeps its own price box, so a discount
-                        given on one saree stays on that saree. */}
+                        given on one saree stays on that saree. Full width
+                        under the item, so it is easy to tap and read. */}
+                    <Text style={styles.billLinePriceLabel}>Selling price ₹</Text>
                     <TextInput
                       style={styles.billLinePrice}
                       placeholder={line.storePrice}
@@ -743,20 +754,6 @@ export default function ScannerScreen({ navigation }: Props) {
                       onChangeText={(v) => updateLinePrice(line.code, v)}
                       accessibilityLabel={`Price for ${line.productName}`}
                     />
-                    <TouchableOpacity
-                      onPress={() => shareLineOnWhatsApp(line)}
-                      hitSlop={8}
-                      accessibilityLabel={`Share ${line.productName} on WhatsApp`}
-                    >
-                      <Ionicons name="logo-whatsapp" size={19} color={colors.success} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => removeLine(line.code)}
-                      hitSlop={10}
-                      accessibilityLabel={`Remove ${line.productName} from the bill`}
-                    >
-                      <Ionicons name="close-circle" size={20} color={colors.iconMuted} />
-                    </TouchableOpacity>
                   </View>
                 ))}
 
@@ -905,19 +902,18 @@ const styles = StyleSheet.create({
   },
   billStripText: { ...typography.bodySmSemibold, color: colors.text, flex: 1 },
   billStripAction: { ...typography.bodySmSemibold, color: colors.primary },
-  billColumns: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md },
-  billColumnLabel: { ...typography.micro, color: colors.textMuted, flex: 1 },
-  billColumnPrice: { ...typography.micro, color: colors.textMuted, textAlign: 'right', marginRight: 58 },
   billLine: {
-    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
-    paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.divider,
+    paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.divider,
   },
+  billLineTop: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   billLineInfo: { flex: 1, minWidth: 0 },
   billLineName: { ...typography.bodySm, color: colors.text },
   billLineMeta: { ...typography.bodySm, fontSize: 11, color: colors.textMuted, marginTop: 2 },
+  billLinePriceLabel: { ...typography.bodySm, color: colors.textMuted, marginTop: spacing.sm, marginBottom: spacing.xs },
   billLinePrice: {
-    width: 84, textAlign: 'right', backgroundColor: colors.inputBg, borderRadius: radius.md,
-    paddingHorizontal: spacing.sm, paddingVertical: spacing.sm, ...typography.bodySm, color: colors.text,
+    alignSelf: 'stretch', minHeight: 48, backgroundColor: colors.inputBg, borderRadius: radius.md,
+    paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
+    ...typography.body, fontSize: 17, color: colors.text,
   },
   requiredMark: { color: colors.error },
   fieldError: { ...typography.bodySm, color: colors.error, marginTop: spacing.sm },
@@ -958,7 +954,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', marginLeft: spacing.sm,
   },
   manualAddButtonDisabled: { opacity: 0.35 },
-  manualHint: { ...typography.bodySm, color: colors.textMuted, marginTop: spacing.sm, textAlign: 'center' },
   resultCard: { marginTop: spacing.sm },
   skuLine: { ...typography.caption, color: colors.textLabel },
   productName: { ...typography.amount, color: colors.text, marginTop: spacing.sm },
