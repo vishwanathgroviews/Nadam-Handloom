@@ -26,7 +26,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#5C1420"
-      }
+      },
+      "versionCode": 18
     },
     "plugins": [
       [
@@ -64,12 +65,13 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "3f1e6196-d244-4e12-9993-ca68992aa9b6"
+        "projectId": "d589c987-90a9-4369-b777-84e2e8fc6b44"
       }
     },
     "icon": "./assets/icon.png",
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "owner": "siddartha78"
   }
 }

@@ -1,7 +1,7 @@
 {
   "cli": {
     "version": ">= 23.2.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "local"
   },
   "build": {
     "development": {
@@ -12,13 +12,13 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true,
       "android": {
         "buildType": "apk"
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.nandamhandlooms.com"
-      }
+      },
+      "credentialsSource": "local"
     }
   },
   "submit": {
