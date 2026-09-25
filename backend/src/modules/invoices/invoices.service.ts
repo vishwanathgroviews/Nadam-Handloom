@@ -20,9 +20,13 @@ const resolveRange = (from?: Date, to?: Date): { start: Date; end: Date } => {
 // Online, in-store and WhatsApp alike — the monthly/custom-range summary is
 // the business's single complete sales document, so it must never silently
 // omit a channel. See utils/orderChannels.ts for the per-channel rules.
-const paidOrdersInRange = (start: Date, end: Date, channel: ChannelFilter = 'all') =>
+//
+// It is a summary of what was *invoiced*, though: a sale staff marked
+// "Invoice not required" has no invoice and is left out here (it still
+// counts everywhere else, analytics included).
+const invoicedOrdersInRange = (start: Date, end: Date, channel: ChannelFilter = 'all') =>
   prisma.order.findMany({
-    where: { placedAt: { gte: start, lte: end }, OR: paidOrderWhereClauses(channel) },
+    where: { placedAt: { gte: start, lte: end }, invoiceRequired: true, OR: paidOrderWhereClauses(channel) },
     include: { items: true },
     orderBy: { placedAt: 'asc' },
   });
@@ -41,8 +45,14 @@ export const generateInvoiceForOrder = async (orderId: string, actorId: string) 
     throw new AppError('Invoice storage is not configured yet. Please contact support.', 503, 'STORAGE_NOT_CONFIGURED');
   }
 
-  const order = await prisma.order.findUnique({ where: { id: orderId }, include: { items: true, address: true } });
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: { include: { piece: { select: { barcode: true } } } }, address: true },
+  });
   if (!order) throw new NotFoundError('Order not found');
+  if (order.invoiceRequired === false) {
+    throw new BadRequestError('This sale was recorded without an invoice');
+  }
 
   const address = order.shippingAddress as { fullName?: string; phone?: string } | null;
   const customerName = order.address?.fullName ?? address?.fullName ?? null;
@@ -50,6 +60,9 @@ export const generateInvoiceForOrder = async (orderId: string, actorId: string) 
 
   const lines: InvoiceLine[] = order.items.map((item) => ({
     name: item.nameSnapshot,
+    // The tag on the exact piece sold. A legacy quantity-counted line has no
+    // piece, so it has no barcode to print.
+    barcode: item.piece?.barcode ?? null,
     quantity: item.quantity,
     unitPrice: Number(item.priceSnapshot),
     subtotal: Number(item.priceSnapshot) * item.quantity,
@@ -75,6 +88,7 @@ export const generateInvoiceForOrder = async (orderId: string, actorId: string) 
   const pdf = await renderInvoicePdf({
     documentTitle: 'Invoice',
     documentNumber: invoiceNumber,
+    showBarcode: true,
     dateLabel: formatDate(order.placedAt),
     customerName,
     customerMobile,
@@ -161,7 +175,7 @@ export const getInvoiceByOrderId = async (orderId: string, authAccountId: string
  */
 export const generateSalesReportPdf = async (query: { from?: Date; to?: Date; channel?: ChannelFilter }): Promise<Buffer> => {
   const { start, end } = resolveRange(query.from, query.to);
-  const orders = await paidOrdersInRange(start, end, query.channel ?? 'all');
+  const orders = await invoicedOrdersInRange(start, end, query.channel ?? 'all');
 
   const byProduct = new Map<string, { name: string; quantity: number; revenue: number }>();
   for (const order of orders) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderCatalogPdf } from './catalog-pdf.service';
+import { catalogIdFor, renderCatalogPdf } from './catalog-pdf.service';
 
 // A real (tiny) PNG, so the image embed succeeds and the page composes the
 // way it does in production rather than falling into the error path.
@@ -39,6 +39,14 @@ describe('catalog PDF page content', () => {
     expect(text).not.toMatch(/mrp/i);
     // The name used to be repeated again under the photo.
     expect(text.match(/HANDLOOM PATTU SAREE/g)).toHaveLength(1);
+  });
+
+  it('prints only the number from the tag as the product ID', async () => {
+    const text = await textOf(
+      await renderCatalogPdf([{ name: 'Pattu Saree', imageBuffer: PNG, productId: catalogIdFor('NANDAM3136') }])
+    );
+    expect(text).toContain('ID: 3136');
+    expect(text).not.toMatch(/nandam/i);
   });
 
   it('gives every item its own page', async () => {

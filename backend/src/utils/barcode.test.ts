@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { barcodeCandidates, expandUpcE, normalizeBarcode } from './barcode';
+import { barcodeCandidates, barcodeNumber, expandUpcE, normalizeBarcode } from './barcode';
 
 describe('normalizeBarcode', () => {
   it('uppercases and strips surrounding whitespace', () => {
@@ -76,5 +76,18 @@ describe('barcodeCandidates', () => {
 
   it('returns nothing for an empty code', () => {
     expect(barcodeCandidates('   ')).toEqual([]);
+  });
+});
+
+describe('barcodeNumber', () => {
+  it('returns the digits after the letter prefix', () => {
+    expect(barcodeNumber('NANDAM3136')).toBe('3136');
+    expect(barcodeNumber('nandam 3136')).toBe('3136');
+  });
+
+  it('is null for codes without a letter prefix and number', () => {
+    expect(barcodeNumber('3136')).toBeNull();
+    expect(barcodeNumber('NH-HPS-001')).toBeNull();
+    expect(barcodeNumber('NANDAM')).toBeNull();
   });
 });

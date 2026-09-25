@@ -55,6 +55,7 @@ const EVENTS: Record<string, EventSpec> = {
   // Products
   product_created: { title: 'Product added', icon: 'add-circle-outline', tone: 'catalog' },
   product_updated: { title: 'Product details changed', icon: 'create-outline', tone: 'catalog' },
+  product_deleted: { title: 'Product deleted', icon: 'trash-outline', tone: 'security' },
   product_image_updated: { title: 'Product photo changed', icon: 'image-outline', tone: 'catalog' },
 
   // Categories
@@ -142,6 +143,14 @@ export const describeAuditEntry = (entry: AuditLogEntry): AuditDescription => {
     case 'session_revoked_by_admin':
       pushIf(details, 'Person', entry.subject?.name ?? null);
       break;
+    case 'product_deleted': {
+      // The product row may be gone for good, so name it from the event itself.
+      if (!ctx.productName) pushIf(details, 'Product', [text(meta.name), text(meta.sku)].filter(Boolean).join(' · ') || null);
+      const codes = Array.isArray(meta.barcodes) ? meta.barcodes.filter(Boolean) : [];
+      if (codes.length) pushIf(details, 'Barcodes', codes.join(', '));
+      if (meta.archived) pushIf(details, 'Sales history', 'Kept — past orders and invoices are unchanged');
+      break;
+    }
     case 'subcategory_deleted': {
       const removed = Array.isArray(meta.productsDeleted) ? meta.productsDeleted.length : 0;
       if (removed) pushIf(details, 'Products removed', String(removed));

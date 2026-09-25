@@ -68,6 +68,7 @@ const RELATIONS: Record<string, Record<string, RelationDef>> = {
   orderItem: {
     product: { kind: 'belongsTo', table: 'product', fk: 'productId' },
     order: { kind: 'belongsTo', table: 'order', fk: 'orderId' },
+    piece: { kind: 'belongsTo', table: 'piece', fk: 'pieceId' },
   },
   order: {
     items: { kind: 'hasMany', table: 'orderItem', fk: 'orderId' },
@@ -143,10 +144,11 @@ const SCHEMA_DEFAULTS: Record<string, Row> = {
     occasion: [],
     channelVisibility: 'both',
     trackingMode: 'quantity',
+    deletedAt: null,
   },
   productImage: { sortOrder: 0 },
   address: { country: 'India', isDefault: false },
-  order: { status: 'pending_payment', channel: 'online', placedAt: () => new Date() },
+  order: { status: 'pending_payment', channel: 'online', invoiceRequired: true, placedAt: () => new Date() },
   payment: { provider: 'razorpay', status: 'created' },
   shipment: { carrier: 'DTDC', status: 'not_shipped' },
   piece: { status: 'in_stock' },
@@ -204,7 +206,11 @@ function matchesWhere(row: Row, where: Row | undefined, modelName?: string, db?:
     // A field never written and one explicitly set to null are the same "no value"
     // state in Postgres/Prisma — a fake row that simply omitted the field (e.g. a
     // nullable column with no @default) must still match `where: { field: null }`.
-    const value = row[key] ?? null;
+    // Rows seeded straight into the fake (bypassing create) never received the
+    // schema defaults either — a real database would still hold the default
+    // for such a column, so compare against that.
+    const schemaDefault = modelName ? SCHEMA_DEFAULTS[modelName]?.[key] : undefined;
+    const value = row[key] ?? (schemaDefault !== undefined && typeof schemaDefault !== 'function' ? schemaDefault : null);
     if (condition && typeof condition === 'object' && !(condition instanceof Date)) {
       const c = condition as any;
       if ('gt' in c && !(value > c.gt)) return false;
@@ -218,6 +224,9 @@ function matchesWhere(row: Row, where: Row | undefined, modelName?: string, db?:
         const needle = c.mode === 'insensitive' ? String(c.contains).toLowerCase() : String(c.contains);
         if (!haystack.includes(needle)) return false;
       }
+      if ('endsWith' in c && !String(value ?? '').endsWith(String(c.endsWith))) return false;
+      if ('startsWith' in c && !String(value ?? '').startsWith(String(c.startsWith))) return false;
+      if ('not' in c && c.not === null && value === null) return false;
       if ('has' in c && !(Array.isArray(value) && value.includes(c.has))) return false;
       if ('hasSome' in c && !(Array.isArray(value) && c.hasSome.some((v: any) => value.includes(v)))) return false;
     } else if (value !== condition) {
@@ -243,6 +252,9 @@ function resolveInclude(row: Row, modelName: string, include: Record<string, any
       row[key] = child ? (nestedInclude ? resolveInclude(clone(child), relation.table, nestedInclude, db) : clone(child)) : null;
     } else {
       let children = (db[relation.table] ?? []).filter((r) => r[relation.fk] === row.id);
+      if (subInclude && typeof subInclude === 'object' && subInclude.where) {
+        children = children.filter((child) => matchesWhere(child, subInclude.where, relation.table, db));
+      }
       if (subInclude && typeof subInclude === 'object' && subInclude.orderBy) {
         children = sortRows(children, subInclude.orderBy);
       }

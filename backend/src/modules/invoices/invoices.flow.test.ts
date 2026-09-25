@@ -199,6 +199,28 @@ describe('invoices — list, detail, report', () => {
     expect(res.status).toBe(400);
   });
 
+  it('leaves a sale recorded without an invoice out of the report', async () => {
+    const staffToken = await createStaffToken('9400000008');
+    const within = new Date();
+    seedPaidOrder({ channel: 'store', invoiceRequired: false, placedAt: within }, [
+      { nameSnapshot: 'No Invoice Saree', priceSnapshot: 3000, quantity: 1 },
+    ]);
+
+    const res = await request(app)
+      .post('/api/v1/admin/invoices/report')
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ from: new Date(within.getFullYear(), 0, 1).toISOString(), to: new Date(within.getFullYear(), 11, 31).toISOString() });
+
+    // It was the only sale in range, so there is nothing to summarise.
+    expect(res.status).toBe(400);
+  });
+
+  it('never generates an invoice for a sale recorded without one', async () => {
+    const order = seedPaidOrder({ channel: 'store', invoiceRequired: false });
+    await expect(generateInvoiceForOrder(order.id, 'test-actor')).rejects.toThrow(/without an invoice/);
+    expect(fake.db.invoice).toHaveLength(0);
+  });
+
   it('filters the invoice list down to WhatsApp sales', async () => {
     const staffToken = await createStaffToken('9400000007');
     const whatsappOrder = seedPaidOrder({ channel: 'whatsapp', status: 'processing' });

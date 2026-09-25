@@ -79,7 +79,10 @@ export default function BarcodeScanModal({
       setProcessing(true);
       setError('');
       try {
-        const res = await scanLookup(accessToken, data);
+        // When "not found" leads to creating a product with this code, only
+        // the exact code counts — a new all-digit tag must not open some other
+        // tag that happens to carry the same number.
+        const res = await scanLookup(accessToken, data, { exact: Boolean(onNotFound) });
         onFound?.(res.data);
       } catch (err: any) {
         if (onNotFound) {

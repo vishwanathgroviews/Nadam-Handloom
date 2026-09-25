@@ -297,6 +297,13 @@ model Product {
   isFeatured Boolean @default(false)
   isActive   Boolean @default(true)
 
+  // Set when staff delete a product that already has sales history. Such a
+  // product can't be removed outright — its order lines and invoices point at
+  // it — so it is archived instead: hidden from every list, lookup and sale,
+  // while past orders, invoices and analytics stay intact. A product with no
+  // sales history is deleted for real and never gets this.
+  deletedAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -454,6 +461,12 @@ model Order {
   // its line items, so there is no separate fee column to carry.
   total           Decimal @db.Decimal(10, 2)
   shippingAddress Json
+  // Staff choose per counter/WhatsApp sale whether the customer wants a GST
+  // invoice. false = the sale is recorded in full (order, lines, stock,
+  // analytics) but no Invoice row is ever generated for it, so it never
+  // appears in the invoice list or the sales-summary PDF. Online orders
+  // always get one.
+  invoiceRequired Boolean @default(true)
 
   placedAt  DateTime @default(now())
   updatedAt DateTime @updatedAt

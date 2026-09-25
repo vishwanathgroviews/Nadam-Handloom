@@ -13,6 +13,8 @@ const FOOTER_RESERVE = 150; // room for the GST summary + total block on the las
 
 export interface InvoiceLine {
   name: string;
+  /** The piece's tag, printed on a customer invoice. Not used by the sales summary. */
+  barcode?: string | null;
   quantity: number;
   unitPrice: number;
   subtotal: number;
@@ -21,6 +23,8 @@ export interface InvoiceLine {
 export interface InvoiceRenderInput {
   documentTitle: string; // "Invoice" or "Sales Summary"
   documentNumber: string; // invoice number, or a period label for reports
+  /** Adds a Barcode column — on for an invoice, off for the per-product sales summary. */
+  showBarcode?: boolean;
   dateLabel: string;
   customerName?: string | null;
   customerMobile?: string | null;
@@ -61,18 +65,34 @@ const drawLetterhead = (doc: PDFKit.PDFDocument, logoBuffer: Buffer | null): num
 };
 
 // A serial number per line, as a GST invoice is expected to carry.
-const COL = {
+interface Column { x: number; width: number }
+interface Columns { sr: Column; name: Column; barcode: Column | null; qty: Column; price: Column; subtotal: Column }
+
+const PLAIN_COLUMNS: Columns = {
   sr: { x: MARGIN, width: 28 },
   name: { x: MARGIN + 28, width: 222 },
+  barcode: null,
   qty: { x: MARGIN + 250, width: 50 },
   price: { x: MARGIN + 300, width: 100 },
   subtotal: { x: MARGIN + 400, width: USABLE_WIDTH - 400 },
 };
 
-const drawTableHeader = (doc: PDFKit.PDFDocument, y: number): number => {
+// The product column gives up room for the barcode; Qty/Price/Subtotal keep
+// the same right edge so the totals block below still lines up with them.
+const BARCODE_COLUMNS: Columns = {
+  sr: { x: MARGIN, width: 28 },
+  name: { x: MARGIN + 28, width: 142 },
+  barcode: { x: MARGIN + 174, width: 96 },
+  qty: { x: MARGIN + 270, width: 34 },
+  price: { x: MARGIN + 304, width: 96 },
+  subtotal: { x: MARGIN + 400, width: USABLE_WIDTH - 400 },
+};
+
+const drawTableHeader = (doc: PDFKit.PDFDocument, y: number, COL: Columns): number => {
   doc.fontSize(9).font('Helvetica-Bold').fillColor('#000000');
   doc.text('#', COL.sr.x, y, { width: COL.sr.width });
   doc.text('Product', COL.name.x, y, { width: COL.name.width });
+  if (COL.barcode) doc.text('Barcode', COL.barcode.x, y, { width: COL.barcode.width });
   doc.text('Qty', COL.qty.x, y, { width: COL.qty.width, align: 'right' });
   doc.text('Price', COL.price.x, y, { width: COL.price.width, align: 'right' });
   doc.text('Subtotal', COL.subtotal.x, y, { width: COL.subtotal.width, align: 'right' });
@@ -91,6 +111,7 @@ export const renderInvoicePdf = async (input: InvoiceRenderInput): Promise<Buffe
 
   const logoBuffer = await getLogoBuffer();
 
+  const COL = input.showBarcode ? BARCODE_COLUMNS : PLAIN_COLUMNS;
   let y = drawLetterhead(doc, logoBuffer);
 
   doc.fontSize(13).font('Helvetica-Bold').fillColor('#000000').text(input.documentTitle, MARGIN, y);
@@ -112,7 +133,7 @@ export const renderInvoicePdf = async (input: InvoiceRenderInput): Promise<Buffe
   }
   y += 6;
 
-  y = drawTableHeader(doc, y);
+  y = drawTableHeader(doc, y, COL);
 
   let serial = 0;
   for (const line of input.lines) {
@@ -120,7 +141,7 @@ export const renderInvoicePdf = async (input: InvoiceRenderInput): Promise<Buffe
     if (y + ROW_HEIGHT > PAGE_HEIGHT - MARGIN - FOOTER_RESERVE) {
       doc.addPage();
       y = drawLetterhead(doc, logoBuffer);
-      y = drawTableHeader(doc, y);
+      y = drawTableHeader(doc, y, COL);
     }
 
     // Price and Subtotal are both GST-exclusive here, so Subtotal = Price x
@@ -136,6 +157,9 @@ export const renderInvoicePdf = async (input: InvoiceRenderInput): Promise<Buffe
     // of wrapping onto a second line, which would overlap the row below at
     // this fixed ROW_HEIGHT.
     doc.text(line.name, COL.name.x, y, { width: COL.name.width, height: ROW_HEIGHT, ellipsis: true });
+    if (COL.barcode) {
+      doc.text(line.barcode || '-', COL.barcode.x, y, { width: COL.barcode.width, height: ROW_HEIGHT, ellipsis: true });
+    }
     doc.text(String(line.quantity), COL.qty.x, y, { width: COL.qty.width, align: 'right' });
     doc.text(money(priceExGst), COL.price.x, y, { width: COL.price.width, align: 'right' });
     doc.text(money(subtotalExGst), COL.subtotal.x, y, { width: COL.subtotal.width, align: 'right' });

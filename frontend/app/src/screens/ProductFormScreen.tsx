@@ -23,6 +23,7 @@ import {
   createProduct,
   updateProduct,
   uploadProductImage,
+  deleteProduct,
   AdminCategory,
   AdminSubcategory,
   ChannelVisibility,
@@ -42,6 +43,7 @@ import {
   saveRecentPicks,
 } from '../utils/recentPicks';
 import PhotoSourceSheet from '../components/PhotoSourceSheet';
+import ImageEditorModal from '../components/ImageEditorModal';
 import BarcodeScanModal from '../components/BarcodeScanModal';
 import { useDialog } from '../components/DialogProvider';
 import { goToTab } from '../navigation/tabs';
@@ -98,7 +100,11 @@ export default function ProductFormScreen({ route, navigation }: Props) {
   const [pieces, setPieces] = useState<Piece[]>([]);
   const [loadingPieces, setLoadingPieces] = useState(false);
   const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
+  // A photo just taken or picked, open in the crop & rotate editor before it
+  // is staged for upload.
+  const [editingPhotoUri, setEditingPhotoUri] = useState<string | null>(null);
   const [isFeatured, setIsFeatured] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Lets staff scan/type this product's first unit(s) while still creating
   // it, instead of forcing a separate "Scan Barcode" trip right afterward —
@@ -265,7 +271,9 @@ export default function ProductFormScreen({ route, navigation }: Props) {
       }
       setCheckingBarcode(true);
       try {
-        const res = await scanLookup(accessToken, code);
+        // Exact: a new tag typed as "3136" must not be reported as taken just
+        // because another tag's number happens to be 3136.
+        const res = await scanLookup(accessToken, code, { exact: true });
         // Genuinely already assigned elsewhere — release the speculative claim.
         pendingBarcodesClaims.release(code);
         setBarcodeStatus(`Barcode already used — on "${res.data.productName}" (${res.data.status})`);
@@ -445,8 +453,8 @@ export default function ProductFormScreen({ route, navigation }: Props) {
       quality: 1,
     });
     if (result.canceled || !result.assets?.[0]) return;
-    await processPickedPhoto(result.assets[0].uri);
-  }, [processPickedPhoto]);
+    setEditingPhotoUri(result.assets[0].uri);
+  }, []);
 
   const handleTakePhoto = useCallback(async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -459,10 +467,56 @@ export default function ProductFormScreen({ route, navigation }: Props) {
       quality: 1,
     });
     if (result.canceled || !result.assets?.[0]) return;
-    await processPickedPhoto(result.assets[0].uri);
-  }, [processPickedPhoto]);
+    setEditingPhotoUri(result.assets[0].uri);
+  }, []);
 
   const handlePickImage = useCallback(() => setPhotoSheetVisible(true), []);
+
+  const handleEditedPhoto = useCallback(
+    async (uri: string) => {
+      setEditingPhotoUri(null);
+      try {
+        await processPickedPhoto(uri);
+      } catch (err: any) {
+        setError(err?.message || 'Could not use this photo');
+      }
+    },
+    [processPickedPhoto]
+  );
+
+  // Owner and staff alike. The server archives a product that has been
+  // sold (so past orders and invoices stay whole) and removes an unsold one
+  // outright — either way it is gone from the app.
+  const handleDelete = useCallback(() => {
+    if (!accessToken || !productId) return;
+    showDialog({
+      title: `Delete "${productName || 'this product'}"?`,
+      message:
+        'It is removed from the app and the website, and its barcode can no longer be scanned or sold. Past sales, invoices and analytics are not affected. You cannot undo this.',
+      tone: 'danger',
+      dismissOnBackdrop: false,
+      actions: [
+        {
+          label: 'Delete',
+          variant: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            setError('');
+            try {
+              const res = await deleteProduct(accessToken, productId);
+              showDialog({ title: 'Product deleted', message: `"${res.data.name}" was removed.`, tone: 'success' });
+              navigation.goBack();
+            } catch (err: any) {
+              setError(err.message || 'Could not delete. Please try again.');
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+        { label: 'Cancel', variant: 'secondary' },
+      ],
+    });
+  }, [accessToken, productId, productName, navigation, showDialog]);
 
   if (loading) {
     return (
@@ -686,6 +740,24 @@ export default function ProductFormScreen({ route, navigation }: Props) {
         style={styles.saveButton}
       />
 
+      {isEdit && productId ? (
+        <Button
+          title="Delete Product"
+          variant="destructive"
+          onPress={handleDelete}
+          loading={deleting}
+          disabled={saving || deleting}
+          style={styles.deleteButton}
+        />
+      ) : null}
+
+      <ImageEditorModal
+        visible={Boolean(editingPhotoUri)}
+        uri={editingPhotoUri}
+        onCancel={() => setEditingPhotoUri(null)}
+        onDone={handleEditedPhoto}
+      />
+
       <PhotoSourceSheet
         visible={photoSheetVisible}
         onTakePhoto={() => {
@@ -794,6 +866,7 @@ const styles = StyleSheet.create({
   required: { color: colors.error },
 
   saveButton: { marginTop: spacing.md },
+  deleteButton: { marginTop: spacing.md },
   error: {
     color: colors.error,
     backgroundColor: colors.errorBg,

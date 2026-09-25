@@ -296,5 +296,22 @@ export const deleteSubcategory = (token: string, subcategoryId: string) =>
     token,
   });
 
+export interface DeleteProductResult {
+  id: string;
+  name: string;
+  /**
+   * true when the product had sales history: it is gone from the app but
+   * kept behind the scenes so past orders, invoices and analytics stay whole.
+   */
+  archived: boolean;
+}
+
+/** Owner and staff alike. Refuses (409) only while an online checkout holds the product. */
+export const deleteProduct = (token: string, productId: string) =>
+  apiRequest<{ data: DeleteProductResult }>(`/admin/products/${productId}`, {
+    method: 'DELETE',
+    token,
+  });
+
 export const uploadSubcategoryImage = (token: string, subcategoryId: string, image: UploadImageInput) =>
   uploadImage<AdminSubcategory>(`/admin/subcategories/${subcategoryId}/image`, token, image);

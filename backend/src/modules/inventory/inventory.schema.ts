@@ -2,6 +2,10 @@ import { z } from 'zod';
 
 export const scanLookupSchema = z.object({
   code: z.string().trim().min(1, 'Scan or enter a code'),
+  // true = match this exact code only (checking a code is free before
+  // assigning it). Otherwise the number on a tag ("3136") also finds the
+  // tag ("NANDAM3136") — see inventory.service.ts's scanLookup.
+  exact: z.boolean().optional(),
 });
 
 // A WhatsApp sale is a remote order that still has to be packed and
@@ -58,6 +62,13 @@ export const scanSellSchema = z
       error: 'Choose where this sale is happening: Offline Store or Through WhatsApp',
     }),
     customer: whatsappCustomerSchema.optional(),
+    // Required, with no default, for the same reason as `channel`: staff must
+    // say on every sale whether the customer wants an invoice. false still
+    // records the whole sale — it just never gets an invoice, so it stays
+    // out of the invoice list and the sales-summary PDF.
+    invoiceRequired: z.boolean({
+      error: 'Choose whether this sale needs an invoice: Invoice Required or Invoice Not Required',
+    }),
   })
   .refine((data) => (data.items && data.items.length > 0) || data.code, {
     message: 'Scan or enter at least one product',
@@ -70,6 +81,7 @@ export const scanSellSchema = z
   .transform((data) => ({
     channel: data.channel,
     customer: data.customer,
+    invoiceRequired: data.invoiceRequired,
     items:
       data.items && data.items.length > 0
         ? data.items

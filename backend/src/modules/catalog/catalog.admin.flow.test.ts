@@ -723,3 +723,63 @@ describe('subcategory list paging and search', () => {
     expect(res.body.data.items.every((s: any) => s.name.startsWith('Pattu'))).toBe(true);
   });
 });
+
+describe('catalog admin — deleting a product', () => {
+  const createProduct = async (token: string, barcodes: string[]) => {
+    const res = await request(app)
+      .post('/api/v1/admin/products')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ categoryId: fixture.category.id, subcategoryId: fixture.subcategory.id, trackingMode: 'serialized', barcodes });
+    expect(res.status).toBe(201);
+    return res.body.data.id as string;
+  };
+
+  it('lets STAFF delete an unsold product outright, freeing its barcode', async () => {
+    const staffToken = await createToken('STAFF', '9000000070');
+    const productId = await createProduct(staffToken, ['DELETE-ME-01']);
+
+    const res = await request(app).delete(`/api/v1/admin/products/${productId}`).set('Authorization', `Bearer ${staffToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.data.archived).toBe(false);
+    expect(fake.db.product.find((p: any) => p.id === productId)).toBeUndefined();
+    expect(fake.db.piece.filter((p: any) => p.productId === productId)).toHaveLength(0);
+
+    // The tag can go onto the right product now.
+    await createProduct(staffToken, ['DELETE-ME-01']);
+  });
+
+  it('archives a product with sales history instead of erasing it', async () => {
+    const adminToken = await createToken('ADMIN', '9000000071');
+    const productId = await createProduct(adminToken, ['SOLD-01', 'LEFT-01']);
+    fake.db.piece.find((p: any) => p.barcode === 'SOLD-01').status = 'sold_offline';
+
+    const res = await request(app).delete(`/api/v1/admin/products/${productId}`).set('Authorization', `Bearer ${adminToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.data.archived).toBe(true);
+
+    const row = fake.db.product.find((p: any) => p.id === productId);
+    expect(row.deletedAt).toBeInstanceOf(Date);
+    expect(row.isActive).toBe(false);
+
+    // Gone from the app...
+    const list = await request(app).get('/api/v1/admin/products').set('Authorization', `Bearer ${adminToken}`);
+    expect(list.body.data.items.map((p: any) => p.id)).not.toContain(productId);
+    const one = await request(app).get(`/api/v1/admin/products/${productId}`).set('Authorization', `Bearer ${adminToken}`);
+    expect(one.status).toBe(404);
+    const again = await request(app).delete(`/api/v1/admin/products/${productId}`).set('Authorization', `Bearer ${adminToken}`);
+    expect(again.status).toBe(404);
+  });
+
+  it('refuses while an online checkout is holding the product', async () => {
+    const staffToken = await createToken('STAFF', '9000000072');
+    const productId = await createProduct(staffToken, ['HELD-01']);
+    fake.db.reservation.push({
+      id: randomUUID(), productId, pieceId: null, quantity: 1, orderId: randomUUID(),
+      status: 'active', expiresAt: new Date(Date.now() + 60_000), createdAt: new Date(), updatedAt: new Date(),
+    });
+
+    const res = await request(app).delete(`/api/v1/admin/products/${productId}`).set('Authorization', `Bearer ${staffToken}`);
+    expect(res.status).toBe(409);
+    expect(fake.db.product.find((p: any) => p.id === productId)).toBeTruthy();
+  });
+});

@@ -58,6 +58,8 @@ export interface AdminOrderSummary {
   shipment: AdminShipment | null;
   payment: { status: string } | null;
   invoice?: AdminOrderInvoice | null;
+  /** false = a counter/WhatsApp sale recorded without an invoice. */
+  invoiceRequired?: boolean;
   shippingAddress?: AdminShippingAddress | null;
 }
 

@@ -6,7 +6,7 @@ import * as inventoryService from './inventory.service';
 
 export const scanLookup = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const result = await inventoryService.scanLookup(req.body.code);
+    const result = await inventoryService.scanLookup(req.body.code, { exact: req.body.exact });
     res.status(200).json({ success: true, data: result });
   } catch (error) {
     next(error);

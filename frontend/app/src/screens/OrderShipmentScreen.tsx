@@ -116,6 +116,8 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
   };
 
   const invoiceUrl = result?.invoiceUrl ?? order?.invoice?.url ?? null;
+  // A WhatsApp sale recorded as "Invoice Not Required" has no invoice to send.
+  const hasInvoice = order?.invoiceRequired !== false;
   // Set once the AWB has actually been saved — either just now, or on a
   // previous visit to this screen.
   const savedAwb = result?.awbNumber ?? order?.shipment?.awbNumber ?? null;
@@ -278,21 +280,25 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
                 <Ionicons name="logo-whatsapp" size={17} color={colors.success} />
                 <Text style={styles.whatsappButtonText}>Share details on WhatsApp</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.invoiceButton}
-                onPress={handleShareInvoice}
-                activeOpacity={0.85}
-                disabled={sharingInvoice}
-              >
-                <Ionicons name="document-text-outline" size={17} color={colors.primary} />
-                <Text style={styles.invoiceButtonText}>
-                  {sharingInvoice ? 'Preparing invoice…' : 'Share invoice PDF'}
-                </Text>
-              </TouchableOpacity>
-              <Text style={styles.whatsappHint}>
-                Two separate sends: the tracking message and product link{productLinks.length > 1 ? 's' : ''} first,
-                then the invoice file into the same chat.
-              </Text>
+              {hasInvoice && (
+                <>
+                  <TouchableOpacity
+                    style={styles.invoiceButton}
+                    onPress={handleShareInvoice}
+                    activeOpacity={0.85}
+                    disabled={sharingInvoice}
+                  >
+                    <Ionicons name="document-text-outline" size={17} color={colors.primary} />
+                    <Text style={styles.invoiceButtonText}>
+                      {sharingInvoice ? 'Preparing invoice…' : 'Share invoice PDF'}
+                    </Text>
+                  </TouchableOpacity>
+                  <Text style={styles.whatsappHint}>
+                    Two separate sends: the tracking message and product link{productLinks.length > 1 ? 's' : ''} first,
+                    then the invoice file into the same chat.
+                  </Text>
+                </>
+              )}
             </>
           ) : (
             <Text style={styles.whatsappHint}>
@@ -317,11 +323,13 @@ export default function OrderShipmentScreen({ route, navigation }: Props) {
             <Ionicons name="logo-whatsapp" size={17} color="#fff" />
             <Text style={styles.successWhatsappText}>Share details on WhatsApp</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleShareInvoice} activeOpacity={0.7} disabled={sharingInvoice}>
-            <Text style={styles.trackingLink}>
-              {sharingInvoice ? 'Preparing invoice…' : 'Share invoice PDF'}
-            </Text>
-          </TouchableOpacity>
+          {hasInvoice && (
+            <TouchableOpacity onPress={handleShareInvoice} activeOpacity={0.7} disabled={sharingInvoice}>
+              <Text style={styles.trackingLink}>
+                {sharingInvoice ? 'Preparing invoice…' : 'Share invoice PDF'}
+              </Text>
+            </TouchableOpacity>
+          )}
           {error ? <Text style={styles.successError}>{error}</Text> : null}
         </View>
       ) : (

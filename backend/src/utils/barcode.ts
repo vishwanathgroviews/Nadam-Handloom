@@ -147,3 +147,19 @@ export const barcodeCandidates = (code: string): string[] => {
 
   return [...out];
 };
+
+/**
+ * The short number printed on a shop tag after its letter prefix —
+ * "NANDAM3136" → "3136". Null when the code isn't letters-then-digits (a
+ * GTIN, a SKU like "NH-HPS-001"), since such a code has no separate "number".
+ *
+ * Staff read this number off the tag and type just that at the counter, and
+ * the shared catalog PDF shows only this number as the product ID.
+ */
+export const barcodeNumber = (code: string): string | null => {
+  const match = /^[A-Z]+([0-9]+)$/.exec(normalizeBarcode(code));
+  return match ? match[1]! : null;
+};
+
+/** True when `code` is a bare number that could be a shop tag's short number. */
+export const isBareNumber = (code: string): boolean => isDigits(normalizeBarcode(code));

@@ -29,6 +29,7 @@ import {
   billTotal as sumBill,
   findLine,
   lineTotal,
+  lineUnitPrice,
   toSellItems,
   BillLine,
 } from '../utils/bill';
@@ -55,6 +56,19 @@ const SALE_CHANNEL_OPTIONS: { key: SaleChannel; label: string }[] = [
   { key: 'store', label: 'Offline Store' },
   { key: 'whatsapp', label: 'Through WhatsApp' },
 ];
+
+// Whether the customer wants a GST invoice. "Not required" still records the
+// whole sale (stock, order, analytics) — it just never becomes an invoice,
+// so it stays out of the invoice list and the sales-summary PDF.
+type InvoiceChoice = 'required' | 'not_required';
+const INVOICE_OPTIONS: { key: InvoiceChoice; label: string }[] = [
+  { key: 'required', label: 'Invoice Required' },
+  { key: 'not_required', label: 'Invoice Not Required' },
+];
+
+/** A scanned product that can go straight onto the bill. */
+const isSellable = (lookup: ScanLookupResult) =>
+  lookup.status === 'in_stock' && (lookup.mode !== 'quantity' || (lookup.availableQty ?? 0) > 0);
 
 // Two fields, not eight: these orders are taken down mid-chat, and the
 // customer has usually already sent their address as one block of text.
@@ -113,6 +127,10 @@ export default function ScannerScreen({ navigation }: Props) {
   // enforces the same rule (inventory.schema.ts).
   const [saleChannel, setSaleChannel] = useState<SaleChannel | null>(null);
   const [channelMissing, setChannelMissing] = useState(false);
+  // No default either, for the same reason: staff must say on every bill
+  // whether the customer wants an invoice.
+  const [invoiceChoice, setInvoiceChoice] = useState<InvoiceChoice | null>(null);
+  const [invoiceChoiceMissing, setInvoiceChoiceMissing] = useState(false);
   // A counter customer's mobile, typed only so their invoice can be sent to
   // them on WhatsApp. It stays in this screen's memory: it is never sent to
   // the server (runSell has no field for it on a store sale, and the server
@@ -137,6 +155,10 @@ export default function ScannerScreen({ navigation }: Props) {
   // camera they could not see and nothing seemed to happen. Every step of
   // the sale now starts at the top of the screen.
   const scrollRef = useRef<ScrollView>(null);
+  // Read by runLookup, which adds a scanned product to the bill the moment
+  // it's found — the latest bill, not the one from when the callback was made.
+  const billRef = useRef<BillLine[]>([]);
+  billRef.current = bill;
 
   const reset = useCallback(() => {
     setPhase('scanning');
@@ -151,6 +173,8 @@ export default function ScannerScreen({ navigation }: Props) {
     setBill([]);
     setSaleChannel(null);
     setChannelMissing(false);
+    setInvoiceChoice(null);
+    setInvoiceChoiceMissing(false);
     setInvoiceMobile('');
     setInvoiceMobileError('');
     setScanNotice('');
@@ -203,6 +227,43 @@ export default function ScannerScreen({ navigation }: Props) {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   }, [phase, bill.length]);
 
+  // Scan to Sell is one step: a product that can be sold goes straight onto
+  // the bill, with its selling price filled in and editable there. Only a
+  // product that can't be sold (already sold, reserved online, damaged…)
+  // stops on a card that says why.
+  const addLookupToBill = useCallback((found: ScanLookupResult) => {
+    const code = found.barcode || found.sku;
+    if (!code) return;
+    const { bill: next, outcome } = addLine(billRef.current, {
+      code,
+      productName: found.productName,
+      categoryName: found.categoryName,
+      storePrice: String(found.storePrice),
+      // Filled in with the store price so the selling price is visible on
+      // the bill — staff overwrite it there if they agree a different one.
+      priceInput: String(found.storePrice),
+      // A barcoded piece is one physical saree; a quantity product can go on
+      // the same line more than once.
+      serialized: found.mode !== 'quantity',
+    });
+    billRef.current = next;
+    setBill(next);
+    setScanNotice(
+      outcome === 'duplicate'
+        ? `${found.productName} is already on this bill.`
+        : outcome === 'quantity'
+          ? `${found.productName} — now ${findLine(next, code)?.quantity} on the bill.`
+          : `Added ${found.productName}.`
+    );
+    setLookup(null);
+    setError('');
+    setErrorCode('');
+    setManualCode('');
+    setSalePriceInput('');
+    setScannedLock(false);
+    setPhase('result');
+  }, []);
+
   const runLookup = useCallback(
     async (code: string) => {
       if (!accessToken) return;
@@ -210,6 +271,10 @@ export default function ScannerScreen({ navigation }: Props) {
       setError('');
       try {
         const res = await scanLookup(accessToken, code);
+        if (mode === 'sell' && isSellable(res.data)) {
+          addLookupToBill(res.data);
+          return;
+        }
         setLookup(res.data);
         setPhase('result');
       } catch (err: any) {
@@ -217,7 +282,7 @@ export default function ScannerScreen({ navigation }: Props) {
         setPhase('result');
       }
     },
-    [accessToken]
+    [accessToken, mode, addLookupToBill]
   );
 
   const runSell = useCallback(
@@ -232,8 +297,9 @@ export default function ScannerScreen({ navigation }: Props) {
       // Checked here, before anything is sent, and shown next to the selector
       // rather than as a result-screen error: the bill has to stay on screen
       // so the choice can simply be made and the sale completed.
-      if (!saleChannel) {
-        setChannelMissing(true);
+      if (!saleChannel || !invoiceChoice) {
+        setChannelMissing(!saleChannel);
+        setInvoiceChoiceMissing(!invoiceChoice);
         return;
       }
 
@@ -264,6 +330,7 @@ export default function ScannerScreen({ navigation }: Props) {
       try {
         const res = await scanSell(accessToken, items, {
           channel: saleChannel,
+          invoiceRequired: invoiceChoice === 'required',
           ...(customerPayload ? { customer: customerPayload } : {}),
         });
         setSellResult(res.data);
@@ -276,7 +343,7 @@ export default function ScannerScreen({ navigation }: Props) {
         setPhase('result');
       }
     },
-    [accessToken, saleChannel, customer]
+    [accessToken, saleChannel, invoiceChoice, customer]
   );
 
   // Same print/share path the Invoices screen uses —
@@ -346,39 +413,6 @@ export default function ScannerScreen({ navigation }: Props) {
   // the same label still sitting under the lens got picked up again. Staff
   // choose what happens next from the bill itself — "Add More" goes back to
   // the camera, "Complete Sale" finishes.
-  const addScannedToBill = useCallback(() => {
-    if (!lookup) return;
-    const code = lookup.barcode || lookup.sku;
-    if (!code) return;
-    const { bill: next, outcome } = addLine(bill, {
-      code,
-      productName: lookup.productName,
-      categoryName: lookup.categoryName,
-      storePrice: String(lookup.storePrice),
-      priceInput: salePriceInput.trim(),
-      // A barcoded piece is one physical saree; a quantity product can go on
-      // the same line more than once.
-      serialized: lookup.mode !== 'quantity',
-    });
-    setBill(next);
-    setScanNotice(
-      outcome === 'duplicate'
-        ? `${lookup.productName} is already on this bill.`
-        : outcome === 'quantity'
-          ? `${lookup.productName} — now ${findLine(next, code)?.quantity} on the bill.`
-          : ''
-    );
-    // Clear the confirm card but stay in the 'result' phase so the bill —
-    // and its Add More / Complete Sale actions — is what's on screen.
-    setLookup(null);
-    setError('');
-    setErrorCode('');
-    setManualCode('');
-    setSalePriceInput('');
-    setScannedLock(false);
-    setPhase('result');
-  }, [lookup, bill, salePriceInput]);
-
   const handleCode = useCallback(
     (code: string) => {
       if (!isOnline) {
@@ -436,12 +470,10 @@ export default function ScannerScreen({ navigation }: Props) {
   // this is triggered from an anonymous in-store scan (no customer on
   // record), it opens WhatsApp's own contact picker rather than a fixed
   // number.
-  const sellViaWhatsApp = () => {
-    if (!lookup) return;
-    const price = salePriceInput.trim() || lookup.storePrice;
+  const shareLineOnWhatsApp = (line: BillLine) => {
     openWhatsAppChat(
       null,
-      `Hi! Checking on this for you:\n\n${lookup.productName}\n${lookup.categoryName}\nPrice: ₹${price}\n\nShall I go ahead with the order?`
+      `Hi! Checking on this for you:\n\n${line.productName}\n${line.categoryName}\nPrice: ₹${lineUnitPrice(line)}\n\nShall I go ahead with the order?`
     );
   };
 
@@ -484,7 +516,7 @@ export default function ScannerScreen({ navigation }: Props) {
             <View style={styles.manualPill}>
               <TextInput
                 style={styles.manualInput}
-                placeholder="Or type a barcode / SKU"
+                placeholder="Or type the barcode, or just its number"
                 placeholderTextColor={colors.textMuted}
                 autoCapitalize="characters"
                 returnKeyType="search"
@@ -492,7 +524,21 @@ export default function ScannerScreen({ navigation }: Props) {
                 onChangeText={setManualCode}
                 onSubmitEditing={handleManualSubmit}
               />
+              {/* Uses whatever is typed in the box — the same as the
+                  keyboard's search key, for staff who look for a button. */}
+              <TouchableOpacity
+                style={[styles.manualAddButton, !manualCode.trim() && styles.manualAddButtonDisabled]}
+                onPress={handleManualSubmit}
+                disabled={!manualCode.trim()}
+                hitSlop={8}
+                accessibilityLabel="Use this code"
+              >
+                <Ionicons name="add" size={22} color="#fff" />
+              </TouchableOpacity>
             </View>
+            <Text style={styles.manualHint}>
+              NANDAM3136, just 3136, or a scan — all find the same product.
+            </Text>
 
             {/* The bill does not disappear while staff are scanning the next
                 item — it stays here as a running strip, one tap from being
@@ -553,8 +599,11 @@ export default function ScannerScreen({ navigation }: Props) {
                   Order {sellResult.orderNumber}
                   {sellResult.invoice ? ` · Invoice ${sellResult.invoice.invoiceNumber}` : ''}
                 </Text>
-                {sellResult.invoice && (
-                  <Text style={styles.soldAmount}>₹{sellResult.invoice.totalAmount}</Text>
+                <Text style={styles.soldAmount}>
+                  ₹{(sellResult.invoice ? Number(sellResult.invoice.totalAmount) : sellResult.total).toLocaleString('en-IN')}
+                </Text>
+                {!sellResult.invoiceRequired && (
+                  <Text style={styles.soldMeta}>Recorded without an invoice.</Text>
                 )}
                 {sellResult.channel === 'whatsapp' && (
                   <Text style={styles.soldMeta}>
@@ -605,7 +654,7 @@ export default function ScannerScreen({ navigation }: Props) {
 
                 {busySharing ? (
                   <ActivityIndicator style={{ marginTop: spacing.lg }} color={colors.primary} />
-                ) : sellResult.invoice ? (
+                ) : !sellResult.invoiceRequired ? null : sellResult.invoice ? (
                   <View style={styles.soldActions}>
                     <Button title="Print Invoice" onPress={() => handleShareInvoice('print')} />
                     <Button
@@ -637,35 +686,8 @@ export default function ScannerScreen({ navigation }: Props) {
                   <Badge label={STATUS_LABEL[lookup.status] || lookup.status} tone={STATUS_TONE[lookup.status] || 'neutral'} />
                 </View>
 
-                {mode === 'sell' && lookup.status === 'in_stock' && (
-                  <>
-                    <Text style={styles.label}>Selling price (optional — leave blank to use store price)</Text>
-                    <TextInput
-                      style={styles.salePriceInput}
-                      placeholder={`₹${lookup.storePrice}`}
-                      placeholderTextColor={colors.textMuted}
-                      keyboardType="numeric"
-                      value={salePriceInput}
-                      onChangeText={setSalePriceInput}
-                    />
-                    <Text style={styles.helper}>
-                      Applies to this item on this bill only — the catalogue price never changes.
-                    </Text>
-
-                    <Button
-                      title={bill.length > 0 ? 'Add to Bill' : 'Sell Now'}
-                      onPress={addScannedToBill}
-                      style={styles.markSoldButton}
-                    />
-                    <Text style={styles.helper}>
-                      Goes onto the bill — scan more items if the customer is buying several, then complete
-                      the sale once for all of them.
-                    </Text>
-                    <TouchableOpacity style={styles.whatsappButton} onPress={sellViaWhatsApp} activeOpacity={0.85}>
-                      <Ionicons name="logo-whatsapp" size={18} color={colors.success} />
-                      <Text style={styles.whatsappButtonText}>Just share this item on WhatsApp</Text>
-                    </TouchableOpacity>
-                  </>
+                {mode === 'sell' && lookup.status !== 'in_stock' && (
+                  <Text style={styles.helper}>This item can't be added to the bill.</Text>
                 )}
 
                 {mode === 'sell' && lookup.mode === 'quantity' && (lookup.availableQty ?? 0) <= 0 && (
@@ -689,13 +711,13 @@ export default function ScannerScreen({ navigation }: Props) {
                 </Text>
                 {scanNotice ? <Text style={styles.scanNotice}>{scanNotice}</Text> : null}
                 <Text style={styles.helper}>
-                  Bargained? Type the agreed price against any item — each one can be changed on its own,
-                  and the catalogue price never changes.
+                  Each item shows its selling price. Bargained? Change the price against that item — the
+                  catalogue price never changes.
                 </Text>
 
                 <View style={styles.billColumns}>
                   <Text style={styles.billColumnLabel}>Item</Text>
-                  <Text style={styles.billColumnPrice}>Price ₹</Text>
+                  <Text style={styles.billColumnPrice}>Selling price ₹</Text>
                 </View>
 
                 {bill.map((line) => (
@@ -721,6 +743,13 @@ export default function ScannerScreen({ navigation }: Props) {
                       onChangeText={(v) => updateLinePrice(line.code, v)}
                       accessibilityLabel={`Price for ${line.productName}`}
                     />
+                    <TouchableOpacity
+                      onPress={() => shareLineOnWhatsApp(line)}
+                      hitSlop={8}
+                      accessibilityLabel={`Share ${line.productName} on WhatsApp`}
+                    >
+                      <Ionicons name="logo-whatsapp" size={19} color={colors.success} />
+                    </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => removeLine(line.code)}
                       hitSlop={10}
@@ -819,13 +848,39 @@ export default function ScannerScreen({ navigation }: Props) {
             </View>
           )}
 
+                <Text style={styles.label}>
+                  Does the customer need an invoice? <Text style={styles.requiredMark}>*</Text>
+                </Text>
+                <SegmentedControl
+                  options={INVOICE_OPTIONS}
+                  value={invoiceChoice}
+                  onChange={(key) => {
+                    setInvoiceChoice(key);
+                    setInvoiceChoiceMissing(false);
+                  }}
+                  invalid={invoiceChoiceMissing}
+                />
+                {invoiceChoiceMissing && (
+                  <Text style={styles.fieldError} accessibilityLiveRegion="polite">
+                    Choose Invoice Required or Invoice Not Required to complete this sale.
+                  </Text>
+                )}
+                {invoiceChoice === 'not_required' && (
+                  <Text style={styles.helper}>
+                    The sale is still recorded in full and counts in analytics — it just won't appear in
+                    Invoices or the sales summary.
+                  </Text>
+                )}
+
                 <Button
                   title={saleChannel === 'whatsapp' ? 'Create WhatsApp Order' : 'Complete Sale'}
                   onPress={completeSale}
                   style={styles.markSoldButton}
                 />
                 <Text style={styles.helper}>
-                  One order number and one invoice for everything on this bill.
+                  {invoiceChoice === 'not_required'
+                    ? 'One order number for everything on this bill.'
+                    : 'One order number and one invoice for everything on this bill.'}
                 </Text>
               </Card>
             )}
@@ -852,7 +907,7 @@ const styles = StyleSheet.create({
   billStripAction: { ...typography.bodySmSemibold, color: colors.primary },
   billColumns: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md },
   billColumnLabel: { ...typography.micro, color: colors.textMuted, flex: 1 },
-  billColumnPrice: { ...typography.micro, color: colors.textMuted, width: 86, textAlign: 'center' },
+  billColumnPrice: { ...typography.micro, color: colors.textMuted, textAlign: 'right', marginRight: 58 },
   billLine: {
     flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
     paddingVertical: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.divider,
@@ -888,13 +943,22 @@ const styles = StyleSheet.create({
   scrollContent: { paddingBottom: spacing.xxl },
   cameraSlot: { marginTop: spacing.lg, marginBottom: spacing.md },
   manualPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: radius.pill,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md + 3,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.sm,
+    paddingVertical: spacing.sm,
     ...shadow.card,
   },
-  manualInput: { ...typography.bodyMedium, color: colors.text, padding: 0 },
+  manualInput: { ...typography.bodyMedium, color: colors.text, padding: 0, flex: 1 },
+  manualAddButton: {
+    width: 34, height: 34, borderRadius: 17, backgroundColor: colors.primary,
+    alignItems: 'center', justifyContent: 'center', marginLeft: spacing.sm,
+  },
+  manualAddButtonDisabled: { opacity: 0.35 },
+  manualHint: { ...typography.bodySm, color: colors.textMuted, marginTop: spacing.sm, textAlign: 'center' },
   resultCard: { marginTop: spacing.sm },
   skuLine: { ...typography.caption, color: colors.textLabel },
   productName: { ...typography.amount, color: colors.text, marginTop: spacing.sm },

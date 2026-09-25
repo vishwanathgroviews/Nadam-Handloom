@@ -2,7 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { AppError, NotFoundError } from '../../utils/errors';
 import { reserveOrderNumber } from '../../utils/orderNumber';
-import { normalizeBarcode, barcodeCandidates } from '../../utils/barcode';
+import { normalizeBarcode, barcodeCandidates, barcodeNumber, isBareNumber } from '../../utils/barcode';
 import { generateInvoiceForOrder } from '../invoices/invoices.service';
 import { logAuthEvent } from '../auth/auditLog.service';
 
@@ -238,7 +238,8 @@ export const createOfflineOrder = async (
   orderNumber: string,
   items: OfflineOrderLine[],
   customer?: { fullName?: string; phone?: string } | WhatsappCustomer,
-  channel: 'store' | 'whatsapp' = 'store'
+  channel: 'store' | 'whatsapp' = 'store',
+  invoiceRequired = true
 ) => {
   const total = items.reduce((sum, item) => sum + Number(item.unitPrice) * item.quantity, 0);
   const isWhatsapp = channel === 'whatsapp';
@@ -266,6 +267,7 @@ export const createOfflineOrder = async (
       subtotal: total,
       total,
       shippingAddress,
+      invoiceRequired,
     },
   });
   await tx.orderItem.createMany({
@@ -283,7 +285,51 @@ export const createOfflineOrder = async (
   return order;
 };
 
-export const scanLookup = async (code: string) => {
+// An archived product (deleted with sales history behind it — see
+// Product.deletedAt) is gone as far as scanning and selling are concerned.
+const LIVE_PRODUCT = { deletedAt: null };
+
+const LOOKUP_PIECE_INCLUDE = {
+  product: { include: { category: { select: { name: true } }, subcategory: { select: { storePrice: true } } } },
+} as const;
+
+/**
+ * The piece a staff member means when they type only the number printed on
+ * the tag — "3136" for the tag "NANDAM3136".
+ *
+ * Only ever a fallback, after the exact lookup found nothing, so a code that
+ * really is all digits (a GTIN) still matches itself first. When two tags
+ * share the same number under different prefixes, the one still in stock
+ * wins; if that doesn't settle it, staff are asked for the full code rather
+ * than being handed a guess.
+ */
+const findPieceByShortNumber = async (code: string) => {
+  const digits = normalizeBarcode(code);
+  const matches = (
+    await prisma.piece.findMany({
+      where: { barcode: { endsWith: digits }, product: { is: LIVE_PRODUCT } },
+      include: LOOKUP_PIECE_INCLUDE,
+    })
+  ).filter((p) => barcodeNumber(p.barcode) === digits);
+  if (matches.length <= 1) return matches[0] ?? null;
+
+  const inStock = matches.filter((p) => p.status === 'in_stock');
+  if (inStock.length === 1) return inStock[0]!;
+  throw new AppError(
+    `${matches.length} tags carry the number ${digits} — scan the tag or type the full code`,
+    409,
+    'AMBIGUOUS_CODE',
+    matches.map((p) => ({ barcode: p.barcode, productName: p.product.name, status: p.status }))
+  );
+};
+
+/**
+ * `exact` is for checking whether a code is free before assigning it to a new
+ * product: there, "3136" must mean the literal code 3136, not a tag that
+ * happens to end in it. Everywhere else (Scan to Sell, Price Check) the full
+ * code, the number on the tag and a camera scan all find the same product.
+ */
+export const scanLookup = async (code: string, options: { exact?: boolean } = {}) => {
   // Not one string but every form the same physical tag can decode as — a
   // camera reports whichever symbology it matched this frame, so scanning one
   // label twice can genuinely produce two different strings (see
@@ -292,10 +338,13 @@ export const scanLookup = async (code: string) => {
   const candidates = barcodeCandidates(code);
   if (!candidates.length) throw new NotFoundError('No product found for this code');
 
-  const piece = await prisma.piece.findFirst({
-    where: { barcode: { in: candidates } },
-    include: { product: { include: { category: { select: { name: true } }, subcategory: { select: { storePrice: true } } } } },
+  let piece = await prisma.piece.findFirst({
+    where: { barcode: { in: candidates }, product: { is: LIVE_PRODUCT } },
+    include: LOOKUP_PIECE_INCLUDE,
   });
+  if (!piece && !options.exact && isBareNumber(code)) {
+    piece = await findPieceByShortNumber(code);
+  }
   if (piece) {
     return {
       mode: 'serialized' as const,
@@ -310,7 +359,7 @@ export const scanLookup = async (code: string) => {
   }
 
   const product = await prisma.product.findFirst({
-    where: { sku: { in: candidates } },
+    where: { sku: { in: candidates }, ...LIVE_PRODUCT },
     include: { category: { select: { name: true } }, subcategory: { select: { storePrice: true } } },
   });
   if (product) {
@@ -349,8 +398,10 @@ export interface ScanSellResult {
   channel: 'store' | 'whatsapp';
   items: ScanSellSoldLine[];
   total: number;
-  // Null only when invoice generation itself failed (storage unconfigured or
-  // unreachable). The sale is committed either way — see scanSell.
+  invoiceRequired: boolean;
+  // Null when staff chose "Invoice not required", or when invoice generation
+  // itself failed (storage unconfigured or unreachable). The sale is
+  // committed either way — see scanSell.
   invoice: Awaited<ReturnType<typeof generateInvoiceForOrder>> | null;
 }
 
@@ -382,7 +433,7 @@ export const resolveAndClaimOfflineSaleItem = async (
   if (!candidates.length) throw new NotFoundError('No product found for this code');
 
   const piece = await tx.piece.findFirst({
-    where: { barcode: { in: candidates } },
+    where: { barcode: { in: candidates }, product: { is: LIVE_PRODUCT } },
     include: {
       product: {
         include: {
@@ -444,7 +495,7 @@ export const resolveAndClaimOfflineSaleItem = async (
   }
 
   const product = await tx.product.findFirst({
-    where: { sku: { in: candidates } },
+    where: { sku: { in: candidates }, ...LIVE_PRODUCT },
     include: { subcategory: { select: { storePrice: true } }, images: { take: 1, orderBy: { sortOrder: 'asc' } } },
   });
   if (!product) throw new NotFoundError('No product found for this code');
@@ -502,10 +553,12 @@ export const scanSell = async (
     items: ScanSellItemInput[];
     channel?: 'store' | 'whatsapp';
     customer?: WhatsappCustomer;
+    invoiceRequired?: boolean;
   },
   actorId: string
 ): Promise<ScanSellResult> => {
   const channel = input.channel ?? 'store';
+  const invoiceRequired = input.invoiceRequired ?? true;
   const result = await prisma.$transaction(async (tx) => {
     const orderNumber = await reserveOrderNumber(tx);
     const lines: ClaimedSaleLine[] = [];
@@ -519,7 +572,7 @@ export const scanSell = async (
     // customer details from the order. Only a WhatsApp order, which has to be
     // couriered, keeps a delivery number and address.
     const customer = channel === 'whatsapp' ? input.customer : undefined;
-    const order = await createOfflineOrder(tx, orderNumber, lines, customer, channel);
+    const order = await createOfflineOrder(tx, orderNumber, lines, customer, channel, invoiceRequired);
 
     return {
       orderId: order.id,
@@ -565,11 +618,17 @@ export const scanSell = async (
   // order written), so letting a storage hiccup surface as a failed request
   // would invite staff to scan the item a second time. The invoice is
   // idempotent and recoverable from the Invoices screen instead.
+  //
+  // "Invoice not required" skips this entirely: the sale above is recorded in
+  // full (stock, order lines, analytics), it just never gets an Invoice row,
+  // so it stays out of the invoice list and the sales-summary PDF.
   let invoice: ScanSellResult['invoice'] = null;
-  try {
-    invoice = await generateInvoiceForOrder(result.orderId, actorId);
-  } catch (error) {
-    console.error(`Sale ${result.orderNumber} completed but its invoice could not be generated:`, error);
+  if (invoiceRequired) {
+    try {
+      invoice = await generateInvoiceForOrder(result.orderId, actorId);
+    } catch (error) {
+      console.error(`Sale ${result.orderNumber} completed but its invoice could not be generated:`, error);
+    }
   }
 
   return {
@@ -579,6 +638,7 @@ export const scanSell = async (
     channel,
     items: result.lines,
     total: result.lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0),
+    invoiceRequired,
     invoice,
   };
 };
@@ -704,7 +764,7 @@ export const startReservationExpirySweep = () => {
 // checks every active product the same way rather than splitting by mode.
 export const getLowStock = async () => {
   const products = await prisma.product.findMany({
-    where: { isActive: true },
+    where: { isActive: true, deletedAt: null },
     select: { id: true, name: true, sku: true, stock: true, category: { select: { name: true } } },
   });
 

@@ -106,6 +106,15 @@ export const updateProduct = async (req: AuthenticatedRequest, res: Response, ne
   }
 };
 
+export const deleteProduct = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const result = await catalogAdminService.deleteProduct(req.params.productId as string, req);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const uploadProductImage = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const file = (req as any).file;

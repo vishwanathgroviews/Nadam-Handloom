@@ -4,6 +4,7 @@ import { AppError, BadRequestError, NotFoundError } from '../../utils/errors';
 import { storageProvider } from '../../providers/storage';
 import { fetchImageBuffer } from '../../utils/fetchImageBuffer';
 import { logAuthEvent } from '../auth/auditLog.service';
+import { barcodeNumber } from '../../utils/barcode';
 
 // A customer-shareable PDF catalog per subcategory — one product photo per
 // page on the "Nandam Soft Premium" brand skin (warm ivory ground, maroon +
@@ -35,7 +36,16 @@ const IMAGE_MAT = '#F6F1EB';
 export interface CatalogItem {
   name: string;
   imageBuffer: Buffer;
+  /**
+   * What a customer quotes back to ask for this exact piece — the number on
+   * its tag only ("3136" for "NANDAM3136"), never the shop prefix. Omitted
+   * for a product with no barcoded piece.
+   */
+  productId?: string | null;
 }
+
+/** The ID printed for one barcode: its number when it has a letter prefix, else the code as-is. */
+export const catalogIdFor = (barcode: string): string => barcodeNumber(barcode) ?? barcode;
 
 /**
  * Ivory ground, gold-bordered rounded card, subcategory name as the header,
@@ -98,7 +108,21 @@ export const renderCatalogPdf = async (items: CatalogItem[]): Promise<Buffer> =>
 
   items.forEach((item, index) => {
     if (index > 0) doc.addPage();
-    const { contentX, contentWidth, y: bodyTop } = drawPageFrame(doc, item.name);
+    const frame = drawPageFrame(doc, item.name);
+    const { contentX, contentWidth } = frame;
+    let bodyTop = frame.y;
+
+    // The ID sits between the heading and the photo, in the heading's
+    // maroon but smaller, so a customer can say "I'd like 3136" without it
+    // competing with the name.
+    if (item.productId) {
+      doc
+        .font('Helvetica-Bold')
+        .fontSize(13)
+        .fillColor(MAROON)
+        .text(`ID: ${item.productId}`, contentX, bodyTop - 6, { width: contentWidth, align: 'center', characterSpacing: 0.8 });
+      bodyTop = doc.y + 8;
+    }
 
     // No caption block any more (see the header comment), so the photo runs
     // to the bottom of the card rather than stopping short of a footer.
@@ -140,8 +164,11 @@ export const generateCatalogPdf = async (
   if (!subcategory) throw new NotFoundError('Subcategory not found');
 
   const products = await prisma.product.findMany({
-    where: { subcategoryId, isActive: true },
-    include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 } },
+    where: { subcategoryId, isActive: true, deletedAt: null },
+    include: {
+      images: { orderBy: { sortOrder: 'asc' }, take: 1 },
+      pieces: { where: { status: 'in_stock' }, orderBy: { createdAt: 'asc' }, select: { barcode: true } },
+    },
     orderBy: { createdAt: 'asc' },
   });
   const withImages = products.filter((p) => p.images.length > 0);
@@ -149,11 +176,7 @@ export const generateCatalogPdf = async (
   // Only currently-available products get a page — same availability rule
   // as inventory.service.ts's getLowStock: legacy bulk stock plus however
   // many individually-barcoded pieces are still in_stock.
-  const inStock: typeof withImages = [];
-  for (const product of withImages) {
-    const availablePieces = await prisma.piece.count({ where: { productId: product.id, status: 'in_stock' } });
-    if (product.stock + availablePieces > 0) inStock.push(product);
-  }
+  const inStock = withImages.filter((product) => product.stock + product.pieces.length > 0);
   if (inStock.length === 0) {
     throw new BadRequestError('This subcategory has no in-stock products with photos right now');
   }
@@ -163,7 +186,10 @@ export const generateCatalogPdf = async (
   for (const product of inStock) {
     try {
       const imageBuffer = await fetchImageBuffer(product.images[0]!.url);
-      items.push({ name: subcategory.name, imageBuffer });
+      // A product is normally one piece; if several are still in stock,
+      // every one of their numbers is listed so any of them can be asked for.
+      const ids = product.pieces.map((piece) => catalogIdFor(piece.barcode));
+      items.push({ name: subcategory.name, imageBuffer, productId: ids.length ? ids.join(', ') : null });
     } catch (error) {
       console.error(`Failed to fetch photo for product ${product.id}, skipping from catalog:`, error);
     }

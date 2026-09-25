@@ -64,6 +64,9 @@ router.get('/products', requireRoles('ADMIN', 'STAFF'), validateQuery(listAdminP
 router.get('/products/:productId', requireRoles('ADMIN', 'STAFF'), controller.getProduct);
 router.post('/products', requireRoles('ADMIN', 'STAFF'), validateBody(createProductSchema), controller.createProduct);
 router.patch('/products/:productId', requireRoles('ADMIN', 'STAFF'), validateBody(updateProductSchema), controller.updateProduct);
+// Owner and staff alike. A product with sales history is archived rather
+// than erased — see catalog.admin.service.ts's deleteProduct.
+router.delete('/products/:productId', requireRoles('ADMIN', 'STAFF'), controller.deleteProduct);
 router.post(
   '/products/:productId/image',
   requireRoles('ADMIN', 'STAFF'),

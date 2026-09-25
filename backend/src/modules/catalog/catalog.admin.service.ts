@@ -85,7 +85,7 @@ export const listAllCategories = async () => {
     // Name breaks ties so the order is always the same order, including for
     // older rows that still share a position.
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-    include: { _count: { select: { products: true, subcategories: true } } },
+    include: { _count: { select: { products: { where: { deletedAt: null } }, subcategories: true } } },
   });
 };
 
@@ -164,7 +164,7 @@ export const listSubcategories = async (categoryId: string) => {
   const subcategories = await prisma.subcategory.findMany({
     where: { categoryId },
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-    include: { _count: { select: { products: true } } },
+    include: { _count: { select: { products: { where: { deletedAt: null } } } } },
   });
 
   // Every entity shows its OWN photo and nothing else. No inheriting from
@@ -202,7 +202,7 @@ export const listSubcategoriesPage = async (
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }, { id: 'asc' }],
       skip: (query.page - 1) * query.pageSize,
       take: query.pageSize,
-      include: { _count: { select: { products: true } } },
+      include: { _count: { select: { products: { where: { deletedAt: null } } } } },
     }),
     prisma.subcategory.count({ where }),
   ]);
@@ -484,7 +484,7 @@ const PRODUCT_ADMIN_INCLUDE = {
 } as const;
 
 export const listAllProducts = async (query: ListAdminProductsQuery) => {
-  const where: any = {};
+  const where: any = { deletedAt: null };
   if (query.category) where.categoryId = query.category;
   if (query.q) {
     where.OR = [
@@ -514,7 +514,7 @@ export const listAllProducts = async (query: ListAdminProductsQuery) => {
 
 export const getProductById = async (productId: string) => {
   const product = await prisma.product.findUnique({ where: { id: productId }, include: PRODUCT_ADMIN_INCLUDE });
-  if (!product) throw new NotFoundError('Product not found');
+  if (!product || product.deletedAt) throw new NotFoundError('Product not found');
   const [withCount] = await withAvailability([product]);
   return withCount!;
 };
@@ -592,7 +592,7 @@ export const createProduct = async (data: CreateProductInput, req: Authenticated
 
 export const updateProduct = async (productId: string, data: UpdateProductInput, req: AuthenticatedRequest) => {
   const existing = await prisma.product.findUnique({ where: { id: productId } });
-  if (!existing) throw new NotFoundError('Product not found');
+  if (!existing || existing.deletedAt) throw new NotFoundError('Product not found');
 
   const effectiveCategoryId = data.categoryId ?? existing.categoryId;
   if (data.categoryId !== undefined) {
@@ -644,6 +644,91 @@ export const updateProduct = async (productId: string, data: UpdateProductInput,
   return product;
 };
 
+/**
+ * Deletes one product, for ADMIN and STAFF alike.
+ *
+ * A product that has never been sold is removed outright — row, photo and
+ * barcoded pieces — so a mistyped entry leaves nothing behind and its
+ * barcodes can be scanned onto the right product.
+ *
+ * A product with sales history can't be removed that way: its order lines,
+ * invoices and analytics all point at it. It is archived instead
+ * (Product.deletedAt): off the website, out of the product list, and no
+ * longer found by a scan or sellable — while every past sale stays exactly
+ * as it was. Either way it is gone from the app, which is what staff asked
+ * for; the difference is only in what the database keeps.
+ *
+ * Refuses only while an online checkout is holding the product, since
+ * that buyer may be paying for it right now.
+ */
+export const deleteProduct = async (productId: string, req: AuthenticatedRequest) => {
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    include: { images: true, pieces: true, orderItems: { include: { order: true } } },
+  });
+  if (!product || product.deletedAt) throw new NotFoundError('Product not found');
+
+  const heldNow = await prisma.reservation.count({
+    where: { productId, status: 'active', expiresAt: { gt: new Date() } },
+  });
+  if (heldNow > 0) {
+    throw new ConflictError(
+      `"${product.name}" can't be deleted right now — an online checkout is in progress for it. Try again in a few minutes.`
+    );
+  }
+
+  const hasSalesHistory =
+    product.orderItems.some((item) => PAID_STATUSES.includes(item.order.status) || item.order.channel === 'store') ||
+    product.pieces.some((piece) => piece.status === 'sold_online' || piece.status === 'sold_offline');
+
+  if (hasSalesHistory) {
+    await prisma.product.update({
+      where: { id: productId },
+      data: { deletedAt: new Date(), isActive: false, channelVisibility: 'hidden' },
+    });
+  } else {
+    // Dead carts only: unpaid online orders that held this product.
+    const abandonedOrderIds = [...new Set(product.orderItems.map((item) => item.orderId))];
+    await prisma.$transaction(async (tx) => {
+      // Every one of these has a Restrict foreign key onto Product, so
+      // nothing may still point at the product when it goes.
+      await tx.stockLedger.deleteMany({ where: { productId } });
+      await tx.reservation.deleteMany({ where: { productId } });
+      if (abandonedOrderIds.length) {
+        // OrderItem and Payment cascade from Order.
+        await tx.order.deleteMany({ where: { id: { in: abandonedOrderIds } } });
+      }
+      await tx.piece.deleteMany({ where: { productId } });
+      // ProductImage cascades from Product.
+      await tx.product.delete({ where: { id: productId } });
+    });
+
+    // Only once the rows are gone — see deleteSubcategory.
+    for (const image of product.images) {
+      if (!image.storageKey) continue;
+      storageProvider.deleteObject(image.storageKey).catch((err) => {
+        console.error('Failed to delete stored image for a deleted product:', image.storageKey, err);
+      });
+    }
+  }
+
+  await logAuthEvent({
+    authAccountId: req.user!.id,
+    eventType: 'product_deleted',
+    source: 'staff_app',
+    req,
+    metadata: {
+      productId,
+      name: product.name,
+      sku: product.sku,
+      barcodes: product.pieces.map((p) => p.barcode),
+      archived: hasSalesHistory,
+    },
+  });
+
+  return { id: productId, name: product.name, archived: hasSalesHistory };
+};
+
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
@@ -663,7 +748,7 @@ export const uploadProductImage = async (
   }
 
   const product = await prisma.product.findUnique({ where: { id: productId }, include: { images: true } });
-  if (!product) throw new NotFoundError('Product not found');
+  if (!product || product.deletedAt) throw new NotFoundError('Product not found');
 
   const uploaded = await storageProvider.upload({
     buffer: file.buffer,

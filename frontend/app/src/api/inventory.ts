@@ -48,9 +48,11 @@ export interface ScanSellResult {
   channel: 'store' | 'whatsapp';
   items: ScanSellSoldLine[];
   total: number;
-  // Generated automatically with the sale. Null only if generation failed —
-  // the sale still went through, and the invoice can be found (or retried)
-  // from the Invoices screen.
+  /** What staff chose on the bill. false = recorded without an invoice. */
+  invoiceRequired: boolean;
+  // Generated automatically with the sale when one was asked for. Null when
+  // staff chose "Invoice Not Required", or if generation failed — the sale
+  // still went through either way.
   invoice: Invoice | null;
 }
 
@@ -68,8 +70,18 @@ export interface StockLedgerEntry {
   piece: { barcode: string } | null;
 }
 
-export const scanLookup = (token: string, code: string) =>
-  apiRequest<{ data: ScanLookupResult }>('/admin/inventory/scan-lookup', { method: 'POST', token, body: { code } });
+/**
+ * Finds the product for a scanned or typed code. The full tag ("NANDAM3136"),
+ * just the number on it ("3136") and a camera scan all find the same product.
+ * `exact` turns the number match off — for checking a code is free before
+ * assigning it to a new product, where "3136" means the literal code.
+ */
+export const scanLookup = (token: string, code: string, options: { exact?: boolean } = {}) =>
+  apiRequest<{ data: ScanLookupResult }>('/admin/inventory/scan-lookup', {
+    method: 'POST',
+    token,
+    body: { code, ...(options.exact ? { exact: true } : {}) },
+  });
 
 /**
  * Completes one sale of one or more scanned products: a single order number
@@ -83,6 +95,9 @@ export const scanSell = (
     // remote order that still has to be shipped, so it needs `customer`.
     channel?: 'store' | 'whatsapp';
     customer?: WhatsappCustomerInput;
+    // Required by the server: staff choose on every bill. false still
+    // records the sale in full, it just never gets an invoice.
+    invoiceRequired?: boolean;
   } = {}
 ) =>
   apiRequest<{ data: ScanSellResult }>('/admin/inventory/scan-sell', {
