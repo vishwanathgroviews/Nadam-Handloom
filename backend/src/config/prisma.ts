@@ -15,10 +15,10 @@ export const prisma =
     adapter,
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
     // Prisma's 5s default expired a 23-item Scan to Sell bill (each item is a
-    // few round trips to the remote database). 15s fits bills of ~60 items and
-    // stays under the staff app's 20s request timeout, so the app never gives
+    // few round trips to the remote database). 25s fits bills of ~100 items and
+    // stays under the staff app's 30s request timeout, so the app never gives
     // up on a sale that then commits anyway.
-    transactionOptions: { maxWait: 5000, timeout: 15000 },
+    transactionOptions: { maxWait: 5000, timeout: 25000 },
   });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;

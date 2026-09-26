@@ -63,8 +63,10 @@ interface RequestOptions {
 // caller hanging indefinitely instead of failing with a message the user
 // can act on. Image uploads get a longer budget than JSON calls since a
 // compressed photo over real WiFi legitimately takes longer than a small
-// JSON body.
-const DEFAULT_TIMEOUT_MS = 20000;
+// JSON body. Keep this above the backend's 25s database-transaction limit
+// (backend/src/config/prisma.ts) so a large Scan to Sell bill that the
+// server does complete is never reported to staff as a failure.
+const DEFAULT_TIMEOUT_MS = 30000;
 export const UPLOAD_TIMEOUT_MS = 45000;
 
 export async function fetchWithTimeout(
