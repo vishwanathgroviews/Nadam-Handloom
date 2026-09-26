@@ -768,10 +768,21 @@ export const getLowStock = async () => {
     select: { id: true, name: true, sku: true, stock: true, category: { select: { name: true } } },
   });
 
+  // One query for every in-stock piece, tallied per product here — a
+  // separate count per product was ~500 sequential round trips to the
+  // database, which pushed the dashboard past the app's request timeout.
+  const inStockPieces = await prisma.piece.findMany({
+    where: { status: 'in_stock' },
+    select: { productId: true },
+  });
+  const piecesByProduct = new Map<string, number>();
+  for (const piece of inStockPieces) {
+    piecesByProduct.set(piece.productId, (piecesByProduct.get(piece.productId) ?? 0) + 1);
+  }
+
   const items: (typeof products[number] & { availableCount: number })[] = [];
   for (const p of products) {
-    const availablePieces = await prisma.piece.count({ where: { productId: p.id, status: 'in_stock' } });
-    const availableCount = p.stock + availablePieces;
+    const availableCount = p.stock + (piecesByProduct.get(p.id) ?? 0);
     if (availableCount <= LOW_STOCK_THRESHOLD) items.push({ ...p, availableCount });
   }
   items.sort((a, b) => a.availableCount - b.availableCount);
