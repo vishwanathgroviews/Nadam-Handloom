@@ -14,7 +14,7 @@ export const AUDIT_GROUPS = {
     'subcategory_hidden_from_web', 'subcategory_shown_on_web', 'subcategory_deleted',
     'subcategory_catalog_pdf_generated',
   ],
-  team: ['admin_provisioned_user', 'admin_reinvited_user', 'admin_revoked_user_access', 'session_revoked_by_admin'],
+  team: ['admin_provisioned_user', 'admin_reinvited_user', 'admin_revoked_user_access', 'session_revoked_by_admin', 'store_phone_updated'],
   signin: [
     'login_success', 'login_failed', 'login_denied_not_staff', 'app_activation_requested',
     'app_phone_verified', 'app_mpin_setup', 'app_mpin_reset', 'refresh_token_reuse_detected',

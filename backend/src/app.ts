@@ -19,6 +19,7 @@ import addressRoutes from './modules/address/address.routes';
 import ordersRoutes from './modules/orders/orders.routes';
 import webhookRoutes from './modules/webhooks/webhooks.routes';
 import invoicesRoutes from './modules/invoices/invoices.routes';
+import storeRoutes from './modules/store/store.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { env } from './config/env';
 
@@ -33,6 +34,8 @@ app.use(helmet());
 // FRONTEND_URL's single-URL shape that other code (fetchImageBuffer) relies on.
 const allowedOrigins = [
   env.FRONTEND_URL,
+  'http://localhost:8081',
+  'http://127.0.0.1:8081',
   ...(env.CORS_ALLOWED_ORIGINS ? env.CORS_ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean) : []),
 ];
 app.use(cors({
@@ -78,6 +81,7 @@ app.use('/api/v1/admin/invoices', invoicesRoutes);
 app.use('/api/v1/catalog', catalogRoutes);
 app.use('/api/v1/addresses', addressRoutes);
 app.use('/api/v1/orders', ordersRoutes);
+app.use('/api/v1/store', storeRoutes);
 
 // Locally-stored uploads (STORAGE_PROVIDER=local). Mounted only in that
 // mode so nothing is exposed when real object storage is in use.

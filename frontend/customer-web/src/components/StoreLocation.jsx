@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, Phone, Clock, Copy, Check, Navigation } from 'lucide-react';
+import { useStoreContact } from '../context/StoreContactContext';
 import './StoreLocation.css';
 
 const STORE_NAME = 'NANDAM HANDLOOMS';
@@ -9,12 +10,11 @@ const STORE_ADDRESS_LINES = [
   'Old Mangalagiri, Guntur Dist',
   'Andhra Pradesh – 522 503',
 ];
-const STORE_PHONE_DISPLAY = '+91 73829 68566';
-const STORE_PHONE_TEL = '+917382968566';
 const STORE_HOURS = 'Monday – Sunday: 9:30 AM to 8:30 PM (IST)';
 const STORE_MAP_URL = 'https://maps.app.goo.gl/qK54PztChaCdGzMz6';
 
 export default function StoreLocation() {
+  const { displayPhone, tel } = useStoreContact();
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -59,7 +59,7 @@ export default function StoreLocation() {
 
           <div className="store-location-row">
             <Phone size={16} />
-            <a href={`tel:${STORE_PHONE_TEL}`}>Mobile: {STORE_PHONE_DISPLAY}</a>
+            <a href={`tel:${tel}`}>Mobile: {displayPhone}</a>
           </div>
 
           <div className="store-location-row">
@@ -68,7 +68,7 @@ export default function StoreLocation() {
           </div>
 
           <div className="store-location-actions">
-            <a href={`tel:${STORE_PHONE_TEL}`} className="btn btn-primary">
+            <a href={`tel:${tel}`} className="btn btn-primary">
               <Phone size={16} /> Call Store
             </a>
             <a href={STORE_MAP_URL} target="_blank" rel="noopener noreferrer" className="btn btn-outline">

@@ -231,3 +231,20 @@ export const getAuditLog = (
   const suffix = qs.toString() ? `?${qs.toString()}` : '';
   return apiRequest<{ data: { items: AuditLogEntry[]; total: number } }>(`/admin/audit-log${suffix}`, { token });
 };
+
+export interface StoreSettings {
+  phone: string;
+  displayPhone: string;
+  tel: string;
+  updatedAt?: string | null;
+}
+
+export const getStoreSettings = (token: string) =>
+  apiRequest<{ data: StoreSettings }>('/admin/store-settings', { token });
+
+export const updateStoreSettings = (token: string, phone: string) =>
+  apiRequest<{ data: StoreSettings }>('/admin/store-settings', {
+    token,
+    method: 'PUT',
+    body: { phone },
+  });

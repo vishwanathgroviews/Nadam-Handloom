@@ -4,6 +4,8 @@ import { authenticate } from '../../middleware/auth.middleware';
 import { requireRoles } from '../../middleware/rbac.middleware';
 import { validateBody, validateQuery } from '../../middleware/validate.middleware';
 import { provisionUserSchema, listAdminOrdersQuerySchema, updateShipmentSchema, auditLogQuerySchema } from './admin.schema';
+import * as storeController from '../store/store.controller';
+import { updateStorePhoneSchema } from '../store/store.schema';
 
 const router = Router();
 
@@ -33,5 +35,10 @@ router.delete('/sessions/:sessionId', requireRoles('ADMIN'), controller.revokeSe
 
 // Dashboard — both roles use it as their home-screen summary.
 router.get('/dashboard', requireRoles('ADMIN', 'STAFF'), controller.getDashboard);
+
+// Store Settings (Single editable store phone number) — ADMIN can view and edit.
+router.get('/store-settings', requireRoles('ADMIN', 'STAFF'), storeController.getStoreContact);
+router.put('/store-settings', requireRoles('ADMIN'), validateBody(updateStorePhoneSchema), storeController.updateStoreSettings);
+router.patch('/store-settings', requireRoles('ADMIN'), validateBody(updateStorePhoneSchema), storeController.updateStoreSettings);
 
 export default router;

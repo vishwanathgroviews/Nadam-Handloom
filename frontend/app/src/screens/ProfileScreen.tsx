@@ -52,6 +52,7 @@ export default function ProfileScreen() {
         { key: 'catalog', label: 'Catalog', hint: 'Categories & pricing', icon: 'albums-outline', onPress: () => navigation.navigate('Categories') },
         { key: 'staff', label: 'Team', hint: 'Staff & roles', icon: 'people-outline', onPress: () => navigation.navigate('StaffList') },
         { key: 'audit', label: 'Activity', hint: 'Audit log', icon: 'document-text-outline', onPress: () => navigation.navigate('AuditLog') },
+        { key: 'settings', label: 'Store Phone', hint: 'Edit contact number', icon: 'call-outline', onPress: () => navigation.navigate('StoreSettings') },
       ]
     : [];
 

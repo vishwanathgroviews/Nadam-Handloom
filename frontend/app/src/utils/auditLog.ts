@@ -85,6 +85,7 @@ const EVENTS: Record<string, EventSpec> = {
   admin_reinvited_user: { title: 'Team member invited again', icon: 'person-add-outline', tone: 'team' },
   admin_revoked_user_access: { title: 'Team member access removed', icon: 'person-remove-outline', tone: 'team' },
   session_revoked_by_admin: { title: 'Device signed out', icon: 'phone-portrait-outline', tone: 'team' },
+  store_phone_updated: { title: 'Store phone updated', icon: 'call-outline', tone: 'team' },
 };
 
 /** Falls back to the raw code made readable, so a new event type still shows sensibly. */

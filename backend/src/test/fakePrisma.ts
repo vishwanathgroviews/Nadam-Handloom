@@ -14,7 +14,7 @@ const MODELS = [
   'passwordResetToken', 'apiToken', 'rateLimitHit',
   'category', 'subcategory', 'product', 'productImage', 'address', 'order', 'orderItem', 'payment', 'shipment',
   'piece', 'reservation', 'stockLedger', 'subcategoryCatalogPdf',
-  'deviceToken', 'eventsOutbox', 'invoice',
+  'deviceToken', 'eventsOutbox', 'invoice', 'storeSetting',
 ];
 
 type RelationKind = 'hasOne' | 'hasMany' | 'belongsTo';

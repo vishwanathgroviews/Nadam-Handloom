@@ -72,6 +72,16 @@ describe('describeAuditEntry', () => {
   it('still reads sensibly for an event type it has no wording for', () => {
     expect(describeAuditEntry(entry({ eventType: 'stock_counted' })).title).toBe('Stock counted');
   });
+
+  it('describes store phone update with appropriate title and tone', () => {
+    const d = describeAuditEntry(entry({
+      eventType: 'store_phone_updated',
+      actor: { id: 'u1', name: 'Admin', role: 'Owner' },
+      metadata: { phone: '+919876543210', displayPhone: '+91 98765 43210' },
+    }));
+    expect(d.title).toBe('Store phone updated');
+    expect(d.tone).toBe('team');
+  });
 });
 
 describe('dayLabel', () => {

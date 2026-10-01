@@ -5,6 +5,7 @@ import { Search, ShoppingBag, User, Menu, X } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useStoreContact } from '../context/StoreContactContext';
 import BrandMark from './BrandMark';
 import './StoreLayout.css';
 
@@ -16,6 +17,7 @@ export default function StoreLayout() {
   const [searchTerm, setSearchTerm] = useState('');
   const { isAuthenticated, user } = useAuth();
   const { itemCount } = useCart();
+  const { displayPhone, tel } = useStoreContact();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -173,7 +175,7 @@ export default function StoreLayout() {
               Old Mangalagiri, Guntur Dist<br />
               Andhra Pradesh – 522 503
             </p>
-            <a className="store-footer-link" href="tel:+917382968566">Call Store: +91 73829 68566</a>
+            <a className="store-footer-link" href={`tel:${tel}`}>Call Store: {displayPhone}</a>
             <p className="store-footer-muted">Mon–Sun, 9:30 AM–8:30 PM IST</p>
             <a
               className="store-footer-link"

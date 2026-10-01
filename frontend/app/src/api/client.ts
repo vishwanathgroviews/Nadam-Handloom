@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import * as SecureStore from 'expo-secure-store';
+import { getSecureItem, setSecureItem } from '../utils/secureStorage';
 
 // Shared with AuthContext.tsx, which persists/reads the same key at login,
 // mpin-setup, and logout.
@@ -14,6 +14,9 @@ export const REFRESH_TOKEN_KEY = 'nandam_staff_refresh_token';
 // machine. Falls back to the emulator/simulator loopback aliases when
 // hostUri isn't available (e.g. web preview).
 function resolveDevApiHost(): string {
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location?.hostname) {
+    return window.location.hostname;
+  }
   const hostUri =
     Constants.expoConfig?.hostUri ??
     (Constants as any).manifest2?.extra?.expoClient?.hostUri ??
@@ -160,7 +163,7 @@ export function registerAuthHandlers(handlers: {
 export async function refreshAccessToken(): Promise<string> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
-      const storedRefreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+      const storedRefreshToken = await getSecureItem(REFRESH_TOKEN_KEY);
       if (!storedRefreshToken) {
         const error = new Error('No refresh token stored') as ApiError;
         error.status = 401;
@@ -173,7 +176,7 @@ export async function refreshAccessToken(): Promise<string> {
         { method: 'POST', body: { refreshToken: storedRefreshToken } }
       );
       const { accessToken, refreshToken } = res.data.tokens;
-      if (refreshToken) await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+      if (refreshToken) await setSecureItem(REFRESH_TOKEN_KEY, refreshToken);
       onTokenRefreshed?.(accessToken);
       return accessToken;
     })().finally(() => {

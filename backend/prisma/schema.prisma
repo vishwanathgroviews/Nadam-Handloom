@@ -568,3 +568,11 @@ model EventsOutbox {
 
   @@index([dispatched, createdAt])
 }
+
+// Single key-value store configuration settings (e.g. store_phone).
+model StoreSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+

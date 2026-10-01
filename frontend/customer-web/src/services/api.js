@@ -239,4 +239,14 @@ export const api = {
   // dispatches) — callers should expect a 404 for a moment right after
   // checkout and treat it as "not ready yet", not an error.
   getOrderInvoice: async (orderId) => (await authedRequest(`/orders/${orderId}/invoice`)).data,
+
+  // 9. STORE CONTACT (dynamic contact & phone number from backend)
+  getStoreContact: async () => {
+    try {
+      const res = await request('/store/contact', { skipAuth: true });
+      return res.data;
+    } catch {
+      return null;
+    }
+  },
 };

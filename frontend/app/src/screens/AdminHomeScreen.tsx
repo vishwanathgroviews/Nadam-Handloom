@@ -59,6 +59,7 @@ export default function AdminHomeScreen({ navigation }: Props) {
     { key: 'invoices', label: 'Invoices', hint: 'Generated invoices & reports', icon: 'document-text-outline', onPress: () => navigation.navigate('Invoices') },
     { key: 'team', label: 'Team', hint: 'Staff & roles', icon: 'people-outline', onPress: () => navigation.navigate('StaffList') },
     { key: 'activity', label: 'Activity', hint: 'Audit log', icon: 'time-outline', onPress: () => navigation.navigate('AuditLog') },
+    { key: 'settings', label: 'Store Phone', hint: 'Edit contact number', icon: 'call-outline', onPress: () => navigation.navigate('StoreSettings') },
   ];
 
   const soldToday: SoldRow[] = stats?.today

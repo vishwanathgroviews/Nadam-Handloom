@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
+import { getSecureItem, setSecureItem, deleteSecureItem } from '../utils/secureStorage';
 import { apiRequest, refreshAccessToken, registerAuthHandlers, REFRESH_TOKEN_KEY, isAuthFailure } from '../api/client';
 
 // Persisted alongside the refresh token — lets MpinLoginScreen ask for just
@@ -66,14 +66,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(sessionUser);
     setStatus('authenticated');
     if (tokens.refreshToken) {
-      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokens.refreshToken);
+      await setSecureItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
     }
     // Only a real login/activation response carries `phone` — the silent
     // cold-launch refresh (below) reconstructs a bare-bones user from JWT
     // claims alone (no phone), so this naturally leaves the remembered
     // number untouched on every app open, not just the ones that log in.
     if (sessionUser.phone) {
-      await SecureStore.setItemAsync(LAST_MOBILE_KEY, sessionUser.phone);
+      await setSecureItem(LAST_MOBILE_KEY, sessionUser.phone);
     }
     // Best-effort — a device that can't get a push token (simulator, no EAS
     // project yet, permission denied) still gets a fully working session.
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAccessToken(null);
     setUser(null);
     setStatus('unauthenticated');
-    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    await deleteSecureItem(REFRESH_TOKEN_KEY);
   }, []);
 
   // Lets apiRequest (client.ts) recover transparently from an access token
@@ -109,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const storedRefreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+      const storedRefreshToken = await getSecureItem(REFRESH_TOKEN_KEY);
       if (!storedRefreshToken) {
         setStatus('unauthenticated');
         return;
@@ -199,7 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    const storedRefreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    const storedRefreshToken = await getSecureItem(REFRESH_TOKEN_KEY);
     try {
       if (accessToken) {
         const push = await registerForPushNotifications();
@@ -217,7 +217,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [accessToken, clearSession]);
 
   const getRememberedMobile = useCallback(async () => {
-    return SecureStore.getItemAsync(LAST_MOBILE_KEY);
+    return getSecureItem(LAST_MOBILE_KEY);
   }, []);
 
   const role: Role | null = user?.roles?.includes('ADMIN')
