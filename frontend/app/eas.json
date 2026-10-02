@@ -20,7 +20,7 @@
         "EXPO_PUBLIC_API_URL": "https://api.nandamhandlooms.com"
       },
       "ios": {
-        "credentialsSource": "remote"
+        "credentialsSource": "local"
       },
       "node": "24.20.0"
     }
