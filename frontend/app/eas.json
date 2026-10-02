@@ -13,12 +13,16 @@
     },
     "production": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "credentialsSource": "local"
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://api.nandamhandlooms.com"
       },
-      "credentialsSource": "local"
+      "ios": {
+        "credentialsSource": "remote"
+      },
+      "node": "24.20.0"
     }
   },
   "submit": {
