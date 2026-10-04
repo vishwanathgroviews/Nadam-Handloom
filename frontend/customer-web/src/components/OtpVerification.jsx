@@ -11,7 +11,7 @@ export default function OtpVerification() {
   const redirectTo = location.state?.redirect || '';
 
   const [code, setCode] = useState('');
-  const [cooldown, setCooldown] = useState(30); // 30 seconds cooldown
+  const [cooldown, setCooldown] = useState(60); // the server allows a new code only every 60 seconds
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mockMessage, setMockMessage] = useState('');
@@ -59,7 +59,7 @@ export default function OtpVerification() {
     if (cooldown > 0) return;
 
     setError('');
-    setCooldown(30);
+    setCooldown(60);
     try {
       await api.sendOtp(phone);
       setMockMessage(`OTP Resent to ${maskPhone(phone)}`);

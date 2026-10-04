@@ -5,7 +5,7 @@ vi.mock('../../config/env', () => ({
 }));
 
 import { MessageCentralSmsProvider } from './messagecentral.provider';
-import { TooManyRequestsError } from '../../utils/errors';
+import { BadRequestError, TooManyRequestsError } from '../../utils/errors';
 
 const reply = (status: number, body: unknown) => ({ ok: status < 400, status, json: async () => body });
 const tokenReply = (token = 'token-1') => reply(200, { status: 200, token });
@@ -111,12 +111,21 @@ describe('MessageCentralSmsProvider', () => {
 
   it.each([
     [702, 'WRONG_OTP_PROVIDED'],
-    [705, 'VERIFICATION_EXPIRED'],
     [703, 'ALREADY_VERIFIED'],
   ])('treats %i %s as an entry that does not verify', async (responseCode, message) => {
-    fetchMock.mockResolvedValueOnce(tokenReply()).mockResolvedValueOnce(reply(400, { responseCode, message }));
+    fetchMock.mockResolvedValueOnce(tokenReply()).mockResolvedValueOnce(reply(200, { responseCode, message, data: null }));
 
     await expect(provider.verifyOtp('4521', '000000')).resolves.toBe(false);
+  });
+
+  it('tells the customer when the code has expired', async () => {
+    fetchMock
+      .mockResolvedValueOnce(tokenReply())
+      .mockResolvedValueOnce(reply(200, { responseCode: 705, message: 'VERIFICATION_EXPIRED', data: null }));
+
+    const attempt = provider.verifyOtp('4521', '654321');
+    await expect(attempt).rejects.toThrow(BadRequestError);
+    await expect(attempt).rejects.toThrow('This code has expired. Please request a new one.');
   });
 
   it('throws when the verification call itself fails', async () => {

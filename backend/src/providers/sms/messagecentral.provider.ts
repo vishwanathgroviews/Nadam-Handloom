@@ -1,5 +1,5 @@
 import { env } from '../../config/env';
-import { TooManyRequestsError } from '../../utils/errors';
+import { BadRequestError, TooManyRequestsError } from '../../utils/errors';
 import { SmsProvider } from './sms.provider';
 
 // Message Central's VerifyNow API. Unlike MSG91 it needs no DLT registration
@@ -18,10 +18,11 @@ const OTP_LENGTH = '6';
 // Message Central's own result codes, returned in the body's responseCode.
 const SUCCESS = 200;
 const REQUEST_ALREADY_EXISTS = 506;
+const VERIFICATION_EXPIRED = 705;
 // Each of these means "that entry does not verify" rather than "the call
 // failed": invalid verification id, verification failed, wrong OTP, already
-// verified, verification expired.
-const NOT_VERIFIED = [505, 700, 702, 703, 705];
+// verified.
+const NOT_VERIFIED = [505, 700, 702, 703];
 
 export class MessageCentralSmsProvider implements SmsProvider {
   // The API is called with a token obtained from the account credentials.
@@ -91,6 +92,11 @@ export class MessageCentralSmsProvider implements SmsProvider {
 
     const responseCode = Number(body?.responseCode);
     if (responseCode === SUCCESS) return body?.data?.verificationStatus === 'VERIFICATION_COMPLETED';
+    // Their codes live for 60 seconds, so a correct code entered late is
+    // common — say that it expired rather than calling it invalid.
+    if (responseCode === VERIFICATION_EXPIRED) {
+      throw new BadRequestError('This code has expired. Please request a new one.');
+    }
     if (NOT_VERIFIED.includes(responseCode)) return false;
     throw new Error(`Message Central verify failed (${status}): ${body?.message ?? 'unknown error'}`);
   }
