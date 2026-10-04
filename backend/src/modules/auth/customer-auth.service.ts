@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../config/prisma';
 import { AppError, BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from '../../utils/errors';
-import { smsProvider } from '../../providers/sms';
-import { createOtp, resendOtp, verifyOtp, devOtpEcho } from './otp.service';
+import { sendOtp, resendOtp, verifyOtp, devOtpEcho } from './otp.service';
 import { issueSession, SessionTokens } from './session.service';
 import { logAuthEvent } from './auditLog.service';
 import { generatePurposeToken, verifyPurposeToken } from './token.service';
@@ -58,8 +57,7 @@ export const registerCustomer = async (
         return created;
       });
 
-  const { code } = await createOtp(account.id, 'signup_verify');
-  await smsProvider.sendOtp(data.phone, code);
+  const { code } = await sendOtp(account.id, 'signup_verify', data.phone);
   await logAuthEvent({ authAccountId: account.id, eventType: 'customer_register', source: 'customer_web', req });
 
   return { phone: data.phone, ...devOtpEcho(code) };
@@ -83,8 +81,7 @@ export const resendCustomerOtp = async (phone: string) => {
   const account = await prisma.authAccount.findUnique({ where: { phone } });
   if (!account || account.phoneVerifiedAt) return {};
 
-  const { code } = await resendOtp(account.id, 'signup_verify');
-  await smsProvider.sendOtp(phone, code);
+  const { code } = await resendOtp(account.id, 'signup_verify', phone);
   return devOtpEcho(code);
 };
 
@@ -180,8 +177,7 @@ export const requestCustomerMpinReset = async (phone: string) => {
   const account = await prisma.authAccount.findUnique({ where: { phone } });
   if (!account || !account.mpinHash) return {};
 
-  const { code } = await createOtp(account.id, 'mpin_reset');
-  await smsProvider.sendOtp(phone, code);
+  const { code } = await sendOtp(account.id, 'mpin_reset', phone);
   return devOtpEcho(code);
 };
 

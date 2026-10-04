@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../config/prisma';
 import { AppError, BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from '../../utils/errors';
-import { smsProvider } from '../../providers/sms';
-import { createOtp, verifyOtp, devOtpEcho } from './otp.service';
+import { sendOtp, verifyOtp, devOtpEcho } from './otp.service';
 import { issueSession, SessionTokens } from './session.service';
 import { logAuthEvent } from './auditLog.service';
 import { generatePurposeToken, verifyPurposeToken } from './token.service';
@@ -62,8 +61,7 @@ export const requestAppActivation = async (data: { mobile: string }, req: Reques
     throw new ConflictError('This account is already activated — please sign in with your MPIN.');
   }
 
-  const { code } = await createOtp(account.id, 'signup_verify');
-  await smsProvider.sendOtp(data.mobile, code);
+  const { code } = await sendOtp(account.id, 'signup_verify', data.mobile);
   await logAuthEvent({ authAccountId: account.id, eventType: 'app_activation_requested', source: 'staff_app', req });
 
   return { mobile: data.mobile, ...devOtpEcho(code) };
@@ -187,8 +185,7 @@ export const requestAppMpinReset = async (mobile: string) => {
     );
   }
 
-  const { code } = await createOtp(account.id, 'mpin_reset');
-  await smsProvider.sendOtp(mobile, code);
+  const { code } = await sendOtp(account.id, 'mpin_reset', mobile);
 
   return devOtpEcho(code);
 };

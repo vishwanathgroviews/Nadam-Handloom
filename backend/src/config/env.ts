@@ -26,6 +26,12 @@ const envSchema = z.object({
   MSG91_AUTH_KEY: z.string().optional(),
   MSG91_SENDER_ID: z.string().optional(),
   MSG91_TEMPLATE_ID: z.string().optional(),
+  // Message Central VerifyNow (see providers/sms/messagecentral.provider.ts)
+  // — both are required once SMS_PROVIDER=messagecentral is set (enforced in
+  // providers/sms/index.ts). KEY is the account password Base64-encoded, the
+  // form their token API asks for.
+  MESSAGE_CENTRAL_CUSTOMER_ID: z.string().optional(),
+  MESSAGE_CENTRAL_KEY: z.string().optional(),
   SEED_ADMIN_NAME: z.string().optional(),
   SEED_ADMIN_EMAIL: z.string().optional(),
   SEED_ADMIN_MOBILE: z.string().optional(),

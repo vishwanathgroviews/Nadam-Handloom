@@ -6,14 +6,21 @@ vi.mock('../../config/prisma', async () => {
   return { prisma: fake.client, __fake: fake };
 });
 
+vi.mock('../../providers/sms', () => ({ smsProvider: { sendOtp: vi.fn(), verifyOtp: vi.fn() } }));
+
 import * as prismaModule from '../../config/prisma';
-import { createOtp, verifyOtp, resendOtp } from './otp.service';
+import { smsProvider } from '../../providers/sms';
+import { createOtp, sendOtp, verifyOtp, resendOtp } from './otp.service';
 import { TooManyRequestsError, BadRequestError } from '../../utils/errors';
 
 const fake = (prismaModule as any).__fake;
+const sendMock = smsProvider.sendOtp as ReturnType<typeof vi.fn>;
+const providerVerifyMock = smsProvider.verifyOtp as ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   for (const key of Object.keys(fake.db)) fake.db[key] = [];
+  sendMock.mockReset();
+  providerVerifyMock.mockReset();
 });
 
 describe('otp.service', () => {
@@ -44,6 +51,37 @@ describe('otp.service', () => {
 
   it('enforces the resend cooldown', async () => {
     await createOtp('acc_4', 'signup_verify');
-    await expect(resendOtp('acc_4', 'signup_verify')).rejects.toThrow(TooManyRequestsError);
+    await expect(resendOtp('acc_4', 'signup_verify', '9876543210')).rejects.toThrow(TooManyRequestsError);
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it('delivers the code it created, which then verifies', async () => {
+    const { code } = await sendOtp('acc_5', 'signup_verify', '9876543210');
+
+    expect(sendMock).toHaveBeenCalledWith('9876543210', code);
+    await expect(verifyOtp('acc_5', 'signup_verify', code)).resolves.toBeUndefined();
+  });
+
+  describe('with a gateway that generates the code itself', () => {
+    beforeEach(() => {
+      sendMock.mockResolvedValue({ reference: '4521' });
+      providerVerifyMock.mockImplementation(async (_reference: string, code: string) => code === '654321');
+    });
+
+    it('has the gateway check the entry against the reference it returned', async () => {
+      await sendOtp('acc_6', 'signup_verify', '9876543210');
+
+      await expect(verifyOtp('acc_6', 'signup_verify', '654321')).resolves.toBeUndefined();
+      expect(providerVerifyMock).toHaveBeenCalledWith('4521', '654321');
+    });
+
+    it('still locks out after 3 entries the gateway rejects', async () => {
+      await sendOtp('acc_7', 'signup_verify', '9876543210');
+
+      for (let i = 0; i < 3; i++) {
+        await expect(verifyOtp('acc_7', 'signup_verify', '000000')).rejects.toThrow('Invalid verification code');
+      }
+      await expect(verifyOtp('acc_7', 'signup_verify', '654321')).rejects.toThrow('Invalid or expired verification code');
+    });
   });
 });

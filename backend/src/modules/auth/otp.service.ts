@@ -2,8 +2,17 @@ import { prisma } from '../../config/prisma';
 import { generateOtpCode, sha256 } from '../../utils/crypto';
 import { BadRequestError, TooManyRequestsError } from '../../utils/errors';
 import { env, isProduction } from '../../config/env';
+import { smsProvider } from '../../providers/sms';
 
 export type OtpPurpose = 'signup_verify' | 'mpin_reset';
+
+type IssuedOtp = { id: string; code: string; expiresAt: Date };
+
+// A gateway that generates the code itself (see SmsProvider.sendOtp) gives us
+// a reference to check against instead of a code we could hash. It is kept in
+// the codeHash column under this prefix — a sha256 hex digest can never start
+// with it — so supporting such a gateway needs no schema change.
+const PROVIDER_REFERENCE_PREFIX = 'provider:';
 
 // SMS_PROVIDER=console never delivers a real SMS (dev/test only — see
 // providers/sms/console.provider.ts), so there is no other way to retrieve
@@ -18,10 +27,7 @@ const OTP_TTL_MS = 15 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_MAX_ATTEMPTS = 3;
 
-export const createOtp = async (
-  authAccountId: string,
-  purpose: OtpPurpose
-): Promise<{ code: string; expiresAt: Date }> => {
+export const createOtp = async (authAccountId: string, purpose: OtpPurpose): Promise<IssuedOtp> => {
   // Supersede any still-live codes for this account+purpose so only the latest is valid.
   await prisma.otpCode.updateMany({
     where: { authAccountId, purpose, used: false },
@@ -31,7 +37,7 @@ export const createOtp = async (
   const code = generateOtpCode();
   const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
-  await prisma.otpCode.create({
+  const { id } = await prisma.otpCode.create({
     data: {
       authAccountId,
       purpose,
@@ -41,13 +47,23 @@ export const createOtp = async (
     },
   });
 
-  return { code, expiresAt };
+  return { id, code, expiresAt };
 };
 
-export const resendOtp = async (
-  authAccountId: string,
-  purpose: OtpPurpose
-): Promise<{ code: string; expiresAt: Date }> => {
+// Creates a fresh code for the account and delivers it to `mobile`.
+export const sendOtp = async (authAccountId: string, purpose: OtpPurpose, mobile: string): Promise<IssuedOtp> => {
+  const otp = await createOtp(authAccountId, purpose);
+  const sent = await smsProvider.sendOtp(mobile, otp.code);
+  if (sent) {
+    await prisma.otpCode.update({
+      where: { id: otp.id },
+      data: { codeHash: `${PROVIDER_REFERENCE_PREFIX}${sent.reference}` },
+    });
+  }
+  return otp;
+};
+
+export const resendOtp = async (authAccountId: string, purpose: OtpPurpose, mobile: string): Promise<IssuedOtp> => {
   const latest = await prisma.otpCode.findFirst({
     where: { authAccountId, purpose },
     orderBy: { createdAt: 'desc' },
@@ -57,7 +73,7 @@ export const resendOtp = async (
     throw new TooManyRequestsError('Please wait before requesting another code');
   }
 
-  return createOtp(authAccountId, purpose);
+  return sendOtp(authAccountId, purpose, mobile);
 };
 
 export const verifyOtp = async (
@@ -77,7 +93,11 @@ export const verifyOtp = async (
     throw new BadRequestError('Too many incorrect attempts, please request a new code');
   }
 
-  if (otpRecord.codeHash !== sha256(code)) {
+  const matches = otpRecord.codeHash.startsWith(PROVIDER_REFERENCE_PREFIX)
+    ? ((await smsProvider.verifyOtp?.(otpRecord.codeHash.slice(PROVIDER_REFERENCE_PREFIX.length), code)) ?? false)
+    : otpRecord.codeHash === sha256(code);
+
+  if (!matches) {
     const attempts = otpRecord.attempts + 1;
     await prisma.otpCode.update({
       where: { id: otpRecord.id },
