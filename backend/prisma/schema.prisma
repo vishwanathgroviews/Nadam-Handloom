@@ -568,3 +568,28 @@ model EventsOutbox {
 
   @@index([dispatched, createdAt])
 }
+
+// What the staff app and the storefront check when they open: the
+// maintenance switches, and per platform the newest build and the oldest one
+// still allowed. A single row ("default") — see modules/app-config.
+model AppConfig {
+  id String @id @default("default")
+
+  maintenanceEnabled    Boolean @default(false) // staff app: locks out STAFF, never ADMIN
+  maintenanceMessage    String  @default("")
+  webMaintenanceEnabled Boolean @default(false) // customer website
+  webMaintenanceMessage String  @default("")
+
+  // Build numbers are android.versionCode / ios.buildNumber, not "1.0.0".
+  androidLatestBuild Int     @default(0)
+  androidMinBuild    Int     @default(0) // builds below this must update
+  androidForceUpdate Boolean @default(false) // on: every build below latest must update
+  androidUpdateUrl   String  @default("")
+  iosLatestBuild     Int     @default(0)
+  iosMinBuild        Int     @default(0)
+  iosForceUpdate     Boolean @default(false)
+  iosUpdateUrl       String  @default("")
+
+  updatedAt DateTime @updatedAt
+  updatedBy String? // AuthAccount id of the admin who last changed it
+}

@@ -19,6 +19,7 @@ import addressRoutes from './modules/address/address.routes';
 import ordersRoutes from './modules/orders/orders.routes';
 import webhookRoutes from './modules/webhooks/webhooks.routes';
 import invoicesRoutes from './modules/invoices/invoices.routes';
+import appConfigRoutes from './modules/app-config/app-config.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { env } from './config/env';
 
@@ -78,6 +79,7 @@ app.use('/api/v1/admin/invoices', invoicesRoutes);
 app.use('/api/v1/catalog', catalogRoutes);
 app.use('/api/v1/addresses', addressRoutes);
 app.use('/api/v1/orders', ordersRoutes);
+app.use('/api/v1/app-config', appConfigRoutes);
 
 // Locally-stored uploads (STORAGE_PROVIDER=local). Mounted only in that
 // mode so nothing is exposed when real object storage is in use.

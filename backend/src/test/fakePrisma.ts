@@ -14,7 +14,7 @@ const MODELS = [
   'passwordResetToken', 'apiToken', 'rateLimitHit',
   'category', 'subcategory', 'product', 'productImage', 'address', 'order', 'orderItem', 'payment', 'shipment',
   'piece', 'reservation', 'stockLedger', 'subcategoryCatalogPdf',
-  'deviceToken', 'eventsOutbox', 'invoice',
+  'deviceToken', 'eventsOutbox', 'invoice', 'appConfig',
 ];
 
 type RelationKind = 'hasOne' | 'hasMany' | 'belongsTo';
@@ -155,6 +155,11 @@ const SCHEMA_DEFAULTS: Record<string, Row> = {
   reservation: { quantity: 1, status: 'active' },
   eventsOutbox: { dispatched: false },
   invoice: { generatedAt: () => new Date() },
+  appConfig: {
+    maintenanceEnabled: false, maintenanceMessage: '', webMaintenanceEnabled: false, webMaintenanceMessage: '',
+    androidLatestBuild: 0, androidMinBuild: 0, androidForceUpdate: false, androidUpdateUrl: '',
+    iosLatestBuild: 0, iosMinBuild: 0, iosForceUpdate: false, iosUpdateUrl: '',
+  },
 };
 
 function withDefaults(modelName: string, data: Row): Row {
