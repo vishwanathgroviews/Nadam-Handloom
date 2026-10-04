@@ -4,10 +4,10 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
 import { getMe, StaffProfile } from '../api/user';
+import { versionLabel } from '../utils/appVersion';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -52,6 +52,7 @@ export default function ProfileScreen() {
         { key: 'catalog', label: 'Catalog', hint: 'Categories & pricing', icon: 'albums-outline', onPress: () => navigation.navigate('Categories') },
         { key: 'staff', label: 'Team', hint: 'Staff & roles', icon: 'people-outline', onPress: () => navigation.navigate('StaffList') },
         { key: 'audit', label: 'Activity', hint: 'Audit log', icon: 'document-text-outline', onPress: () => navigation.navigate('AuditLog') },
+        { key: 'appSettings', label: 'App settings', hint: 'Maintenance & app updates', icon: 'settings-outline', onPress: () => navigation.navigate('AppSettings') },
       ]
     : [];
 
@@ -108,7 +109,7 @@ export default function ProfileScreen() {
 
             <Button title="Log Out" onPress={logout} variant="destructive" style={styles.logoutButton} />
 
-            <Text style={styles.version}>Nandam Handlooms Staff · v{Constants.expoConfig?.version ?? '1.0.0'}</Text>
+            <Text style={styles.version}>Nandam Handlooms Staff · {versionLabel()}</Text>
           </>
         )}
       </ScrollView>

@@ -27,6 +27,7 @@ import ScannerScreen from '../screens/ScannerScreen';
 import StaffListScreen from '../screens/StaffListScreen';
 import StaffInviteScreen from '../screens/StaffInviteScreen';
 import AuditLogScreen from '../screens/AuditLogScreen';
+import AppSettingsScreen from '../screens/AppSettingsScreen';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import InvoicesScreen from '../screens/InvoicesScreen';
@@ -59,6 +60,7 @@ export type AppStackParamList = {
   StaffList: undefined;
   StaffInvite: undefined;
   AuditLog: undefined;
+  AppSettings: undefined;
   Analytics: undefined;
   Invoices: undefined;
   InvoiceDetail: { invoiceId: string };
@@ -146,6 +148,7 @@ export default function RootNavigator() {
           <AppStack.Screen name="StaffList" component={StaffListScreen} />
           <AppStack.Screen name="StaffInvite" component={StaffInviteScreen} />
           <AppStack.Screen name="AuditLog" component={AuditLogScreen} />
+          <AppStack.Screen name="AppSettings" component={AppSettingsScreen} />
           <AppStack.Screen name="Analytics" component={AnalyticsScreen} />
           <AppStack.Screen name="Invoices" component={InvoicesScreen} />
           <AppStack.Screen name="InvoiceDetail" component={InvoiceDetailScreen} />

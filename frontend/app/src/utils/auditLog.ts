@@ -85,7 +85,30 @@ const EVENTS: Record<string, EventSpec> = {
   admin_reinvited_user: { title: 'Team member invited again', icon: 'person-add-outline', tone: 'team' },
   admin_revoked_user_access: { title: 'Team member access removed', icon: 'person-remove-outline', tone: 'team' },
   session_revoked_by_admin: { title: 'Device signed out', icon: 'phone-portrait-outline', tone: 'team' },
+
+  // Settings
+  app_config_updated: { title: 'App settings changed', icon: 'settings-outline', tone: 'security' },
 };
+
+// The server records an app-settings change as its column names; these are
+// the names the App Settings screen shows for the same things.
+const APP_SETTING_LABELS: Record<string, string> = {
+  maintenanceEnabled: 'Staff app maintenance',
+  maintenanceMessage: 'Staff app message',
+  webMaintenanceEnabled: 'Website maintenance',
+  webMaintenanceMessage: 'Website message',
+  androidLatestBuild: 'Android latest version',
+  androidMinBuild: 'Android minimum version',
+  androidForceUpdate: 'Android force update',
+  androidUpdateUrl: 'Android update link',
+  iosLatestBuild: 'iPhone latest version',
+  iosMinBuild: 'iPhone minimum version',
+  iosForceUpdate: 'iPhone force update',
+  iosUpdateUrl: 'iPhone update link',
+};
+
+const settingValue = (value: unknown): string =>
+  typeof value === 'boolean' ? (value ? 'On' : 'Off') : value === '' || value === null || value === undefined ? '(empty)' : String(value);
 
 /** Falls back to the raw code made readable, so a new event type still shows sensibly. */
 const fallbackTitle = (eventType: string) =>
@@ -143,6 +166,13 @@ export const describeAuditEntry = (entry: AuditLogEntry): AuditDescription => {
     case 'session_revoked_by_admin':
       pushIf(details, 'Person', entry.subject?.name ?? null);
       break;
+    case 'app_config_updated': {
+      const changes = (meta.changes ?? {}) as Record<string, { from?: unknown; to?: unknown }>;
+      for (const [key, change] of Object.entries(changes)) {
+        pushIf(details, APP_SETTING_LABELS[key] ?? key, `${settingValue(change?.from)} → ${settingValue(change?.to)}`);
+      }
+      break;
+    }
     case 'product_deleted': {
       // The product row may be gone for good, so name it from the event itself.
       if (!ctx.productName) pushIf(details, 'Product', [text(meta.name), text(meta.sku)].filter(Boolean).join(' · ') || null);

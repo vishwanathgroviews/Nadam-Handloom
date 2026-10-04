@@ -4,6 +4,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold, Outfit_700Bold } from '@expo-google-fonts/outfit';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import AppSplash from './src/components/AppSplash';
+import { AppConfigProvider } from './src/context/AppConfigContext';
+import AppGate from './src/components/AppGate';
 import { DialogProvider } from './src/components/DialogProvider';
 import RootNavigator from './src/navigation/RootNavigator';
 
@@ -29,9 +31,16 @@ export default function App() {
       <AuthProvider>
         {/* Inside AuthProvider so any screen can raise a dialog, and above the
             navigator so a dialog survives the screen that opened it. */}
-        <DialogProvider>
-          <RootNavigator />
-        </DialogProvider>
+        <AppConfigProvider>
+          <DialogProvider>
+            {/* Decides between the app, the maintenance screen and the update
+                prompt — inside AuthProvider because owners are never locked
+                out by maintenance. */}
+            <AppGate>
+              <RootNavigator />
+            </AppGate>
+          </DialogProvider>
+        </AppConfigProvider>
         <LaunchSplash />
       </AuthProvider>
       <StatusBar style="dark" />

@@ -12,6 +12,26 @@ const entry = (over: Partial<AuditLogEntry>): AuditLogEntry => ({
 });
 
 describe('describeAuditEntry', () => {
+  it('spells out an app settings change in the words the settings screen uses', () => {
+    const d = describeAuditEntry(entry({
+      eventType: 'app_config_updated',
+      actor: { id: 'u1', name: 'Nandam Owner', role: 'Owner' },
+      metadata: {
+        changes: {
+          maintenanceEnabled: { from: false, to: true },
+          androidMinBuild: { from: 21, to: 23 },
+          maintenanceMessage: { from: '', to: 'Stock count' },
+        },
+      },
+    }));
+    expect(d.title).toBe('App settings changed');
+    expect(d.details).toEqual([
+      { label: 'Staff app maintenance', value: 'Off → On' },
+      { label: 'Android minimum version', value: '21 → 23' },
+      { label: 'Staff app message', value: '(empty) → Stock count' },
+    ]);
+  });
+
   it('says who did it, and names the product rather than showing its id', () => {
     const d = describeAuditEntry(entry({
       eventType: 'product_updated',
