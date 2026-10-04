@@ -17,7 +17,7 @@ describe('Msg91SmsProvider', () => {
     vi.unstubAllGlobals();
   });
 
-  it('POSTs to the MSG91 Flow API with the auth key, template id, and OTP code', async () => {
+  it('POSTs to the MSG91 SendOTP API with the auth key, template id, and OTP code', async () => {
     (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,
       json: async () => ({ type: 'success' }),
@@ -25,16 +25,20 @@ describe('Msg91SmsProvider', () => {
 
     await provider.sendOtp('9876543210', '123456');
 
-    expect(global.fetch).toHaveBeenCalledWith(
-      'https://control.msg91.com/api/v5/flow/',
+    const [url, init] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const parsed = new URL(url);
+    expect(`${parsed.origin}${parsed.pathname}`).toBe('https://control.msg91.com/api/v5/otp');
+    expect(Object.fromEntries(parsed.searchParams)).toEqual({
+      template_id: 'test-template-id',
+      mobile: '919876543210',
+      otp: '123456',
+    });
+    expect(init).toEqual(
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({ authkey: 'test-auth-key' }),
       })
     );
-    const body = JSON.parse((global.fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body);
-    expect(body.template_id).toBe('test-template-id');
-    expect(body.recipients).toEqual([{ mobiles: '919876543210', OTP: '123456' }]);
   });
 
   it('throws when the HTTP call itself fails', async () => {
