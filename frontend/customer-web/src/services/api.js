@@ -171,6 +171,10 @@ export const api = {
 
   isAuthenticated: () => accessToken !== null,
 
+  // Maintenance switch and app-update settings the owner controls from the
+  // staff app. Public — read before anyone has signed in.
+  getAppConfig: async () => request('/app-config', { skipAuth: true }),
+
   // Silently restores a session from the httpOnly refresh cookie on app load
   // (e.g. after a page reload), without forcing the user through login again.
   bootstrapSession: async () => {

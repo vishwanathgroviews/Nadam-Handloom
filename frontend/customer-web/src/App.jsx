@@ -5,6 +5,7 @@ import { CartProvider } from './context/CartContext';
 
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
+import MaintenanceGate from './components/MaintenanceGate';
 import Login from './components/Login';
 import Register from './components/Register';
 import OtpVerification from './components/OtpVerification';
@@ -26,44 +27,48 @@ import OrderDetail from './pages/OrderDetail';
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <CartProvider>
-          {/* Inside the router, above every route: one place resets the
-              scroll position instead of each page remembering to. */}
-          <ScrollToTop />
-          <Routes>
-            {/* Storefront — main site layout, browsable without login */}
-            <Route element={<StoreLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/shop" element={<ProductListPage />} />
-              <Route path="/category/:slug" element={<CategoryPage />} />
-              <Route path="/category/:slug/:subcategoryId" element={<ProductListPage />} />
-              <Route path="/product/:slug" element={<ProductDetail />} />
-              <Route path="/cart" element={<CartPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
-              <Route path="/account" element={<ProfileSettings />} />
-              <Route path="/account/orders" element={<MyOrders />} />
-              <Route path="/account/orders/:orderId" element={<OrderDetail />} />
-            </Route>
+    // Outermost, so maintenance replaces every page — shop, account and
+    // sign-in alike — and nothing behind it keeps calling the server.
+    <MaintenanceGate>
+      <BrowserRouter>
+        <AuthProvider>
+          <CartProvider>
+            {/* Inside the router, above every route: one place resets the
+                scroll position instead of each page remembering to. */}
+            <ScrollToTop />
+            <Routes>
+              {/* Storefront — main site layout, browsable without login */}
+              <Route element={<StoreLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/shop" element={<ProductListPage />} />
+                <Route path="/category/:slug" element={<CategoryPage />} />
+                <Route path="/category/:slug/:subcategoryId" element={<ProductListPage />} />
+                <Route path="/product/:slug" element={<ProductDetail />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+                <Route path="/account" element={<ProfileSettings />} />
+                <Route path="/account/orders" element={<MyOrders />} />
+                <Route path="/account/orders/:orderId" element={<OrderDetail />} />
+              </Route>
 
-            {/* Auth lifecycle screens — branded banner layout */}
-            <Route element={<Layout />}>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/otp-verify" element={<OtpVerification />} />
-              <Route path="/mpin-setup" element={<MpinSetup />} />
-              <Route path="/forgot-password" element={<ResetRequest />} />
-              <Route path="/reset-password" element={<MpinReset />} />
-            </Route>
+              {/* Auth lifecycle screens — branded banner layout */}
+              <Route element={<Layout />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/otp-verify" element={<OtpVerification />} />
+                <Route path="/mpin-setup" element={<MpinSetup />} />
+                <Route path="/forgot-password" element={<ResetRequest />} />
+                <Route path="/reset-password" element={<MpinReset />} />
+              </Route>
 
-            {/* Fallback route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </CartProvider>
-      </AuthProvider>
-    </BrowserRouter>
+              {/* Fallback route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </CartProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </MaintenanceGate>
   );
 }
 
