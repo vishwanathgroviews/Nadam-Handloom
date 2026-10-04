@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import KeyboardAwareScreen from '../components/KeyboardAwareScreen';
 import BrandMark from '../components/BrandMark';
 import PinCodeInput from '../components/PinCodeInput';
+import ResendCode from '../components/ResendCode';
 import { colors, radius, spacing, typography, shadow } from '../utils/theme';
 import Button from '../components/ui/Button';
 
@@ -16,14 +17,24 @@ const CODE_LENGTH = 6;
 const PIN_LENGTH = 6;
 
 export default function MpinResetScreen({ route, navigation }: Props) {
-  const { mobile, devOtp } = route.params;
-  const { confirmMpinReset } = useAuth();
+  const { mobile } = route.params;
+  const { confirmMpinReset, requestMpinReset } = useAuth();
+  const [devOtp, setDevOtp] = useState(route.params.devOtp);
   const [code, setCode] = useState(devOtp ?? '');
   const [newMpin, setNewMpin] = useState('');
   const [confirmNewMpin, setConfirmNewMpin] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // A new code replaces the old one, so the code box is cleared — the MPIN
+  // they have already typed is kept.
+  const handleResend = async () => {
+    setError('');
+    const fresh = await requestMpinReset(mobile);
+    setDevOtp(fresh.devOtp);
+    setCode(fresh.devOtp ?? '');
+  };
 
   const handleSubmit = async () => {
     setError('');
@@ -83,6 +94,7 @@ export default function MpinResetScreen({ route, navigation }: Props) {
           <View style={styles.fieldGroup}>
             <Text style={styles.fieldLabel}>Reset code</Text>
             <PinCodeInput value={code} onChangeText={setCode} length={CODE_LENGTH} autoFocus />
+            <ResendCode onResend={handleResend} onError={setError} />
           </View>
 
           <View style={styles.divider} />

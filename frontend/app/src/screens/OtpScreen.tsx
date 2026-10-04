@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import KeyboardAwareScreen from '../components/KeyboardAwareScreen';
 import BrandMark from '../components/BrandMark';
 import PinCodeInput from '../components/PinCodeInput';
+import ResendCode from '../components/ResendCode';
 import { colors, radius, spacing, typography, shadow } from '../utils/theme';
 import Button from '../components/ui/Button';
 
@@ -15,11 +16,20 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Otp'>;
 const CODE_LENGTH = 6;
 
 export default function OtpScreen({ route, navigation }: Props) {
-  const { mobile, devOtp } = route.params;
-  const { verifyActivationOtp } = useAuth();
+  const { mobile } = route.params;
+  const { verifyActivationOtp, requestActivation } = useAuth();
+  const [devOtp, setDevOtp] = useState(route.params.devOtp);
   const [code, setCode] = useState(devOtp ?? '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // A new code replaces the old one, so whatever was typed is cleared.
+  const handleResend = async () => {
+    setError('');
+    const fresh = await requestActivation(mobile);
+    setDevOtp(fresh.devOtp);
+    setCode(fresh.devOtp ?? '');
+  };
 
   const handleSubmit = async () => {
     setError('');
@@ -63,6 +73,7 @@ export default function OtpScreen({ route, navigation }: Props) {
           </View>
 
           <Button title="Verify" onPress={handleSubmit} loading={loading} style={styles.submitButton} />
+          <ResendCode onResend={handleResend} onError={setError} />
         </View>
       </ScrollView>
     </KeyboardAwareScreen>
