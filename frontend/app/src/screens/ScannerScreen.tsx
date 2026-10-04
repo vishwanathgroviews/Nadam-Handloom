@@ -33,7 +33,7 @@ import {
   toSellItems,
   BillLine,
 } from '../utils/bill';
-import { sendPdfToWhatsAppChat, WhatsAppNotInstalledError } from '../utils/whatsappPdf';
+import { canSendPdfToWhatsAppChat, sharePdfOnWhatsApp } from '../utils/whatsappPdf';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -371,14 +371,15 @@ export default function ScannerScreen({ navigation }: Props) {
     [sellResult]
   );
 
-  // One tap: opens the customer's WhatsApp chat with the invoice PDF already
-  // attached (staff press WhatsApp's own Send). The number goes only to
-  // WhatsApp on this phone — never to the server.
+  // One tap. On Android this opens the customer's WhatsApp chat with the
+  // invoice PDF already attached (staff press WhatsApp's own Send); the number
+  // goes only to WhatsApp on this phone — never to the server. iPhone has no
+  // such route, so there it opens the share menu and no number is needed.
   const shareInvoiceOnWhatsApp = useCallback(async () => {
     const invoice = sellResult?.invoice;
     if (!invoice) return;
     const mobile = cleanMobile(invoiceMobile);
-    if (!mobile) {
+    if (canSendPdfToWhatsAppChat() && !mobile) {
       setInvoiceMobileError("Enter the customer's 10-digit mobile number.");
       return;
     }
@@ -391,13 +392,9 @@ export default function ScannerScreen({ navigation }: Props) {
       const bytes = new Uint8Array(await res.arrayBuffer());
       const filename = `${invoice.invoiceNumber}.pdf`;
       const uri = savePdfBytes(bytes, filename);
-      try {
-        await sendPdfToWhatsAppChat(uri, mobile, filename, invoiceCaption(invoice));
-      } catch (err) {
-        if (!(err instanceof WhatsAppNotInstalledError)) throw err;
-        // No WhatsApp on this phone: still get the PDF out, via the share menu.
+      const route = await sharePdfOnWhatsApp(uri, mobile, filename, invoiceCaption(invoice));
+      if (route === 'share_menu_no_whatsapp') {
         setShareError('WhatsApp is not installed on this phone — choose another app to send the invoice.');
-        await sharePdf(uri);
       }
     } catch (err: any) {
       setShareError(err?.message || 'Could not share the invoice');
@@ -614,8 +611,9 @@ export default function ScannerScreen({ navigation }: Props) {
                 {sellResult.channel === 'store' && sellResult.invoice ? (
                   <View style={styles.whatsappShareBlock}>
                     {/* The number can still be typed here if it wasn't given
-                        before the sale — it is used only for this message. */}
-                    {!cleanMobile(invoiceMobile) || invoiceMobileError ? (
+                        before the sale — it is used only for this message.
+                        Not asked for on iPhone, where it could not be used. */}
+                    {canSendPdfToWhatsAppChat() && (!cleanMobile(invoiceMobile) || invoiceMobileError) ? (
                       <TextInput
                         style={styles.customerInput}
                         placeholder="Customer mobile number"
@@ -645,7 +643,11 @@ export default function ScannerScreen({ navigation }: Props) {
                         </>
                       )}
                     </TouchableOpacity>
-                    <Text style={styles.helper}>The number is not saved anywhere.</Text>
+                    <Text style={styles.helper}>
+                      {canSendPdfToWhatsAppChat()
+                        ? 'The number is not saved anywhere.'
+                        : "Choose WhatsApp in the menu, then the customer's chat."}
+                    </Text>
                   </View>
                 ) : null}
 
@@ -795,7 +797,7 @@ export default function ScannerScreen({ navigation }: Props) {
                   </Text>
                 )}
 
-          {saleChannel === 'store' && (
+          {saleChannel === 'store' && canSendPdfToWhatsAppChat() && (
             <View style={styles.customerForm}>
               <TextInput
                 style={styles.customerInput}
