@@ -34,6 +34,7 @@ import {
   BillLine,
 } from '../utils/bill';
 import { canSendPdfToWhatsAppChat, sharePdfOnWhatsApp } from '../utils/whatsappPdf';
+import { SingleFireLock } from '../utils/concurrencyGuards';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -115,7 +116,13 @@ export default function ScannerScreen({ navigation }: Props) {
   const [sellResult, setSellResult] = useState<ScanSellResult | null>(null);
   const [error, setError] = useState('');
   const [errorCode, setErrorCode] = useState('');
-  const [scannedLock, setScannedLock] = useState(false);
+  // One confirmed scan at a time. A plain synchronous lock rather than React
+  // state: the camera confirms the same tag again every few frames, and a
+  // state flag set by the first confirmation is not visible to the next one
+  // until React has re-rendered. On iPhone, where frames arrive fastest, that
+  // let a single physical scan send the same lookup up to eight times. Same
+  // reasoning as BarcodeScanModal.
+  const scanLock = useRef(new SingleFireLock());
   const [salePriceInput, setSalePriceInput] = useState('');
   // The bill being built. "Add More" sends staff back to the camera with
   // these lines intact, and Complete Sale turns the whole list into ONE
@@ -168,7 +175,7 @@ export default function ScannerScreen({ navigation }: Props) {
     setErrorCode('');
     setShareError('');
     setManualCode('');
-    setScannedLock(false);
+    scanLock.current.release();
     setSalePriceInput('');
     setBill([]);
     setSaleChannel(null);
@@ -188,7 +195,7 @@ export default function ScannerScreen({ navigation }: Props) {
     setError('');
     setErrorCode('');
     setManualCode('');
-    setScannedLock(false);
+    scanLock.current.release();
     setSalePriceInput('');
     setScanNotice('');
   }, []);
@@ -201,7 +208,7 @@ export default function ScannerScreen({ navigation }: Props) {
     setLookup(null);
     setError('');
     setErrorCode('');
-    setScannedLock(false);
+    scanLock.current.release();
     setSalePriceInput('');
     setScanNotice('');
   }, []);
@@ -260,7 +267,7 @@ export default function ScannerScreen({ navigation }: Props) {
     setErrorCode('');
     setManualCode('');
     setSalePriceInput('');
-    setScannedLock(false);
+    scanLock.current.release();
     setPhase('result');
   }, []);
 
@@ -425,11 +432,11 @@ export default function ScannerScreen({ navigation }: Props) {
 
   // CameraScanner only calls this once several frames have agreed on the same
   // value, so what arrives here is a confirmed, canonical code rather than one
-  // frame's guess. The lock still guards against a second confirmation landing
+  // frame's guess. scanLock still guards against a second confirmation landing
   // while the first lookup is in flight.
   const handleBarcodeScanned = useCallback(
     (code: string) => {
-      if (scannedLock || phase !== 'scanning') return;
+      if (phase !== 'scanning' || scanLock.current.isLocked) return;
       // The tag just added is usually still under the camera when it
       // re-arms. Reading it again is not a mistake worth stopping for: the
       // camera stays live, says so, and waits for the next tag. (A product
@@ -440,11 +447,11 @@ export default function ScannerScreen({ navigation }: Props) {
         setScanNotice(`${already.productName} is already on this bill — scan the next tag.`);
         return;
       }
+      if (!scanLock.current.tryAcquire()) return;
       setScanNotice('');
-      setScannedLock(true);
       handleCode(code);
     },
-    [scannedLock, phase, handleCode, bill, mode]
+    [phase, handleCode, bill, mode]
   );
 
   const handleManualSubmit = () => {
