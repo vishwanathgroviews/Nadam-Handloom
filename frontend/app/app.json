@@ -15,7 +15,7 @@
         "NSCameraUsageDescription": "Used to scan product barcodes for lookup and in-store sales.",
         "NSPhotoLibraryUsageDescription": "Used to add a photo to a product listing."
       },
-      "buildNumber": "1",
+      "buildNumber": "2",
       "config": {
         "usesNonExemptEncryption": false
       }
@@ -30,7 +30,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#5C1420"
       },
-      "versionCode": 21
+      "versionCode": 22
     },
     "plugins": [
       [
