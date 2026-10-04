@@ -62,6 +62,14 @@ describe('otp.service', () => {
     await expect(verifyOtp('acc_5', 'signup_verify', code)).resolves.toBeUndefined();
   });
 
+  it('keeps the earlier code valid when the gateway refuses to send a new one', async () => {
+    const first = await sendOtp('acc_8', 'signup_verify', '9876543210');
+    sendMock.mockRejectedValueOnce(new TooManyRequestsError('Please wait before requesting another code'));
+
+    await expect(sendOtp('acc_8', 'signup_verify', '9876543210')).rejects.toThrow(TooManyRequestsError);
+    await expect(verifyOtp('acc_8', 'signup_verify', first.code)).resolves.toBeUndefined();
+  });
+
   describe('with a gateway that generates the code itself', () => {
     beforeEach(() => {
       sendMock.mockResolvedValue({ reference: '4521' });

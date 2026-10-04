@@ -6,7 +6,7 @@ import { smsProvider } from '../../providers/sms';
 
 export type OtpPurpose = 'signup_verify' | 'mpin_reset';
 
-type IssuedOtp = { id: string; code: string; expiresAt: Date };
+type IssuedOtp = { code: string; expiresAt: Date };
 
 // A gateway that generates the code itself (see SmsProvider.sendOtp) gives us
 // a reference to check against instead of a code we could hash. It is kept in
@@ -27,40 +27,47 @@ const OTP_TTL_MS = 15 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 const OTP_MAX_ATTEMPTS = 3;
 
-export const createOtp = async (authAccountId: string, purpose: OtpPurpose): Promise<IssuedOtp> => {
+const storeOtp = async (
+  authAccountId: string,
+  purpose: OtpPurpose,
+  code: string,
+  codeHash: string
+): Promise<IssuedOtp> => {
   // Supersede any still-live codes for this account+purpose so only the latest is valid.
   await prisma.otpCode.updateMany({
     where: { authAccountId, purpose, used: false },
     data: { used: true },
   });
 
-  const code = generateOtpCode();
   const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
-  const { id } = await prisma.otpCode.create({
+  await prisma.otpCode.create({
     data: {
       authAccountId,
       purpose,
-      codeHash: sha256(code),
+      codeHash,
       expiresAt,
       resendAvailableAt: new Date(Date.now() + OTP_RESEND_COOLDOWN_MS),
     },
   });
 
-  return { id, code, expiresAt };
+  return { code, expiresAt };
 };
 
-// Creates a fresh code for the account and delivers it to `mobile`.
+export const createOtp = (authAccountId: string, purpose: OtpPurpose): Promise<IssuedOtp> => {
+  const code = generateOtpCode();
+  return storeOtp(authAccountId, purpose, code, sha256(code));
+};
+
+// Delivers a fresh code to `mobile`, then records it. Recording comes second
+// on purpose: when the gateway turns the request down (Message Central
+// refuses a second code inside 60 seconds), the code the customer already
+// holds has to stay valid — superseding it first left them with an SMS that
+// no longer verified and no new one on the way.
 export const sendOtp = async (authAccountId: string, purpose: OtpPurpose, mobile: string): Promise<IssuedOtp> => {
-  const otp = await createOtp(authAccountId, purpose);
-  const sent = await smsProvider.sendOtp(mobile, otp.code);
-  if (sent) {
-    await prisma.otpCode.update({
-      where: { id: otp.id },
-      data: { codeHash: `${PROVIDER_REFERENCE_PREFIX}${sent.reference}` },
-    });
-  }
-  return otp;
+  const code = generateOtpCode();
+  const sent = await smsProvider.sendOtp(mobile, code);
+  return storeOtp(authAccountId, purpose, code, sent ? `${PROVIDER_REFERENCE_PREFIX}${sent.reference}` : sha256(code));
 };
 
 export const resendOtp = async (authAccountId: string, purpose: OtpPurpose, mobile: string): Promise<IssuedOtp> => {
