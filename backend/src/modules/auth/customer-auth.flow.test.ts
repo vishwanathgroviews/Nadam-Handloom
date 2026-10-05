@@ -101,6 +101,66 @@ describe('customer auth flow', () => {
     expect(res.status).toBe(400);
   });
 
+  describe('resending the signup code', () => {
+    // The resend cooldown is 60 seconds; this puts an account's last code past it.
+    const letCooldownPass = () => {
+      for (const otp of fake.db.otpCode) otp.resendAvailableAt = new Date(Date.now() - 1000);
+    };
+    const resend = (phone: string) => request(app).post('/api/v1/auth/customer/otp/resend').send({ phone });
+
+    it('sends a new code to someone who verified their number but has not set an MPIN yet', async () => {
+      const phone = '9876522222';
+      await request(app).post('/api/v1/auth/customer/register').send(registerPayload({ phone }));
+      const firstCode = lastOtpCode();
+      await request(app).post('/api/v1/auth/customer/otp/verify').send({ phone, code: firstCode });
+      // Their MPIN choice is refused, so sign-up is still unfinished.
+      letCooldownPass();
+      sendOtpMock.mockClear();
+
+      const res = await resend(phone);
+
+      expect(res.status).toBe(200);
+      expect(sendOtpMock).toHaveBeenCalledTimes(1);
+      // The new code works, and gets them a fresh token to finish with.
+      const verify = await request(app).post('/api/v1/auth/customer/otp/verify').send({ phone, code: lastOtpCode() });
+      expect(verify.status).toBe(200);
+      const setup = await request(app)
+        .post('/api/v1/auth/customer/mpin/setup')
+        .send({ setupToken: verify.body.data.setupToken, mpin: '284759', confirmMpin: '284759' });
+      expect(setup.status).toBe(200);
+    });
+
+    it('sends nothing, and says nothing, once the account is fully set up', async () => {
+      await registerVerifyAndSetMpin('9876533333');
+      letCooldownPass();
+      sendOtpMock.mockClear();
+
+      const res = await resend('9876533333');
+
+      expect(res.status).toBe(200);
+      expect(sendOtpMock).not.toHaveBeenCalled();
+    });
+
+    it('sends nothing, and says nothing, for a number that never registered', async () => {
+      const res = await resend('9876544444');
+
+      expect(res.status).toBe(200);
+      expect(sendOtpMock).not.toHaveBeenCalled();
+    });
+
+    it('asks the customer to wait when the last code is under a minute old', async () => {
+      const phone = '9876555555';
+      await request(app).post('/api/v1/auth/customer/register').send(registerPayload({ phone }));
+      sendOtpMock.mockClear();
+
+      const res = await resend(phone);
+
+      expect(res.status).toBe(429);
+      expect(res.body.message).toBe('Please wait before requesting another code');
+      expect(sendOtpMock).not.toHaveBeenCalled();
+    });
+  });
+
   it('rate-limits repeated registration attempts from the same IP', async () => {
     for (let i = 0; i < 5; i++) {
       const res = await request(app).post('/api/v1/auth/customer/register').send(registerPayload({ phone: `98765000${i}${i}` }));

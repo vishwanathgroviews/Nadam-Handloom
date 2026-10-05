@@ -77,9 +77,15 @@ export const verifyCustomerOtp = async (phone: string, code: string, req: Reques
   return { setupToken: generatePurposeToken(account.id, 'mpin_setup') };
 };
 
+// Resends for as long as sign-up is unfinished — an account stays 'pending'
+// until its MPIN is set (setupCustomerMpin). It used to stop the moment the
+// phone was verified, which stranded anyone who verified their number, had
+// their MPIN choice refused, and went back for a new code: the storefront
+// said "resent" and nothing ever arrived. Silent for a finished account, like
+// the other public endpoints here.
 export const resendCustomerOtp = async (phone: string) => {
   const account = await prisma.authAccount.findUnique({ where: { phone } });
-  if (!account || account.phoneVerifiedAt) return {};
+  if (!account || account.status !== 'pending') return {};
 
   const { code } = await resendOtp(account.id, 'signup_verify', phone);
   return devOtpEcho(code);
