@@ -1,3 +1,5 @@
+import { apiErrorMessage } from '../utils/apiError';
+
 // VITE_API_URL is a build-time env var (Vite inlines it at build, not
 // runtime) — set it in the deployment environment for staging/production
 // when the API lives on a different origin than the frontend.
@@ -33,7 +35,7 @@ const request = async (path, { method = 'GET', body, skipAuth = false } = {}) =>
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const error = new Error(data.message || 'Something went wrong');
+    const error = new Error(apiErrorMessage(data));
     error.status = response.status;
     error.code = data.code;
     error.details = data.details;

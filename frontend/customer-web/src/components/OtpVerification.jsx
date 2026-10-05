@@ -64,7 +64,10 @@ export default function OtpVerification() {
       await api.sendOtp(phone);
       setMockMessage(`OTP Resent to ${maskPhone(phone)}`);
     } catch (err) {
-      setError('Failed to resend code. Please try again.');
+      // The server's own words when it has some — "Please wait before
+      // requesting another code" is something the customer can act on.
+      setMockMessage('');
+      setError(err.message || 'Failed to resend code. Please try again.');
     }
   };
 

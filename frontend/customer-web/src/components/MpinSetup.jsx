@@ -71,7 +71,9 @@ export default function MpinSetup() {
       <h3 className="form-title">
         <KeyRound size={26} /> Set Your MPIN
       </h3>
-      <p className="form-subtitle">Choose a 4 or 6-digit MPIN — you'll use it to sign in from now on</p>
+      <p className="form-subtitle">
+        Choose a 4 or 6-digit MPIN — you'll use it to sign in from now on. Easy ones like 1234 or 1111 are not accepted.
+      </p>
 
       {apiError && (
         <div className="error-msg" style={{ marginBottom: '15px', padding: '10px', background: '#ffebee', borderRadius: '6px' }}>
