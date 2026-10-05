@@ -15,8 +15,13 @@ type Tx = Prisma.TransactionClient;
  * reads as in stock again everywhere (catalog.availability.ts counts only
  * `in_stock` pieces plus the legacy counter, both of which the release
  * restores).
+ *
+ * It has to outlast the window in which Razorpay will still capture a payment
+ * (12 minutes — the account's "Automatic capture" setting). At 10 minutes a
+ * shopper who paid in minute 11 was charged for a piece whose hold had already
+ * lapsed and could by then have been sold to someone else.
  */
-export const RESERVATION_TTL_MS = 10 * 60 * 1000;
+export const RESERVATION_TTL_MS = 15 * 60 * 1000;
 const LOW_STOCK_THRESHOLD = 3;
 
 export interface ReserveRequestItem {
@@ -744,7 +749,7 @@ export const getStockLedger = async (query: { productId?: string; page: number; 
 
 /** Periodically releases abandoned-checkout reservations past their TTL. */
 export const startReservationExpirySweep = () => {
-  // Runs well inside the TTL so a hold is actually released at ~10 minutes
+  // Runs well inside the TTL so a hold is actually released at ~15 minutes
   // rather than up to a minute late — the sweep is a cheap indexed lookup
   // (Reservation has an index on [status, expiresAt]) and is a no-op when
   // nothing has expired.
