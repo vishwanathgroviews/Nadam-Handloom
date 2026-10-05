@@ -123,7 +123,7 @@ async function rawRequest<T = any>(path: string, options: RequestOptions = {}): 
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    const error = new Error(data.message || 'Something went wrong') as ApiError;
+    const error = new Error(errorMessageFrom(data)) as ApiError;
     error.status = response.status;
     error.code = data.code;
     error.details = data.details;
@@ -132,6 +132,24 @@ async function rawRequest<T = any>(path: string, options: RequestOptions = {}): 
 
   return data as T;
 }
+
+/**
+ * What to show when the server turns a request down.
+ *
+ * A form that fails the server's checks comes back with the generic message
+ * "Validation failed" and the actual reasons in `details` ([{ path, message }]).
+ * The reason is the part someone can act on — "This MPIN is too easy to guess,
+ * please choose another" — so that is what gets shown. Only that case is
+ * unwrapped: other errors carry details of their own shape next to a message
+ * that is already the specific one.
+ */
+export const errorMessageFrom = (data: any): string => {
+  if (data?.message === 'Validation failed' && Array.isArray(data.details)) {
+    const reason = data.details.find((detail: any) => detail?.message)?.message;
+    if (reason) return reason;
+  }
+  return data?.message || 'Something went wrong';
+};
 
 // Access tokens expire in 15 minutes (JWT_ACCESS_EXPIRES_IN) — any screen left
 // open longer than that used to hit a bare "Invalid or expired access token"

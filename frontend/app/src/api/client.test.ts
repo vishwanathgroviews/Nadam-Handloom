@@ -47,6 +47,35 @@ describe('isAuthFailure', () => {
   });
 });
 
+describe('apiRequest error messages', () => {
+  it('shows the reason a form was refused instead of "Validation failed"', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        json(400, {
+          message: 'Validation failed',
+          details: [{ path: 'mpin', message: 'This MPIN is too easy to guess, please choose another' }],
+        })
+      )
+    );
+
+    await expect(apiRequest('/auth/app/mpin/setup', { method: 'POST', body: { mpin: '1234' } })).rejects.toThrow(
+      'This MPIN is too easy to guess, please choose another'
+    );
+  });
+
+  it("keeps the server's own message for every other error", async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(json(409, { message: 'Some items are no longer available', details: [{ message: 'Saree A' }] }))
+    );
+
+    await expect(apiRequest('/orders/checkout', { method: 'POST', body: {} })).rejects.toThrow(
+      'Some items are no longer available'
+    );
+  });
+});
+
 describe('apiRequest session handling', () => {
   it('refreshes once and retries when the access token has expired', async () => {
     const fetchMock = vi
