@@ -1,13 +1,23 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { api } from '../services/api';
 
+import {
+  OWNER_WHATSAPP_NUMBER,
+  DEFAULT_OWNER_WHATSAPP_RECIPIENT,
+  formatWhatsAppRecipient,
+} from '../utils/whatsapp';
+
 const DEFAULT_STORE_PHONE = '+917382968566';
 const DEFAULT_DISPLAY_PHONE = '+91 73829 68566';
+const DEFAULT_WHATSAPP_NUMBER = OWNER_WHATSAPP_NUMBER;
+const DEFAULT_WHATSAPP_RECIPIENT = DEFAULT_OWNER_WHATSAPP_RECIPIENT;
 
 const StoreContactContext = createContext({
   phone: DEFAULT_STORE_PHONE,
   displayPhone: DEFAULT_DISPLAY_PHONE,
   tel: DEFAULT_STORE_PHONE,
+  whatsappNumber: DEFAULT_WHATSAPP_NUMBER,
+  whatsappRecipient: DEFAULT_WHATSAPP_RECIPIENT,
   loading: false,
 });
 
@@ -16,6 +26,8 @@ export function StoreContactProvider({ children }) {
     phone: DEFAULT_STORE_PHONE,
     displayPhone: DEFAULT_DISPLAY_PHONE,
     tel: DEFAULT_STORE_PHONE,
+    whatsappNumber: DEFAULT_WHATSAPP_NUMBER,
+    whatsappRecipient: DEFAULT_WHATSAPP_RECIPIENT,
     loading: true,
   });
 
@@ -24,10 +36,13 @@ export function StoreContactProvider({ children }) {
     api.getStoreContact()
       .then((data) => {
         if (!mounted || !data) return;
+        const whatsappNumber = data.whatsappNumber || DEFAULT_WHATSAPP_NUMBER;
         setContact({
           phone: data.phone || DEFAULT_STORE_PHONE,
           displayPhone: data.displayPhone || data.phone || DEFAULT_DISPLAY_PHONE,
           tel: data.tel || data.phone || DEFAULT_STORE_PHONE,
+          whatsappNumber,
+          whatsappRecipient: formatWhatsAppRecipient(whatsappNumber),
           loading: false,
         });
       })
@@ -56,6 +71,8 @@ export function useStoreContact() {
       phone: DEFAULT_STORE_PHONE,
       displayPhone: DEFAULT_DISPLAY_PHONE,
       tel: DEFAULT_STORE_PHONE,
+      whatsappNumber: DEFAULT_WHATSAPP_NUMBER,
+      whatsappRecipient: DEFAULT_WHATSAPP_RECIPIENT,
       loading: false,
     };
   }

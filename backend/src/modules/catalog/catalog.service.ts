@@ -54,7 +54,14 @@ export const listSubcategoriesForCategory = async (categorySlug: string) => {
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
   });
   return {
-    category: { id: category.id, name: category.name, slug: category.slug, description: category.description, imageUrl: category.imageUrl },
+    category: {
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+      description: category.description,
+      imageUrl: category.imageUrl,
+      isOfferActive: Boolean((category as any).isOfferActive),
+    },
     subcategories: subcategories.map((s) => ({
       id: s.id,
       name: s.name,
@@ -62,6 +69,7 @@ export const listSubcategoriesForCategory = async (categorySlug: string) => {
       onlinePrice: s.onlinePrice,
       mrp: s.mrp,
       imageUrl: s.imageUrl ?? null,
+      isOfferActive: Boolean((s as any).isOfferActive),
     })),
   };
 };
@@ -69,6 +77,7 @@ export const listSubcategoriesForCategory = async (categorySlug: string) => {
 const buildProductWhere = (query: ListProductsQuery, categoryId?: string) => {
   const where: any = {
     isActive: true,
+    isHidden: false,
     channelVisibility: { in: CUSTOMER_VISIBLE_CHANNELS },
     category: { is: { isActive: true } },
     subcategory: { is: { isActive: true } },
@@ -78,7 +87,14 @@ const buildProductWhere = (query: ListProductsQuery, categoryId?: string) => {
   where.AND = [IN_STOCK];
   if (categoryId) where.categoryId = categoryId;
   if (query.subcategoryId) where.subcategoryId = query.subcategoryId;
-  if (query.featured) where.isFeatured = true;
+  if (query.featured) {
+    where.isFeatured = true;
+    where.isOfferActive = false;
+  }
+  if (query.offers) {
+    where.isOfferActive = true;
+    where.offerPrice = { not: null, gt: 0 };
+  }
 
   const attributeFilters: [keyof ListProductsQuery, string][] = [
     ['technique', 'technique'],
@@ -167,6 +183,7 @@ export const getProductBySlug = async (slug: string) => {
     where: {
       slug,
       isActive: true,
+      isHidden: false,
       channelVisibility: { in: CUSTOMER_VISIBLE_CHANNELS },
       category: { is: { isActive: true } },
       subcategory: { is: { isActive: true } },

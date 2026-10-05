@@ -6,7 +6,15 @@
 export const AUDIT_GROUPS = {
   sales: ['offline_sale_price_override'],
   orders: ['order_marked_shipped', 'order_marked_delivered'],
-  products: ['product_created', 'product_updated', 'product_image_updated', 'product_deleted'],
+  products: [
+    'product_created',
+    'product_updated',
+    'product_image_updated',
+    'product_deleted',
+    'product_hidden',
+    'product_unhidden',
+    'product_sold_out',
+  ],
   catalog: [
     'category_created', 'category_updated', 'category_price_changed', 'category_image_updated',
     'category_hidden_from_web', 'category_shown_on_web',

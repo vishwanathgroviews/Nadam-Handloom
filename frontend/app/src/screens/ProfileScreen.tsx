@@ -109,7 +109,7 @@ export default function ProfileScreen() {
 
             <Button title="Log Out" onPress={logout} variant="destructive" style={styles.logoutButton} />
 
-            <Text style={styles.version}>Nandam Handlooms Staff · v{Constants.expoConfig?.version ?? '1.0.0'}</Text>
+            <Text style={styles.version}>Groviews Staff · v{Constants.expoConfig?.version ?? '1.0.0'}</Text>
           </>
         )}
       </ScrollView>

@@ -83,7 +83,7 @@ export default function StoreLayout() {
 
           <Link to="/" className="store-brand">
             <BrandMark size={38} />
-            <span>Nandam Handlooms</span>
+            <span>Groviews</span>
           </Link>
 
           <nav ref={navRef} className={`store-nav ${menuOpen ? 'open' : ''}`}>
@@ -146,7 +146,7 @@ export default function StoreLayout() {
           <div>
             <div className="store-brand store-footer-brand">
               <BrandMark size={34} />
-              <span>Nandam Handlooms</span>
+              <span>Groviews</span>
             </div>
             <p className="store-footer-tagline">
               Handcrafted sarees and handloom textiles, woven by master artisans and delivered to your doorstep.
@@ -171,24 +171,17 @@ export default function StoreLayout() {
           <div>
             <h4>Visit Our Store</h4>
             <p className="store-footer-muted">
-              #10-23, Opp. Brahmam Gari Temple, Hussain Katta<br />
-              Old Mangalagiri, Guntur Dist<br />
-              Andhra Pradesh – 522 503
+              Mayuri Tech Park<br />
+              Near the NRI Exit<br />
+              Mangalagiri, Guntur District<br />
+              Andhra Pradesh
             </p>
             <a className="store-footer-link" href={`tel:${tel}`}>Call Store: {displayPhone}</a>
             <p className="store-footer-muted">Mon–Sun, 9:30 AM–8:30 PM IST</p>
-            <a
-              className="store-footer-link"
-              href="https://maps.app.goo.gl/qK54PztChaCdGzMz6"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Get Directions
-            </a>
           </div>
         </div>
         <div className="store-footer-bottom">
-          © {new Date().getFullYear()} Nandam Handlooms. Authenticity guaranteed.
+          © {new Date().getFullYear()} Groviews. Authenticity guaranteed.
         </div>
       </footer>
     </div>

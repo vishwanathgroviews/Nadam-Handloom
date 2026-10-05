@@ -221,19 +221,17 @@ export default function SubcategoryListScreen({ route, navigation }: Props) {
                   <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
                   <View style={styles.metaLine}>
                     <Text style={styles.cardMeta} numberOfLines={1}>
-                      {item._count?.products ?? 0} piece{item._count?.products === 1 ? '' : 's'}{item.isActive ? '' : ' ·'}
+                      {item._count?.products ?? 0} piece{item._count?.products === 1 ? '' : 's'}{(item.isActive && !item.isHidden) ? '' : ' ·'}
                     </Text>
-                    {!item.isActive && <Badge label="Hidden" tone="error" />}
-                    {/* Falls back to the parent category's photo until one is
-                        uploaded — surfaced so the gap is fixable, rather than
-                        hidden behind a borrowed product photo. */}
-                    {item.hasOwnImage === false && <Badge label="Needs photo" tone="warning" />}
+                    {(!item.isActive || item.isHidden) ? <Badge label="Hidden" tone="neutral" /> : null}
+                    {Boolean(item.isOfferActive) ? <Badge label="Offer" tone="primary" /> : null}
+                    {item.hasOwnImage === false ? <Badge label="Needs photo" tone="warning" /> : null}
                   </View>
                 </View>
                 <View style={styles.priceWrap}>
                   {/* The counter price — see ProductListScreen. */}
                   <Text style={styles.price}>₹{item.storePrice}</Text>
-                  <Text style={styles.priceSub}>Store ₹{item.storePrice}</Text>
+                  <Text style={styles.priceSub}>Sell ₹{item.onlinePrice}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={16} color={colors.iconMuted} />
               </TouchableOpacity>

@@ -3,15 +3,15 @@ import { MapPin, Phone, Clock, Copy, Check, Navigation } from 'lucide-react';
 import { useStoreContact } from '../context/StoreContactContext';
 import './StoreLocation.css';
 
-const STORE_NAME = 'NANDAM HANDLOOMS';
+const STORE_NAME = 'GROVIEWS';
 const STORE_ADDRESS_LINES = [
-  '#10-23',
-  'Opp. Brahmam Gari Temple, Hussain Katta',
-  'Old Mangalagiri, Guntur Dist',
-  'Andhra Pradesh – 522 503',
+  'Mayuri Tech Park',
+  'Near the NRI Exit',
+  'Mangalagiri, Guntur District',
+  'Andhra Pradesh',
 ];
 const STORE_HOURS = 'Monday – Sunday: 9:30 AM to 8:30 PM (IST)';
-const STORE_MAP_URL = 'https://maps.app.goo.gl/qK54PztChaCdGzMz6';
+const STORE_MAP_URL = 'https://maps.google.com/?q=Mayuri+Tech+Park+Near+the+NRI+Exit+Mangalagiri+Guntur+District+Andhra+Pradesh';
 
 export default function StoreLocation() {
   const { displayPhone, tel } = useStoreContact();
@@ -82,7 +82,7 @@ export default function StoreLocation() {
           target="_blank"
           rel="noopener noreferrer"
           className="store-location-map-preview"
-          aria-label="View Nandam Handlooms on Google Maps"
+          aria-label="View Groviews on Google Maps"
         >
           <MapPin size={40} />
           <span>View on Google Maps</span>

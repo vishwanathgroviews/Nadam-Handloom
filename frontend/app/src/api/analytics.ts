@@ -22,6 +22,21 @@ export interface AnalyticsSummary {
   store: { count: number; total: number };
   whatsapp: { count: number; total: number };
   previousPeriod: PreviousPeriod;
+  catalogVisibility?: {
+    totalProducts: number;
+    liveProducts: number;
+    hiddenProducts: number;
+    activeOffersCount: number;
+  };
+  offerPerformance?: {
+    offerOrdersCount: number;
+    offerUnitsSold: number;
+    regularUnitsSold: number;
+    offerRevenue: number;
+    regularRevenue: number;
+    totalDiscountGiven: number;
+    offerSharePct: number;
+  };
 }
 
 export interface TopSubcategoryEntry {

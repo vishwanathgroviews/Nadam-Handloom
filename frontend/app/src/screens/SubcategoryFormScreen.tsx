@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Switch, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -39,9 +39,11 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [mrp, setMrp] = useState('');
   const [onlinePrice, setOnlinePrice] = useState('');
   const [storePrice, setStorePrice] = useState('');
-  const [isActive, setIsActive] = useState(true);
+  const [isHidden, setIsHidden] = useState(false);
+  const [isOfferActive, setIsOfferActive] = useState(false);
   const [sortOrder, setSortOrder] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [hasOwnImage, setHasOwnImage] = useState(false);
@@ -49,6 +51,13 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
   const [pendingImage, setPendingImage] = useState<{ uri: string; name: string; type: string } | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
+
+  const calculatedDiscount = useMemo(() => {
+    const m = Number(mrp);
+    const p = Number(onlinePrice);
+    if (!m || !p || m <= p) return 0;
+    return Math.round(((m - p) / m) * 100);
+  }, [mrp, onlinePrice]);
 
   useEffect(() => {
     if (!isEdit || !accessToken) return;
@@ -60,9 +69,11 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
         if (!subcategory) throw new Error('Subcategory not found');
         setName(subcategory.name);
         setDescription(subcategory.description);
+        setMrp(subcategory.mrp ? String(subcategory.mrp) : '');
         setOnlinePrice(String(subcategory.onlinePrice));
         setStorePrice(String(subcategory.storePrice));
-        setIsActive(subcategory.isActive);
+        setIsHidden(subcategory.isHidden ?? !subcategory.isActive);
+        setIsOfferActive(Boolean(subcategory.isOfferActive));
         setSortOrder(String(subcategory.sortOrder));
         setImageUrl(subcategory.imageUrl);
         setHasOwnImage(subcategory.hasOwnImage);
@@ -137,21 +148,32 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
     if (description.trim().length < 1) return setError('Please enter a short description');
     const online = Number(onlinePrice);
     const store = Number(storePrice);
-    if (!online || online <= 0) return setError('Please enter the website price');
+    if (!online || online <= 0) return setError('Please enter the selling price');
     if (!store || store <= 0) return setError('Please enter the store price');
+    const parsedMrp = mrp.trim() ? Number(mrp) : null;
+    if (parsedMrp !== null && (isNaN(parsedMrp) || parsedMrp <= 0)) {
+      return setError('Please enter a valid MRP greater than 0');
+    }
+    if (parsedMrp !== null && parsedMrp < online) {
+      return setError('MRP cannot be less than the selling price');
+    }
 
     setSaving(true);
     try {
-      const payload = {
+      const payload: any = {
         name: name.trim(),
         description: description.trim(),
         onlinePrice: online,
         storePrice: store,
+        mrp: parsedMrp,
         // Only sent when it is actually a number — see parseSortOrder.
         ...(parseSortOrder(sortOrder) !== undefined ? { sortOrder: parseSortOrder(sortOrder) } : {}),
+        isActive: !isHidden,
+        isHidden,
+        isOfferActive,
       };
       if (isEdit && subcategoryId) {
-        await updateSubcategory(accessToken, subcategoryId, { ...payload, isActive });
+        await updateSubcategory(accessToken, subcategoryId, payload);
         // The staged photo is committed here, not when it was picked — one
         // "Save Changes" writes both the details and the image.
         if (pendingImage) {
@@ -177,7 +199,7 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [accessToken, name, description, onlinePrice, storePrice, sortOrder, isActive, isEdit, categoryId, subcategoryId, navigation, pendingImage]);
+  }, [accessToken, name, description, mrp, onlinePrice, storePrice, sortOrder, isHidden, isOfferActive, isEdit, categoryId, subcategoryId, navigation, pendingImage]);
 
   // Two steps on purpose: this deletes the subcategory's products and their
   // photos as well, and there is no undo. Hiding sits one card above for the
@@ -281,16 +303,41 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
         <Text style={styles.cardTitle}>Prices</Text>
         <View style={styles.row}>
           <View style={styles.rowItem}>
-            <Text style={styles.fieldLabel}>Website Price (₹)</Text>
+            <Text style={styles.fieldLabel}>MRP (₹)</Text>
+            <TextInput
+              style={styles.input}
+              value={mrp}
+              onChangeText={setMrp}
+              editable={canEdit}
+              keyboardType="numeric"
+              placeholder="e.g. 15999"
+              placeholderTextColor={colors.textMuted}
+            />
+          </View>
+          <View style={styles.rowItem}>
+            <Text style={styles.fieldLabel}>Selling Price (₹)</Text>
             <TextInput
               style={styles.input}
               value={onlinePrice}
               onChangeText={setOnlinePrice}
               editable={canEdit}
               keyboardType="numeric"
+              placeholder="e.g. 12999"
               placeholderTextColor={colors.textMuted}
             />
           </View>
+        </View>
+
+        {calculatedDiscount > 0 && (
+          <View style={styles.discountBadgeWrap}>
+            <Ionicons name="pricetag" size={14} color={colors.success} />
+            <Text style={styles.discountBadgeText}>
+              {calculatedDiscount}% discount will be shown on website (Save ₹{(Number(mrp) - Number(onlinePrice)).toLocaleString('en-IN')})
+            </Text>
+          </View>
+        )}
+
+        <View style={[styles.row, { marginTop: spacing.xs }]}>
           <View style={styles.rowItem}>
             <Text style={styles.fieldLabel}>Store Price (₹)</Text>
             <TextInput
@@ -299,14 +346,16 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
               onChangeText={setStorePrice}
               editable={canEdit}
               keyboardType="numeric"
+              placeholder="e.g. 11999"
               placeholderTextColor={colors.textMuted}
             />
           </View>
         </View>
+
         <Text style={styles.helper}>
-          Website Price: the price customers pay on the website.{'\n'}
-          Store Price: the price used when you sell in the shop with this app. You can still change the price for one
-          sale without changing these.
+          MRP: Maximum Retail Price, shown struck-through alongside the Selling Price on the website.{'\n'}
+          Selling Price: the price customers pay on the website.{'\n'}
+          Store Price: the price used when you sell in the shop with this app.
         </Text>
 
         <Text style={styles.fieldLabel}>Position</Text>
@@ -356,21 +405,41 @@ export default function SubcategoryFormScreen({ route, navigation }: Props) {
         </Card>
       )}
 
-      {isEdit && (
-        <Card style={[styles.card, styles.switchRow]}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.fieldLabelInline}>Show on website</Text>
-            <Text style={styles.helper}>Turn off to hide this subcategory and its products from the website. Nothing is deleted.</Text>
+      <Text style={styles.sectionLabel}>Promotions &amp; Offers</Text>
+      <Card style={styles.card}>
+        <View style={styles.switchRow}>
+          <View style={{ flex: 1, paddingRight: spacing.sm }}>
+            <Text style={styles.fieldLabelInline}>Special Offer Badge</Text>
+            <Text style={styles.helper}>
+              Highlight this subcategory with a Special Offer badge on category and listing pages.
+            </Text>
           </View>
           <Switch
-            value={isActive}
-            onValueChange={setIsActive}
+            value={isOfferActive}
+            onValueChange={setIsOfferActive}
             disabled={!canEdit}
-            trackColor={{ false: colors.divider, true: colors.primary }}
-            thumbColor="#fff"
+            trackColor={{ true: colors.primary }}
           />
-        </Card>
-      )}
+        </View>
+      </Card>
+
+      <Text style={styles.sectionLabel}>Catalog Visibility</Text>
+      <Card style={styles.card}>
+        <View style={styles.switchRow}>
+          <View style={{ flex: 1, paddingRight: spacing.sm }}>
+            <Text style={styles.fieldLabelInline}>Hide from Catalog</Text>
+            <Text style={styles.helper}>
+              Hidden subcategories and their products do not appear on the website.
+            </Text>
+          </View>
+          <Switch
+            value={isHidden}
+            onValueChange={setIsHidden}
+            disabled={!canEdit}
+            trackColor={{ true: colors.warning }}
+          />
+        </View>
+      </Card>
 
       {canEdit && (
         <Button
@@ -445,7 +514,8 @@ const styles = StyleSheet.create({
   textarea: { minHeight: 90, textAlignVertical: 'top', paddingTop: spacing.md },
   row: { flexDirection: 'row', gap: spacing.md },
   rowItem: { flex: 1 },
-  switchRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  sectionLabel: { ...typography.caption, color: colors.textLabel, marginTop: spacing.xl, marginBottom: spacing.xs, textTransform: 'uppercase' },
+  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.xs },
   imageSection: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.sm },
   imagePreview: { width: 96, height: 96, borderRadius: radius.lg, backgroundColor: colors.placeholderBg },
   imagePlaceholder: { alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
@@ -466,4 +536,18 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md, borderRadius: radius.md, backgroundColor: colors.errorBg,
   },
   deleteButtonText: { ...typography.bodySemibold, color: colors.error },
+  discountBadgeWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs + 2,
+    backgroundColor: colors.successBg,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 4,
+    borderRadius: radius.md,
+    marginTop: spacing.sm,
+  },
+  discountBadgeText: {
+    ...typography.bodySmSemibold,
+    color: colors.success,
+  },
 });

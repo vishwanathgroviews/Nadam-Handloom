@@ -7,7 +7,7 @@ import { logAuthEvent } from '../auth/auditLog.service';
 import { barcodeNumber } from '../../utils/barcode';
 
 // A customer-shareable PDF catalog per subcategory — one product photo per
-// page on the "Nandam Soft Premium" brand skin (warm ivory ground, maroon +
+// page on the "Groviews Soft Premium" brand skin (warm ivory ground, maroon +
 // gold accents). Distinct from the barcode label PDFs in ../labels, which
 // are for sticker sheets, not sharing with customers. Only in-stock products
 // with a photo are included — out-of-stock products get neither a page nor

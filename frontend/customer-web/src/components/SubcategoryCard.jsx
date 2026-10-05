@@ -30,6 +30,9 @@ export default function SubcategoryCard({ categorySlug, subcategory }) {
         ) : (
           <div className="category-card-placeholder" aria-hidden="true" />
         )}
+        {subcategory.isOfferActive && (
+          <span className="category-card-badge">Special Offer</span>
+        )}
         <div className="category-card-overlay">
           <span>{subcategory.name}</span>
         </div>

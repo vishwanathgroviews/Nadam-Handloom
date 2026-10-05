@@ -99,6 +99,8 @@ export interface AdminCategory {
   imageUrl: string | null;
   sortOrder: number;
   isActive: boolean;
+  isHidden?: boolean;
+  isOfferActive?: boolean;
   _count?: { products: number; subcategories: number };
 }
 
@@ -106,6 +108,11 @@ export interface CategoryInput {
   name: string;
   description: string;
   sortOrder?: number;
+  isActive?: boolean;
+  isHidden?: boolean;
+  isOfferActive?: boolean;
+  applyOfferToAllSubcategories?: boolean;
+  subcategoryOfferIds?: string[];
 }
 
 export interface AdminSubcategory {
@@ -123,6 +130,8 @@ export interface AdminSubcategory {
   imageUrl: string | null;
   hasOwnImage: boolean;
   isActive: boolean;
+  isHidden?: boolean;
+  isOfferActive?: boolean;
   sortOrder: number;
   _count?: { products: number };
 }
@@ -135,6 +144,8 @@ export interface SubcategoryInput {
   mrp?: number;
   sortOrder?: number;
   isActive?: boolean;
+  isHidden?: boolean;
+  isOfferActive?: boolean;
 }
 
 export interface AdminProductImage {
@@ -165,6 +176,10 @@ export interface AdminProductSummary {
   isActive: boolean;
   channelVisibility: ChannelVisibility;
   trackingMode: TrackingMode;
+  regularPrice: string | null;
+  offerPrice: string | null;
+  isOfferActive: boolean;
+  isHidden: boolean;
   category: { id: string; name: string; slug: string; isActive: boolean };
   subcategory: { id: string; name: string; onlinePrice: string; storePrice: string; isActive: boolean };
   images: AdminProductImage[];
@@ -188,6 +203,10 @@ export interface ProductInput {
   trackingMode?: TrackingMode;
   isFeatured?: boolean;
   isActive?: boolean;
+  regularPrice?: number | null;
+  offerPrice?: number | null;
+  isOfferActive?: boolean;
+  isHidden?: boolean;
   // Create only: the units scanned while filling in the form. The server
   // assigns them in the same transaction that creates the product, so the
   // product and its stock either both exist or neither does.
@@ -198,6 +217,9 @@ export interface ProductStats {
   activeCount: number;
   cap: number;
   remaining: number;
+  liveCount: number;
+  hiddenCount: number;
+  offersCount: number;
 }
 
 export const listCategories = (token: string) =>
@@ -246,18 +268,29 @@ export const updateSubcategory = (token: string, subcategoryId: string, data: Pa
 
 export const listProducts = (
   token: string,
-  params: { category?: string; q?: string; page?: number; pageSize?: number } = {}
+  params: { category?: string; q?: string; page?: number; pageSize?: number; visibility?: 'all' | 'visible' | 'hidden'; offersOnly?: boolean } = {}
 ) => {
   const qs = new URLSearchParams();
   if (params.category) qs.set('category', params.category);
   if (params.q) qs.set('q', params.q);
   if (params.page) qs.set('page', String(params.page));
   if (params.pageSize) qs.set('pageSize', String(params.pageSize));
+  if (params.visibility) qs.set('visibility', params.visibility);
+  if (params.offersOnly) qs.set('offersOnly', 'true');
   const suffix = qs.toString() ? `?${qs.toString()}` : '';
   return apiRequest<{
     data: { items: AdminProductSummary[]; total: number; page: number; pageSize: number; activeCount: number; cap: number; remaining: number };
   }>(`/admin/products${suffix}`, { token });
 };
+
+export const hideProduct = (token: string, productId: string) =>
+  apiRequest<{ data: AdminProductSummary }>(`/admin/products/${productId}/hide`, { method: 'POST', token });
+
+export const unhideProduct = (token: string, productId: string) =>
+  apiRequest<{ data: AdminProductSummary }>(`/admin/products/${productId}/unhide`, { method: 'POST', token });
+
+export const markProductSoldOut = (token: string, productId: string) =>
+  apiRequest<{ data: AdminProductSummary }>(`/admin/products/${productId}/sold-out`, { method: 'POST', token });
 
 export const getProductStats = (token: string) =>
   apiRequest<{ data: ProductStats }>('/admin/products/stats', { token });

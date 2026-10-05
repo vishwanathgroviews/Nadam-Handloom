@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const CACHE_PREFIX = 'nandam_offline_cache_';
+const CACHE_PREFIX = 'groviews_offline_cache_';
+const LEGACY_CACHE_PREFIX = 'nandam_offline_cache_';
 
 interface CacheEnvelope<T> {
   savedAt: string;
@@ -19,7 +20,10 @@ export const saveToCache = async <T>(key: string, data: T): Promise<void> => {
 
 export const loadFromCache = async <T>(key: string): Promise<{ data: T; savedAt: string } | null> => {
   try {
-    const raw = await AsyncStorage.getItem(CACHE_PREFIX + key);
+    let raw = await AsyncStorage.getItem(CACHE_PREFIX + key);
+    if (!raw) {
+      raw = await AsyncStorage.getItem(LEGACY_CACHE_PREFIX + key);
+    }
     if (!raw) return null;
     const envelope = JSON.parse(raw) as CacheEnvelope<T>;
     return { data: envelope.data, savedAt: envelope.savedAt };

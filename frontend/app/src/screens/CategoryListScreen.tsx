@@ -11,6 +11,7 @@ import OfflineBanner from '../components/OfflineBanner';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import { SkeletonList } from '../components/ui/Skeleton';
 import Card from '../components/ui/Card';
+import { Badge } from '../components/ui/Chip';
 import { colors, radius, spacing, typography } from '../utils/theme';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'Categories'>;
@@ -56,7 +57,7 @@ export default function CategoryListScreen({ navigation }: Props) {
     <View style={styles.container}>
       <ScreenHeader
         title="Categories"
-        subtitle="Categories are just name, description, and photo. Open one to manage its subcategories — that's where price, description, and Hide/Unhide live."
+        subtitle="Manage categories, positions, and visibility. Open one to manage its subcategories."
         rightAction={
           <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('CategoryForm', {})} activeOpacity={0.8}>
             <Text style={styles.addButtonText}>+ New</Text>
@@ -87,7 +88,11 @@ export default function CategoryListScreen({ navigation }: Props) {
                   </View>
                 )}
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flexWrap: 'wrap' }}>
+                    <Text style={styles.cardTitle} numberOfLines={1}>{item.name}</Text>
+                    {(!item.isActive || item.isHidden) && <Badge label="Hidden" tone="neutral" />}
+                    {Boolean(item.isOfferActive) && <Badge label="Offer" tone="primary" />}
+                  </View>
                   <Text style={styles.cardMeta} numberOfLines={1}>
                     {item._count?.subcategories ?? 0} subcategor{item._count?.subcategories === 1 ? 'y' : 'ies'} · {item._count?.products ?? 0} product{item._count?.products === 1 ? '' : 's'}
                   </Text>

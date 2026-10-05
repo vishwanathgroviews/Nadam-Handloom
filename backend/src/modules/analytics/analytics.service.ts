@@ -53,6 +53,42 @@ export const getSummary = async (query: DateRange) => {
   const totalRevenue = sum(orders);
   const orderCount = orders.length;
 
+  const orderIds = orders.map((o) => o.id);
+  let offerOrdersCount = 0;
+  let offerUnitsSold = 0;
+  let regularUnitsSold = 0;
+  let offerRevenue = 0;
+  let regularRevenue = 0;
+  let totalDiscountGiven = 0;
+
+  if (orderIds.length > 0) {
+    const orderItems = await prisma.orderItem.findMany({
+      where: { orderId: { in: orderIds } },
+    });
+    for (const item of orderItems) {
+      const lineTotal = Number(item.priceSnapshot) * item.quantity;
+      if (item.isOfferSnapshot) {
+        offerUnitsSold += item.quantity;
+        offerRevenue += lineTotal;
+        if (item.regularPriceSnapshot && Number(item.regularPriceSnapshot) > Number(item.priceSnapshot)) {
+          totalDiscountGiven += (Number(item.regularPriceSnapshot) - Number(item.priceSnapshot)) * item.quantity;
+        }
+      } else {
+        regularUnitsSold += item.quantity;
+        regularRevenue += lineTotal;
+      }
+    }
+    const offerOrderSet = new Set(orderItems.filter((i) => i.isOfferSnapshot).map((i) => i.orderId));
+    offerOrdersCount = offerOrderSet.size;
+  }
+
+  const [totalProducts, liveProducts, hiddenProducts, activeOffersCount] = await Promise.all([
+    prisma.product.count({ where: { deletedAt: null } }),
+    prisma.product.count({ where: { deletedAt: null, isHidden: false, isActive: true } }),
+    prisma.product.count({ where: { deletedAt: null, isHidden: true } }),
+    prisma.product.count({ where: { deletedAt: null, isOfferActive: true } }),
+  ]);
+
   // Previous period of equal length, immediately before this one — the
   // standard "+12% vs last period" comparison every analytics view needs.
   const durationMs = end.getTime() - start.getTime();
@@ -71,6 +107,21 @@ export const getSummary = async (query: DateRange) => {
     online: { count: online.length, total: sum(online) },
     store: { count: store.length, total: sum(store) },
     whatsapp: { count: whatsapp.length, total: sum(whatsapp) },
+    catalogVisibility: {
+      totalProducts,
+      liveProducts,
+      hiddenProducts,
+      activeOffersCount,
+    },
+    offerPerformance: {
+      offerOrdersCount,
+      offerUnitsSold,
+      regularUnitsSold,
+      offerRevenue,
+      regularRevenue,
+      totalDiscountGiven,
+      offerSharePct: totalRevenue > 0 ? (offerRevenue / totalRevenue) * 100 : 0,
+    },
     previousPeriod: {
       from: previousStart,
       to: previousEnd,

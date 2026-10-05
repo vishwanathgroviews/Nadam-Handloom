@@ -35,8 +35,12 @@ export default function CartPage() {
                 <img src={item.image} alt={item.name} />
               </Link>
               <div className="cart-item-details">
-                <Link to={`/product/${item.slug}`} className="cart-item-name">{item.name}</Link>
-                <span className="price-current">{formatPrice(item.price)}</span>
+                <div className="price-row" style={{ marginTop: 2, padding: 0 }}>
+                  <span className="price-current">{formatPrice(item.price)}</span>
+                  {item.mrp && Number(item.mrp) > Number(item.price) && (
+                    <span className="price-mrp">{formatPrice(item.mrp)}</span>
+                  )}
+                </div>
 
                 <div className="cart-item-controls">
                   <button className="cart-item-remove" onClick={() => removeItem(item.productId)}>

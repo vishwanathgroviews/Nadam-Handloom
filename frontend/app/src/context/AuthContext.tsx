@@ -1,14 +1,15 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 import { getSecureItem, setSecureItem, deleteSecureItem } from '../utils/secureStorage';
-import { apiRequest, refreshAccessToken, registerAuthHandlers, REFRESH_TOKEN_KEY, isAuthFailure } from '../api/client';
+import { apiRequest, refreshAccessToken, registerAuthHandlers, REFRESH_TOKEN_KEY, LEGACY_REFRESH_TOKEN_KEY, isAuthFailure } from '../api/client';
 
 // Persisted alongside the refresh token — lets MpinLoginScreen ask for just
 // an MPIN on repeat logins from the same device rather than a mobile number
 // every time, matching how a phone banking app remembers which account it
 // belongs to. Cleared only by logging out and activating a different
 // account, not by an ordinary MPIN login/logout cycle.
-const LAST_MOBILE_KEY = 'nandam_staff_last_mobile';
+const LAST_MOBILE_KEY = 'groviews_staff_last_mobile';
+const LEGACY_LAST_MOBILE_KEY = 'nandam_staff_last_mobile';
 import { decodeJwtPayload } from '../utils/jwt';
 import { registerForPushNotifications } from '../utils/push';
 import { registerDevice, unregisterDevice } from '../api/notifications';
@@ -90,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setStatus('unauthenticated');
     await deleteSecureItem(REFRESH_TOKEN_KEY);
+    await deleteSecureItem(LEGACY_REFRESH_TOKEN_KEY);
   }, []);
 
   // Lets apiRequest (client.ts) recover transparently from an access token
@@ -109,7 +111,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const storedRefreshToken = await getSecureItem(REFRESH_TOKEN_KEY);
+      let storedRefreshToken = await getSecureItem(REFRESH_TOKEN_KEY);
+      if (!storedRefreshToken) {
+        storedRefreshToken = await getSecureItem(LEGACY_REFRESH_TOKEN_KEY);
+      }
       if (!storedRefreshToken) {
         setStatus('unauthenticated');
         return;
@@ -199,7 +204,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    const storedRefreshToken = await getSecureItem(REFRESH_TOKEN_KEY);
+    let storedRefreshToken = await getSecureItem(REFRESH_TOKEN_KEY);
+    if (!storedRefreshToken) {
+      storedRefreshToken = await getSecureItem(LEGACY_REFRESH_TOKEN_KEY);
+    }
     try {
       if (accessToken) {
         const push = await registerForPushNotifications();
@@ -217,7 +225,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [accessToken, clearSession]);
 
   const getRememberedMobile = useCallback(async () => {
-    return getSecureItem(LAST_MOBILE_KEY);
+    const mobile = await getSecureItem(LAST_MOBILE_KEY);
+    if (mobile) return mobile;
+    return getSecureItem(LEGACY_LAST_MOBILE_KEY);
   }, []);
 
   const role: Role | null = user?.roles?.includes('ADMIN')

@@ -223,6 +223,108 @@ describe('catalog admin — subcategories', () => {
     expect(productPage.status).toBe(404);
   });
 
+  it('hiding a category with isHidden: true hides it from public categories', async () => {
+    const adminToken = await createToken('ADMIN', '9000000033');
+    const categoryId = fixture.category.id;
+
+    const hideRes = await request(app)
+      .patch(`/api/v1/admin/categories/${categoryId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ isHidden: true });
+    expect(hideRes.status).toBe(200);
+    expect(hideRes.body.data.isActive).toBe(false);
+    expect(hideRes.body.data.isHidden).toBe(true);
+
+    const categories = await request(app).get('/api/v1/catalog/categories');
+    expect(categories.body.data.map((c: any) => c.id)).not.toContain(fixture.category.id);
+
+    // Unhide it
+    const unhideRes = await request(app)
+      .patch(`/api/v1/admin/categories/${categoryId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ isHidden: false });
+    expect(unhideRes.status).toBe(200);
+    expect(unhideRes.body.data.isActive).toBe(true);
+    expect(unhideRes.body.data.isHidden).toBe(false);
+  });
+
+  it('hiding a subcategory with isHidden: true sets isActive false and isHidden true', async () => {
+    const adminToken = await createToken('ADMIN', '9000000034');
+    const subcategoryId = fixture.subcategory.id;
+
+    const hideRes = await request(app)
+      .patch(`/api/v1/admin/subcategories/${subcategoryId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ isHidden: true });
+    expect(hideRes.status).toBe(200);
+    expect(hideRes.body.data.isActive).toBe(false);
+    expect(hideRes.body.data.isHidden).toBe(true);
+
+    const unhideRes = await request(app)
+      .patch(`/api/v1/admin/subcategories/${subcategoryId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ isHidden: false });
+    expect(unhideRes.status).toBe(200);
+    expect(unhideRes.body.data.isActive).toBe(true);
+    expect(unhideRes.body.data.isHidden).toBe(false);
+  });
+
+  it('lets ADMIN enable isOfferActive on a category and reflects on public catalog', async () => {
+    const adminToken = await createToken('ADMIN', '9000000035');
+    const categoryId = fixture.category.id;
+
+    const offerRes = await request(app)
+      .patch(`/api/v1/admin/categories/${categoryId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ isOfferActive: true });
+    expect(offerRes.status).toBe(200);
+    expect(offerRes.body.data.isOfferActive).toBe(true);
+
+    const publicCats = await request(app).get('/api/v1/catalog/categories');
+    const matched = publicCats.body.data.find((c: any) => c.id === categoryId);
+    expect(matched.isOfferActive).toBe(true);
+  });
+
+  it('lets ADMIN enable isOfferActive on a subcategory and bulk update subcategories via category', async () => {
+    const adminToken = await createToken('ADMIN', '9000000036');
+    const categoryId = fixture.category.id;
+    const subcategoryId = fixture.subcategory.id;
+
+    // Direct toggle on subcategory
+    const subRes = await request(app)
+      .patch(`/api/v1/admin/subcategories/${subcategoryId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ isOfferActive: true });
+    expect(subRes.status).toBe(200);
+    expect(subRes.body.data.isOfferActive).toBe(true);
+
+    // Bulk update via category using subcategoryOfferIds
+    const catUpdateRes = await request(app)
+      .patch(`/api/v1/admin/categories/${categoryId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ subcategoryOfferIds: [subcategoryId] });
+    expect(catUpdateRes.status).toBe(200);
+
+    const subList = await request(app)
+      .get(`/api/v1/admin/categories/${categoryId}/subcategories`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    const foundSub = subList.body.data.find((s: any) => s.id === subcategoryId);
+    expect(foundSub.isOfferActive).toBe(true);
+
+    // Bulk apply to all subcategories
+    const applyAllRes = await request(app)
+      .patch(`/api/v1/admin/categories/${categoryId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ applyOfferToAllSubcategories: false });
+    expect(applyAllRes.status).toBe(200);
+
+    const subListAfter = await request(app)
+      .get(`/api/v1/admin/categories/${categoryId}/subcategories`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    const foundSubAfter = subListAfter.body.data.find((s: any) => s.id === subcategoryId);
+    expect(foundSubAfter.isOfferActive).toBe(false);
+  });
+
   // Hiding stays the everyday tool; deleting is for a subcategory created
   // by mistake or a line the shop has stopped carrying. The two must not
   // be confused, so both are asserted here.

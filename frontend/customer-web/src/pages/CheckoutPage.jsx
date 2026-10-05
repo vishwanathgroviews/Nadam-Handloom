@@ -154,7 +154,7 @@ export default function CheckoutPage() {
         amount: Math.round(amount * 100),
         currency,
         order_id: razorpayOrderId,
-        name: 'Nandam Handlooms',
+        name: 'Groviews',
         description: 'Handloom saree order',
         prefill: { name: user?.userProfile?.displayName, email: user?.email, contact: user?.phone },
         theme: { color: '#7A1F2B' },

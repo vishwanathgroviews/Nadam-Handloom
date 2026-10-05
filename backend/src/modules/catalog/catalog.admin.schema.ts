@@ -14,10 +14,19 @@ export const createCategorySchema = z.object({
   name: z.string().trim().min(2, 'Name is required').max(100),
   description: z.string().trim().min(1, 'Description is required').max(2000),
   sortOrder: z.coerce.number().int().optional(),
+  isActive: z.boolean().optional(),
+  isHidden: z.boolean().optional(),
+  isOfferActive: z.boolean().optional(),
+  applyOfferToAllSubcategories: z.boolean().optional(),
+  subcategoryOfferIds: z.array(z.string().uuid()).optional(),
 });
 
 export const updateCategorySchema = createCategorySchema.partial().extend({
   isActive: z.boolean().optional(),
+  isHidden: z.boolean().optional(),
+  isOfferActive: z.boolean().optional(),
+  applyOfferToAllSubcategories: z.boolean().optional(),
+  subcategoryOfferIds: z.array(z.string().uuid()).optional(),
 });
 
 // Subcategories own price + description — see catalog.admin.service.ts.
@@ -28,12 +37,17 @@ export const createSubcategorySchema = z.object({
   description: z.string().trim().min(1, 'Description is required').max(2000),
   onlinePrice: z.coerce.number().positive('Online price must be greater than 0'),
   storePrice: z.coerce.number().positive('Store price must be greater than 0'),
-  mrp: z.coerce.number().positive().optional(),
+  mrp: z.preprocess((val) => (val === '' || val === null || val === undefined ? null : val), z.coerce.number().positive('MRP must be greater than 0').nullable()).optional(),
   sortOrder: z.coerce.number().int().optional(),
+  isActive: z.boolean().optional(),
+  isHidden: z.boolean().optional(),
+  isOfferActive: z.boolean().optional(),
 });
 
 export const updateSubcategorySchema = createSubcategorySchema.partial().extend({
   isActive: z.boolean().optional(),
+  isHidden: z.boolean().optional(),
+  isOfferActive: z.boolean().optional(),
 });
 
 // Paging for the subcategory list is opt-in: only a request that sends
@@ -51,6 +65,8 @@ export const listAdminProductsQuerySchema = z.object({
   q: z.string().trim().optional(),
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().positive().max(100).default(20),
+  visibility: z.enum(['all', 'visible', 'hidden']).default('all').optional(),
+  offersOnly: z.coerce.boolean().optional(),
 });
 
 const attributeField = () => z.string().trim().max(100).optional();
@@ -72,12 +88,18 @@ export const createProductSchema = z.object({
   fabric: attributeField(),
   occasion: z.array(z.string().trim().max(50)).max(20).optional(),
   channelVisibility: z.enum(CHANNEL_VISIBILITY).default('both'),
-  // Display-only now — every product can carry both legacy `stock` and
-  // scanned Piece rows at once (see Piece/Product schema comments). New
-  // stock always arrives via receivePieces, never a client-supplied number.
   trackingMode: z.enum(TRACKING_MODE).default('quantity'),
   isFeatured: z.coerce.boolean().default(false),
   isActive: z.coerce.boolean().default(true),
+
+  // Individual product regular & offer pricing
+  regularPrice: z.coerce.number().positive('Regular price must be greater than 0').nullable().optional(),
+  offerPrice: z.coerce.number().positive('Offer price must be greater than 0').nullable().optional(),
+  isOfferActive: z.coerce.boolean().default(false),
+
+  // Visibility toggle
+  isHidden: z.coerce.boolean().default(false),
+
   // The physical units staff scanned while filling in this form. Assigned in
   // the same transaction that creates the product (see createProduct), so a
   // new product is never listed with zero stock because a follow-up call

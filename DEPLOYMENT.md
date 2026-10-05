@@ -970,6 +970,20 @@ server {
         add_header Cache-Control "public, immutable";
     }
 
+    # Route WhatsApp / social link preview crawlers for product pages to the Node backend
+    # to serve dynamically-injected Open Graph metadata with product image.
+    location ~* ^/product/(.+) {
+        set $is_crawler 0;
+        if ($http_user_agent ~* "facebookexternalhit|WhatsApp|Facebot|Twitterbot|TelegramBot|LinkedInBot|Discordbot") {
+            set $is_crawler 1;
+        }
+        if ($is_crawler = 1) {
+            proxy_pass http://127.0.0.1:4000;
+            break;
+        }
+        try_files $uri $uri/ /index.html;
+    }
+
     # React Router handles the URLs, not nginx. Any unknown path must still
     # return index.html, or refreshing on /products/xyz gives a 404.
     location / {

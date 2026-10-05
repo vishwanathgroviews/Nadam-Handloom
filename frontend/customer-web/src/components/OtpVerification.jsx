@@ -63,7 +63,7 @@ export default function OtpVerification() {
     try {
       await api.sendOtp(phone);
       setMockMessage(`OTP Resent to ${maskPhone(phone)}`);
-    } catch (err) {
+    } catch {
       setError('Failed to resend code. Please try again.');
     }
   };

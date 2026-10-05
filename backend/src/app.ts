@@ -20,6 +20,7 @@ import ordersRoutes from './modules/orders/orders.routes';
 import webhookRoutes from './modules/webhooks/webhooks.routes';
 import invoicesRoutes from './modules/invoices/invoices.routes';
 import storeRoutes from './modules/store/store.routes';
+import { handleProductPage } from './modules/catalog/catalog.crawler';
 import { errorHandler } from './middleware/error.middleware';
 import { env } from './config/env';
 
@@ -43,6 +44,10 @@ app.use(cors({
     // No Origin header means a non-browser client (native app, curl,
     // server-to-server) — CORS doesn't apply, let it through.
     if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    if (env.NODE_ENV === 'development') {
+      const isLocalOrLan = /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|\[::1\])(:\d+)?$/.test(origin);
+      if (isLocalOrLan) return callback(null, true);
+    }
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true
@@ -82,6 +87,9 @@ app.use('/api/v1/catalog', catalogRoutes);
 app.use('/api/v1/addresses', addressRoutes);
 app.use('/api/v1/orders', ordersRoutes);
 app.use('/api/v1/store', storeRoutes);
+
+// Server-side product Open Graph page for WhatsApp / social preview crawlers
+app.get('/product/:slug', handleProductPage);
 
 // Locally-stored uploads (STORAGE_PROVIDER=local). Mounted only in that
 // mode so nothing is exposed when real object storage is in use.

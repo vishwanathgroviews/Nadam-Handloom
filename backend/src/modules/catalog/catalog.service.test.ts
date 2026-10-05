@@ -368,4 +368,17 @@ describe('catalog.service', () => {
   it('throws NotFoundError listing subcategories for an unknown category', async () => {
     await expect(listSubcategoriesForCategory('does-not-exist')).rejects.toThrow(NotFoundError);
   });
+
+  it('excludes products on special offer from featured / bestsellers query', async () => {
+    fake.db.product[0]!.isFeatured = true;
+    fake.db.product[0]!.isOfferActive = true;
+    fake.db.product[0]!.offerPrice = 9999;
+
+    const result = await listProducts(parseQuery({ featured: 'true' }));
+    expect(result.items.some((p: any) => p.id === fake.db.product[0]!.id)).toBe(false);
+
+    fake.db.product[0]!.isOfferActive = false;
+    const result2 = await listProducts(parseQuery({ featured: 'true' }));
+    expect(result2.items.some((p: any) => p.id === fake.db.product[0]!.id)).toBe(true);
+  });
 });

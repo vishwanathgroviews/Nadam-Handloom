@@ -189,6 +189,89 @@ export default function AnalyticsScreen({ navigation }: Props) {
               </Card>
             )}
 
+            {/* Catalog Visibility Snapshot */}
+            {summary.catalogVisibility && (
+              <>
+                <Text style={[typography.caption, styles.sectionLabel]}>Catalog Visibility</Text>
+                <Card style={styles.catalogCard}>
+                  <View style={styles.catalogGrid}>
+                    <View style={styles.catalogStatBox}>
+                      <Text style={styles.catalogStatLabel}>Total Items</Text>
+                      <Text style={[typography.h2, styles.catalogStatValue]}>
+                        {summary.catalogVisibility.totalProducts}
+                      </Text>
+                    </View>
+                    <View style={styles.catalogDivider} />
+                    <View style={styles.catalogStatBox}>
+                      <Text style={styles.catalogStatLabel}>Live Listings</Text>
+                      <Text style={[typography.h2, styles.catalogStatValue, { color: colors.success }]}>
+                        {summary.catalogVisibility.liveProducts}
+                      </Text>
+                    </View>
+                    <View style={styles.catalogDivider} />
+                    <View style={styles.catalogStatBox}>
+                      <Text style={styles.catalogStatLabel}>Hidden</Text>
+                      <Text style={[typography.h2, styles.catalogStatValue, { color: colors.warning }]}>
+                        {summary.catalogVisibility.hiddenProducts}
+                      </Text>
+                    </View>
+                    <View style={styles.catalogDivider} />
+                    <View style={styles.catalogStatBox}>
+                      <Text style={styles.catalogStatLabel}>Active Offers</Text>
+                      <Text style={[typography.h2, styles.catalogStatValue, { color: colors.primary }]}>
+                        {summary.catalogVisibility.activeOffersCount}
+                      </Text>
+                    </View>
+                  </View>
+                </Card>
+              </>
+            )}
+
+            {/* Offer vs Regular Performance */}
+            {summary.offerPerformance && (
+              <>
+                <Text style={[typography.caption, styles.sectionLabel]}>Offer Performance</Text>
+                <Card style={styles.offerPerfCard}>
+                  <View style={styles.offerPerfRow}>
+                    <View style={styles.offerPerfCol}>
+                      <Text style={styles.offerPerfLabel}>Offer Revenue</Text>
+                      <Text style={[typography.h3, styles.offerRevenueValue]}>
+                        {formatRupees(summary.offerPerformance.offerRevenue)}
+                      </Text>
+                      <Text style={styles.offerPerfMeta}>
+                        {summary.offerPerformance.offerUnitsSold} pcs sold on offer
+                      </Text>
+                    </View>
+                    <View style={styles.catalogDivider} />
+                    <View style={styles.offerPerfCol}>
+                      <Text style={styles.offerPerfLabel}>Regular Revenue</Text>
+                      <Text style={[typography.h3, styles.regularRevenueValue]}>
+                        {formatRupees(summary.offerPerformance.regularRevenue)}
+                      </Text>
+                      <Text style={styles.offerPerfMeta}>
+                        {summary.offerPerformance.regularUnitsSold} pcs sold regular
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.offerHighlightBox}>
+                    <View style={styles.offerHighlightItem}>
+                      <Text style={styles.offerHighlightLabel}>Discounts Given</Text>
+                      <Text style={styles.offerHighlightValue}>
+                        {formatRupees(summary.offerPerformance.totalDiscountGiven)}
+                      </Text>
+                    </View>
+                    <View style={styles.offerHighlightItem}>
+                      <Text style={styles.offerHighlightLabel}>Offer Share</Text>
+                      <Text style={[styles.offerHighlightValue, { color: colors.primary }]}>
+                        {summary.offerPerformance.offerSharePct}%
+                      </Text>
+                    </View>
+                  </View>
+                </Card>
+              </>
+            )}
+
             <Text style={[typography.caption, styles.sectionLabel]}>Top Subcategories</Text>
             <Card style={styles.topSubsCard}>
               {topSubcategories.length === 0 ? (
@@ -253,6 +336,31 @@ const styles = StyleSheet.create({
   channelSplitLabel: { ...typography.bodySm, fontSize: 12, color: colors.textLabel },
   channelValue: { color: colors.text, marginTop: spacing.xs + 2 },
   channelSub: { ...typography.bodySm, color: colors.textMuted, marginTop: 2 },
+  catalogCard: { padding: spacing.md },
+  catalogGrid: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  catalogStatBox: { flex: 1, alignItems: 'center' },
+  catalogStatLabel: { ...typography.caption, color: colors.textLabel, marginBottom: 2, textAlign: 'center' },
+  catalogStatValue: { textAlign: 'center' },
+  catalogDivider: { width: 1, height: 32, backgroundColor: colors.divider },
+  offerPerfCard: { padding: spacing.lg },
+  offerPerfRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  offerPerfCol: { flex: 1 },
+  offerPerfLabel: { ...typography.caption, color: colors.textLabel, marginBottom: 2 },
+  offerRevenueValue: { color: colors.primary },
+  regularRevenueValue: { color: colors.text },
+  offerPerfMeta: { ...typography.bodySm, color: colors.textMuted, marginTop: 2, fontSize: 11.5 },
+  offerHighlightBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginTop: spacing.md,
+  },
+  offerHighlightItem: { alignItems: 'center' },
+  offerHighlightLabel: { ...typography.caption, color: colors.textLabel, marginBottom: 2 },
+  offerHighlightValue: { ...typography.bodySemibold, color: colors.text, fontSize: 14 },
   sectionLabel: { color: colors.textLabel, marginTop: spacing.xl - 2, marginBottom: spacing.md },
   topSubsCard: { paddingVertical: 0, paddingHorizontal: spacing.lg },
   subRow: { paddingVertical: spacing.md + 2, borderBottomWidth: 1, borderBottomColor: colors.divider },

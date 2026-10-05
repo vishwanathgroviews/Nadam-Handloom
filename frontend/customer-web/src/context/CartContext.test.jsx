@@ -82,7 +82,7 @@ describe('CartContext', () => {
     act(() => result.current.addItem(PRODUCT_A));
     unmount();
 
-    const stored = JSON.parse(localStorage.getItem('NANDAM_CART_V1'));
+    const stored = JSON.parse(localStorage.getItem('GROVIEWS_CART_V1'));
     expect(stored).toHaveLength(1);
     expect(stored[0]).toMatchObject({ productId: 'prod-a', quantity: 1 });
 
@@ -96,7 +96,7 @@ describe('CartContext', () => {
   // checkout, so they are flattened the moment they are read back.
   it('normalises a cart saved before quantities were removed', () => {
     localStorage.setItem(
-      'NANDAM_CART_V1',
+      'GROVIEWS_CART_V1',
       JSON.stringify([
         { productId: 'prod-a', slug: 'saree-a', name: 'Saree A', price: 1000, quantity: 3 },
         { productId: 'prod-a', slug: 'saree-a', name: 'Saree A', price: 1000, quantity: 1 },
@@ -111,8 +111,21 @@ describe('CartContext', () => {
     expect(result.current.subtotal).toBe(3500);
   });
 
+  it('restores cart saved in legacy NANDAM_CART_V1 storage key', () => {
+    localStorage.setItem(
+      'NANDAM_CART_V1',
+      JSON.stringify([
+        { productId: 'prod-legacy', slug: 'saree-legacy', name: 'Legacy Saree', price: 1500, quantity: 1 },
+      ])
+    );
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.items[0]?.name).toBe('Legacy Saree');
+  });
+
   it('ignores corrupted localStorage data instead of crashing', () => {
-    localStorage.setItem('NANDAM_CART_V1', '{not valid json');
+    localStorage.setItem('GROVIEWS_CART_V1', '{not valid json');
     const { result } = renderHook(() => useCart(), { wrapper });
     expect(result.current.items).toHaveLength(0);
   });

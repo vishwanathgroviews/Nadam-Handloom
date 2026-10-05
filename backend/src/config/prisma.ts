@@ -72,5 +72,5 @@ if (isMock) {
   if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prismaClient;
 }
 
-export const prisma = prismaClient;
+export const prisma: PrismaClient = prismaClient;
 export default prisma;

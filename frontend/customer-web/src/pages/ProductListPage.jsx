@@ -16,6 +16,7 @@ export default function ProductListPage() {
   const { slug, subcategoryId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const q = searchParams.get('q') || '';
+  const isOffers = searchParams.get('offers') === 'true';
 
   const [meta, setMeta] = useState(null);
   const [products, setProducts] = useState([]);
@@ -40,12 +41,12 @@ export default function ProductListPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [slug, subcategoryId, q]);
+  }, [slug, subcategoryId, q, isOffers]);
 
   useEffect(() => {
     setLoading(true);
     api
-      .getProducts({ category: slug, subcategoryId, q: q || undefined, sort, page, pageSize: PAGE_SIZE })
+      .getProducts({ category: slug, subcategoryId, q: q || undefined, offers: isOffers || undefined, sort, page, pageSize: PAGE_SIZE })
       .then((res) => {
         setProducts(res.items);
         setTotal(res.total);
@@ -55,10 +56,10 @@ export default function ProductListPage() {
         setTotal(0);
       })
       .finally(() => setLoading(false));
-  }, [slug, subcategoryId, q, sort, page]);
+  }, [slug, subcategoryId, q, isOffers, sort, page]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const pageTitle = meta?.subcategory?.name || meta?.category?.name || (q ? `Search results for "${q}"` : 'Shop All');
+  const pageTitle = isOffers ? 'Special Offers' : meta?.subcategory?.name || meta?.category?.name || (q ? `Search results for "${q}"` : 'Shop All');
 
   const clearSearch = () => {
     searchParams.delete('q');

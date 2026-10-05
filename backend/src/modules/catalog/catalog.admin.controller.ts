@@ -156,3 +156,30 @@ export const uploadSubcategoryImage = async (req: AuthenticatedRequest, res: Res
     next(error);
   }
 };
+
+export const hideProduct = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const product = await catalogAdminService.setProductHidden(req.params.productId as string, true, req);
+    res.status(200).json({ success: true, data: product });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const unhideProduct = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const product = await catalogAdminService.setProductHidden(req.params.productId as string, false, req);
+    res.status(200).json({ success: true, data: product });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const markProductSoldOut = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const product = await catalogAdminService.markProductSoldOut(req.params.productId as string, req);
+    res.status(200).json({ success: true, data: product });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -54,6 +54,7 @@ export default function AdminHomeScreen({ navigation }: Props) {
 
   const manageItems: ManageItem[] = [
     { key: 'products', label: 'Products', hint: stats ? `${stats.products.activeCount} live` : '—', icon: 'shirt-outline', onPress: () => goToTab(navigation, 'ProductsTab') },
+    { key: 'hidden', label: 'Hidden Products', hint: 'Manage & sell hidden items', icon: 'eye-off-outline', onPress: () => navigation.navigate('HiddenProducts') },
     { key: 'orders', label: 'Orders', hint: 'Online, store & WhatsApp', icon: 'receipt-outline', onPress: () => navigation.navigate('AllOrders') },
     { key: 'catalog', label: 'Catalog', hint: 'Categories & pricing', icon: 'albums-outline', onPress: () => navigation.navigate('Categories') },
     { key: 'invoices', label: 'Invoices', hint: 'Generated invoices & reports', icon: 'document-text-outline', onPress: () => navigation.navigate('Invoices') },
@@ -78,12 +79,12 @@ export default function AdminHomeScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <ScreenHeader
-          title="Nandam Handlooms"
+          title="Groviews"
           showBack={false}
           titleNode={
             <View style={styles.brandRow}>
               <BrandMark size={30} />
-              <Text style={[typography.h2, styles.brandWordmark]} numberOfLines={1}>Nandam Handlooms</Text>
+              <Text style={[typography.h2, styles.brandWordmark]} numberOfLines={1}>Groviews</Text>
             </View>
           }
         />

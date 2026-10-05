@@ -215,6 +215,8 @@ export interface OfflineOrderLine {
   unitPrice: Prisma.Decimal | number;
   productName: string;
   productImage?: string | null;
+  isOfferSnapshot?: boolean;
+  regularPriceSnapshot?: Prisma.Decimal | number | null;
 }
 
 export interface WhatsappCustomer {
@@ -277,6 +279,8 @@ export const createOfflineOrder = async (
       pieceId: item.pieceId,
       nameSnapshot: item.productName,
       priceSnapshot: item.unitPrice,
+      isOfferSnapshot: item.isOfferSnapshot ?? false,
+      regularPriceSnapshot: item.regularPriceSnapshot != null ? item.regularPriceSnapshot : null,
       imageSnapshot: item.productImage ?? null,
       quantity: item.quantity,
     })),
@@ -346,6 +350,9 @@ export const scanLookup = async (code: string, options: { exact?: boolean } = {}
     piece = await findPieceByShortNumber(code);
   }
   if (piece) {
+    const regularPrice = piece.product.regularPrice != null ? piece.product.regularPrice : piece.product.subcategory.storePrice;
+    const isOffer = piece.product.isOfferActive && piece.product.offerPrice != null && Number(piece.product.offerPrice) > 0;
+    const effectivePrice = isOffer ? piece.product.offerPrice : regularPrice;
     return {
       mode: 'serialized' as const,
       productId: piece.productId,
@@ -354,7 +361,11 @@ export const scanLookup = async (code: string, options: { exact?: boolean } = {}
       pieceId: piece.id,
       barcode: piece.barcode,
       status: piece.status,
-      storePrice: piece.product.subcategory.storePrice,
+      storePrice: effectivePrice,
+      regularPrice,
+      offerPrice: piece.product.offerPrice,
+      isOfferActive: piece.product.isOfferActive,
+      isHidden: piece.product.isHidden,
     };
   }
 
@@ -363,6 +374,9 @@ export const scanLookup = async (code: string, options: { exact?: boolean } = {}
     include: { category: { select: { name: true } }, subcategory: { select: { storePrice: true } } },
   });
   if (product) {
+    const regularPrice = product.regularPrice != null ? product.regularPrice : product.subcategory.storePrice;
+    const isOffer = product.isOfferActive && product.offerPrice != null && Number(product.offerPrice) > 0;
+    const effectivePrice = isOffer ? product.offerPrice : regularPrice;
     return {
       mode: 'quantity' as const,
       productId: product.id,
@@ -371,7 +385,11 @@ export const scanLookup = async (code: string, options: { exact?: boolean } = {}
       sku: product.sku,
       status: product.stock > 0 ? 'in_stock' : 'out_of_stock',
       availableQty: product.stock,
-      storePrice: product.subcategory.storePrice,
+      storePrice: effectivePrice,
+      regularPrice,
+      offerPrice: product.offerPrice,
+      isOfferActive: product.isOfferActive,
+      isHidden: product.isHidden,
     };
   }
 
@@ -470,8 +488,11 @@ export const resolveAndClaimOfflineSaleItem = async (
       throw new AppError('This piece just changed status — please scan again', 409, 'CONFLICT');
     }
 
-    const storePrice = piece.product.subcategory.storePrice;
-    const unitPrice = input.salePrice != null ? input.salePrice : storePrice;
+    const regularPrice = piece.product.regularPrice != null ? piece.product.regularPrice : piece.product.subcategory.storePrice;
+    const isOffer = piece.product.isOfferActive && piece.product.offerPrice != null && Number(piece.product.offerPrice) > 0;
+    const defaultPrice = (isOffer && piece.product.offerPrice != null) ? piece.product.offerPrice : regularPrice;
+    const unitPrice = input.salePrice != null ? input.salePrice : defaultPrice;
+    const isOfferSnapshot = isOffer && (input.salePrice == null || Number(input.salePrice) === Number(piece.product.offerPrice));
 
     await tx.stockLedger.create({
       data: { productId: piece.productId, pieceId: piece.id, delta: -1, reason: 'offline_sale', channel: 'store', actorId, ref: ledgerRef },
@@ -489,8 +510,10 @@ export const resolveAndClaimOfflineSaleItem = async (
       unitPrice,
       productName: piece.product.name,
       productImage: piece.product.images[0]?.url ?? null,
-      storePrice,
+      storePrice: regularPrice,
       overridden,
+      isOfferSnapshot,
+      regularPriceSnapshot: regularPrice,
     };
   }
 
@@ -509,8 +532,11 @@ export const resolveAndClaimOfflineSaleItem = async (
     throw new AppError('Not enough stock — some may be reserved online right now', 409, 'INSUFFICIENT_STOCK');
   }
 
-  const storePrice = product.subcategory.storePrice;
-  const unitPrice = input.salePrice != null ? input.salePrice : storePrice;
+  const regularPrice = product.regularPrice != null ? product.regularPrice : product.subcategory.storePrice;
+  const isOffer = product.isOfferActive && product.offerPrice != null && Number(product.offerPrice) > 0;
+  const defaultPrice = (isOffer && product.offerPrice != null) ? product.offerPrice : regularPrice;
+  const unitPrice = input.salePrice != null ? input.salePrice : defaultPrice;
+  const isOfferSnapshot = isOffer && (input.salePrice == null || Number(input.salePrice) === Number(product.offerPrice));
 
   await tx.stockLedger.create({
     data: { productId: product.id, delta: -quantity, reason: 'offline_sale', channel: 'store', actorId, ref: ledgerRef },
@@ -523,8 +549,10 @@ export const resolveAndClaimOfflineSaleItem = async (
     unitPrice,
     productName: product.name,
     productImage: product.images[0]?.url ?? null,
-    storePrice,
+    storePrice: regularPrice,
     overridden: false,
+    isOfferSnapshot,
+    regularPriceSnapshot: regularPrice,
   };
 };
 

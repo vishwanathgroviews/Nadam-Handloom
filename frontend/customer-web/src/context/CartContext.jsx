@@ -1,11 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-const CART_STORAGE_KEY = 'NANDAM_CART_V1';
+const CART_STORAGE_KEY = 'GROVIEWS_CART_V1';
+const LEGACY_CART_STORAGE_KEY = 'NANDAM_CART_V1';
 const CartContext = createContext(undefined);
 
 const readCart = () => {
   try {
-    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    const raw = localStorage.getItem(CART_STORAGE_KEY) || localStorage.getItem(LEGACY_CART_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
     if (!Array.isArray(parsed)) return [];
     // A cart saved before quantities were removed can still hold lines with
@@ -45,16 +46,18 @@ export function CartProvider({ children }) {
     setItems((prev) => {
       // Already in the cart — nothing to add, and nothing to increment.
       if (prev.some((i) => i.productId === product.id)) return prev;
-      // Price/MRP are subcategory-level — every product in a subcategory shares them.
-      const onlinePrice = Number(product.subcategory?.onlinePrice);
+      const isOffer = Boolean(product.isOfferActive && product.offerPrice);
+      const sellingPrice = product.regularPrice != null ? Number(product.regularPrice) : Number(product.subcategory?.onlinePrice);
+      const effectivePrice = isOffer ? Number(product.offerPrice) : sellingPrice;
+      const mrp = Number(product.subcategory?.mrp || (isOffer ? sellingPrice : effectivePrice));
       return [
         ...prev,
         {
           productId: product.id,
           slug: product.slug,
           name: product.name,
-          price: onlinePrice,
-          mrp: Number(product.subcategory?.mrp ?? onlinePrice),
+          price: effectivePrice,
+          mrp,
           image: product.images?.[0]?.url ?? product.image,
           stock: product.availableCount,
           quantity: 1,

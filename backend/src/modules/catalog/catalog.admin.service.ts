@@ -81,16 +81,22 @@ const repositionSubcategory = async (tx: Tx, parentCategoryId: string, subcatego
 };
 
 export const listAllCategories = async () => {
-  return prisma.category.findMany({
+  const categories = await prisma.category.findMany({
     // Name breaks ties so the order is always the same order, including for
     // older rows that still share a position.
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     include: { _count: { select: { products: { where: { deletedAt: null } }, subcategories: true } } },
   });
+  return categories.map((c: any) => ({
+    ...c,
+    isHidden: !c.isActive,
+    isOfferActive: Boolean(c.isOfferActive),
+  }));
 };
 
 export const createCategory = async (data: CreateCategoryInput, req: AuthenticatedRequest) => {
   const slug = await uniqueSlug('category', data.name);
+  const resolvedIsActive = data.isHidden !== undefined ? !data.isHidden : (data.isActive ?? true);
 
   // Added at the end, then moved into the requested position (swapping with
   // whoever holds it) — so a new row can never land on a taken position.
@@ -102,6 +108,8 @@ export const createCategory = async (data: CreateCategoryInput, req: Authenticat
         slug,
         description: data.description,
         sortOrder: nextPosition(siblings),
+        isActive: resolvedIsActive,
+        isOfferActive: data.isOfferActive ?? false,
       },
     });
     if (data.sortOrder !== undefined) await repositionCategory(tx, created.id, data.sortOrder);
@@ -116,7 +124,7 @@ export const createCategory = async (data: CreateCategoryInput, req: Authenticat
     metadata: { categoryId: category.id, name: category.name },
   });
 
-  return category;
+  return { ...category, isHidden: !category.isActive, isOfferActive: Boolean(category.isOfferActive) };
 };
 
 export const updateCategory = async (categoryId: string, data: UpdateCategoryInput, req: AuthenticatedRequest) => {
@@ -127,6 +135,8 @@ export const updateCategory = async (categoryId: string, data: UpdateCategoryInp
     ? await uniqueSlug('category', data.name, categoryId)
     : undefined;
 
+  const resolvedIsActive = data.isHidden !== undefined ? !data.isHidden : data.isActive;
+
   const category = await prisma.$transaction(async (tx) => {
     await tx.category.update({
       where: { id: categoryId },
@@ -134,10 +144,28 @@ export const updateCategory = async (categoryId: string, data: UpdateCategoryInp
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(slug !== undefined ? { slug } : {}),
         ...(data.description !== undefined ? { description: data.description } : {}),
-        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+        ...(resolvedIsActive !== undefined ? { isActive: resolvedIsActive } : {}),
+        ...(data.isOfferActive !== undefined ? { isOfferActive: data.isOfferActive } : {}),
       },
     });
     if (data.sortOrder !== undefined) await repositionCategory(tx, categoryId, data.sortOrder);
+
+    if (data.applyOfferToAllSubcategories !== undefined) {
+      await tx.subcategory.updateMany({
+        where: { categoryId },
+        data: { isOfferActive: data.applyOfferToAllSubcategories },
+      });
+    } else if (data.subcategoryOfferIds !== undefined) {
+      await tx.subcategory.updateMany({
+        where: { categoryId, id: { in: data.subcategoryOfferIds } },
+        data: { isOfferActive: true },
+      });
+      await tx.subcategory.updateMany({
+        where: { categoryId, id: { notIn: data.subcategoryOfferIds } },
+        data: { isOfferActive: false },
+      });
+    }
+
     return tx.category.findUniqueOrThrow({ where: { id: categoryId } });
   });
 
@@ -149,7 +177,7 @@ export const updateCategory = async (categoryId: string, data: UpdateCategoryInp
     metadata: { categoryId },
   });
 
-  return category;
+  return { ...category, isHidden: !category.isActive, isOfferActive: Boolean(category.isOfferActive) };
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -175,7 +203,12 @@ export const listSubcategories = async (categoryId: string) => {
   // belongs to the row it was uploaded for. A subcategory with none renders
   // a placeholder, and `hasOwnImage` drives the "Needs photo" flag so the
   // gap is visible and fixable instead of silently papered over.
-  return subcategories.map((s) => ({ ...s, hasOwnImage: Boolean(s.imageUrl) }));
+  return subcategories.map((s: any) => ({
+    ...s,
+    hasOwnImage: Boolean(s.imageUrl),
+    isHidden: !s.isActive,
+    isOfferActive: Boolean(s.isOfferActive),
+  }));
 };
 
 /**
@@ -208,7 +241,12 @@ export const listSubcategoriesPage = async (
   ]);
 
   return {
-    items: rows.map((s) => ({ ...s, hasOwnImage: Boolean(s.imageUrl) })),
+    items: rows.map((s: any) => ({
+      ...s,
+      hasOwnImage: Boolean(s.imageUrl),
+      isHidden: !s.isActive,
+      isOfferActive: Boolean(s.isOfferActive),
+    })),
     total,
     page: query.page,
     pageSize: query.pageSize,
@@ -222,6 +260,8 @@ export const createSubcategory = async (
 ) => {
   const category = await prisma.category.findUnique({ where: { id: categoryId } });
   if (!category) throw new NotFoundError('Category not found');
+
+  const resolvedIsActive = data.isHidden !== undefined ? !data.isHidden : (data.isActive ?? true);
 
   const subcategory = await prisma.$transaction(async (tx) => {
     const siblings = await tx.subcategory.findMany({
@@ -237,6 +277,8 @@ export const createSubcategory = async (
         storePrice: data.storePrice,
         mrp: data.mrp ?? null,
         sortOrder: nextPosition(siblings),
+        isActive: resolvedIsActive,
+        isOfferActive: data.isOfferActive ?? false,
       },
     });
     if (data.sortOrder !== undefined) await repositionSubcategory(tx, categoryId, created.id, data.sortOrder);
@@ -251,7 +293,7 @@ export const createSubcategory = async (
     metadata: { categoryId, subcategoryId: subcategory.id, name: subcategory.name },
   });
 
-  return { ...subcategory, hasOwnImage: false };
+  return { ...subcategory, hasOwnImage: false, isHidden: !subcategory.isActive, isOfferActive: Boolean(subcategory.isOfferActive) };
 };
 
 export const updateSubcategory = async (
@@ -268,6 +310,8 @@ export const updateSubcategory = async (
     (data.mrp !== undefined && Number(data.mrp) !== Number(existing.mrp ?? 0)) ||
     (data.description !== undefined && data.description !== existing.description);
 
+  const resolvedIsActive = data.isHidden !== undefined ? !data.isHidden : data.isActive;
+
   const subcategory = await prisma.$transaction(async (tx) => {
     await tx.subcategory.update({
       where: { id: subcategoryId },
@@ -277,7 +321,8 @@ export const updateSubcategory = async (
         ...(data.onlinePrice !== undefined ? { onlinePrice: data.onlinePrice } : {}),
         ...(data.storePrice !== undefined ? { storePrice: data.storePrice } : {}),
         ...(data.mrp !== undefined ? { mrp: data.mrp } : {}),
-        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+        ...(resolvedIsActive !== undefined ? { isActive: resolvedIsActive } : {}),
+        ...(data.isOfferActive !== undefined ? { isOfferActive: data.isOfferActive } : {}),
       },
     });
     if (data.sortOrder !== undefined) {
@@ -299,17 +344,17 @@ export const updateSubcategory = async (
       },
     });
   }
-  if (data.isActive !== undefined && data.isActive !== existing.isActive) {
+  if (resolvedIsActive !== undefined && resolvedIsActive !== existing.isActive) {
     await logAuthEvent({
       authAccountId: req.user!.id,
-      eventType: data.isActive ? 'subcategory_shown_on_web' : 'subcategory_hidden_from_web',
+      eventType: resolvedIsActive ? 'subcategory_shown_on_web' : 'subcategory_hidden_from_web',
       source: 'staff_app',
       req,
       metadata: { subcategoryId },
     });
   }
 
-  return { ...subcategory, hasOwnImage: Boolean(subcategory.imageUrl) };
+  return { ...subcategory, hasOwnImage: Boolean(subcategory.imageUrl), isHidden: !subcategory.isActive, isOfferActive: Boolean(subcategory.isOfferActive) };
 };
 
 /**
@@ -473,8 +518,20 @@ const assertActivationAllowed = async () => {
 };
 
 export const getProductStats = async () => {
-  const activeCount = await prisma.product.count({ where: { isActive: true } });
-  return { activeCount, cap: ACTIVE_PRODUCT_CAP, remaining: Math.max(0, ACTIVE_PRODUCT_CAP - activeCount) };
+  const [activeCount, hiddenCount, totalCount, activeOffersCount] = await Promise.all([
+    prisma.product.count({ where: { isActive: true, deletedAt: null } }),
+    prisma.product.count({ where: { isHidden: true, deletedAt: null } }),
+    prisma.product.count({ where: { deletedAt: null } }),
+    prisma.product.count({ where: { isOfferActive: true, deletedAt: null } }),
+  ]);
+  return {
+    activeCount,
+    hiddenCount,
+    totalCount,
+    activeOffersCount,
+    cap: ACTIVE_PRODUCT_CAP,
+    remaining: Math.max(0, ACTIVE_PRODUCT_CAP - activeCount),
+  };
 };
 
 const PRODUCT_ADMIN_INCLUDE = {
@@ -491,6 +548,14 @@ export const listAllProducts = async (query: ListAdminProductsQuery) => {
       { name: { contains: query.q, mode: 'insensitive' } },
       { sku: { contains: query.q, mode: 'insensitive' } },
     ];
+  }
+  if (query.visibility === 'hidden') {
+    where.isHidden = true;
+  } else if (query.visibility === 'visible') {
+    where.isHidden = false;
+  }
+  if (query.offersOnly) {
+    where.isOfferActive = true;
   }
 
   const [items, total, stats] = await Promise.all([
@@ -535,6 +600,21 @@ export const createProduct = async (data: CreateProductInput, req: Authenticated
 
   if (data.isActive) await assertActivationAllowed();
 
+  const regularPrice = data.regularPrice !== undefined ? data.regularPrice : null;
+  const offerPrice = data.offerPrice !== undefined ? data.offerPrice : null;
+  const isOfferActive = data.isOfferActive ?? false;
+  const isHidden = data.isHidden ?? false;
+
+  if (isOfferActive) {
+    if (!offerPrice || offerPrice <= 0) {
+      throw new BadRequestError('Offer price must be greater than 0');
+    }
+    const effectiveBase = regularPrice ?? Number(subcategory.storePrice);
+    if (offerPrice > effectiveBase) {
+      throw new BadRequestError('Offer price cannot be greater than regular price');
+    }
+  }
+
   // Left blank, a product takes its subcategory's name — most subcategories
   // hold a single, visually-distinct listing (see the "one price/description
   // per subcategory" design), so a separate product name is often redundant.
@@ -568,6 +648,10 @@ export const createProduct = async (data: CreateProductInput, req: Authenticated
         trackingMode: data.trackingMode,
         isFeatured: data.isFeatured,
         isActive: data.isActive,
+        regularPrice: regularPrice != null ? regularPrice : null,
+        offerPrice: offerPrice != null ? offerPrice : null,
+        isOfferActive,
+        isHidden,
       },
       include: PRODUCT_ADMIN_INCLUDE,
     });
@@ -610,6 +694,23 @@ export const updateProduct = async (productId: string, data: UpdateProductInput,
     await assertActivationAllowed();
   }
 
+  const targetSubcategoryId = data.subcategoryId ?? existing.subcategoryId;
+  const targetSubcategory = await prisma.subcategory.findUnique({ where: { id: targetSubcategoryId } });
+
+  const effectiveRegular = data.regularPrice !== undefined ? data.regularPrice : (existing.regularPrice != null ? Number(existing.regularPrice) : null);
+  const effectiveOffer = data.offerPrice !== undefined ? data.offerPrice : (existing.offerPrice != null ? Number(existing.offerPrice) : null);
+  const effectiveIsOffer = data.isOfferActive !== undefined ? data.isOfferActive : existing.isOfferActive;
+
+  if (effectiveIsOffer) {
+    if (!effectiveOffer || effectiveOffer <= 0) {
+      throw new BadRequestError('Offer price must be greater than 0');
+    }
+    const effectiveBase = effectiveRegular ?? Number(targetSubcategory?.storePrice ?? 0);
+    if (effectiveOffer > effectiveBase) {
+      throw new BadRequestError('Offer price cannot be greater than regular price');
+    }
+  }
+
   const product = await prisma.product.update({
     where: { id: productId },
     data: {
@@ -629,6 +730,10 @@ export const updateProduct = async (productId: string, data: UpdateProductInput,
       ...(data.trackingMode !== undefined ? { trackingMode: data.trackingMode } : {}),
       ...(data.isFeatured !== undefined ? { isFeatured: data.isFeatured } : {}),
       ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+      ...(data.regularPrice !== undefined ? { regularPrice: data.regularPrice } : {}),
+      ...(data.offerPrice !== undefined ? { offerPrice: data.offerPrice } : {}),
+      ...(data.isOfferActive !== undefined ? { isOfferActive: data.isOfferActive } : {}),
+      ...(data.isHidden !== undefined ? { isHidden: data.isHidden } : {}),
     },
     include: PRODUCT_ADMIN_INCLUDE,
   });
@@ -642,6 +747,81 @@ export const updateProduct = async (productId: string, data: UpdateProductInput,
   });
 
   return product;
+};
+
+export const setProductHidden = async (productId: string, isHidden: boolean, req: AuthenticatedRequest) => {
+  const existing = await prisma.product.findUnique({ where: { id: productId } });
+  if (!existing || existing.deletedAt) throw new NotFoundError('Product not found');
+  const updated = await prisma.product.update({
+    where: { id: productId },
+    data: { isHidden },
+    include: PRODUCT_ADMIN_INCLUDE,
+  });
+  await logAuthEvent({
+    authAccountId: req.user!.id,
+    eventType: isHidden ? 'product_hidden' : 'product_unhidden',
+    source: 'staff_app',
+    req,
+    metadata: { productId, isHidden },
+  });
+  return withAvailabilityOne(updated);
+};
+
+export const markProductSoldOut = async (productId: string, req: AuthenticatedRequest) => {
+  const product = await prisma.product.findUnique({
+    where: { id: productId },
+    include: { pieces: { where: { status: 'in_stock' } } },
+  });
+  if (!product || product.deletedAt) throw new NotFoundError('Product not found');
+
+  await prisma.$transaction(async (tx) => {
+    if (product.pieces.length > 0) {
+      await tx.piece.updateMany({
+        where: { productId, status: 'in_stock' },
+        data: { status: 'sold_offline', soldAt: new Date() },
+      });
+      for (const piece of product.pieces) {
+        await tx.stockLedger.create({
+          data: {
+            productId,
+            pieceId: piece.id,
+            delta: -1,
+            reason: 'offline_sale',
+            channel: 'store',
+            actorId: req.user!.id,
+            ref: 'manual_sold_out',
+          },
+        });
+      }
+    }
+    if (product.stock > 0) {
+      const currentStock = product.stock;
+      await tx.product.update({
+        where: { id: productId },
+        data: { stock: 0 },
+      });
+      await tx.stockLedger.create({
+        data: {
+          productId,
+          delta: -currentStock,
+          reason: 'offline_sale',
+          channel: 'store',
+          actorId: req.user!.id,
+          ref: 'manual_sold_out',
+        },
+      });
+    }
+  });
+
+  await logAuthEvent({
+    authAccountId: req.user!.id,
+    eventType: 'product_sold_out',
+    source: 'staff_app',
+    req,
+    metadata: { productId },
+  });
+
+  return getProductById(productId);
 };
 
 /**

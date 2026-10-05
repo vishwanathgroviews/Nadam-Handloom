@@ -1,6 +1,5 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
 import { mediaUrl } from '../utils/media';
 import './Layout.css';
 
@@ -18,8 +17,8 @@ export default function Layout() {
           <div className="banner-content">
             <div className="banner-header">
               <div className="brand-logo-container">
-                <Sparkles size={28} className="brand-icon" />
-                <h1 className="brand-name">Nandam</h1>
+                <img src="/bulb-mark.png" alt="Groviews" className="brand-icon" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+                <h1 className="brand-name">Groviews</h1>
               </div>
               <span className="brand-tagline">Heritage Handlooms</span>
             </div>
@@ -34,7 +33,7 @@ export default function Layout() {
             </div>
 
             <div className="banner-footer">
-              <p>© {new Date().getFullYear()} Nandam Handlooms. Authenticity Guaranteed.</p>
+              <p>© {new Date().getFullYear()} Groviews. Authenticity Guaranteed.</p>
             </div>
           </div>
         </div>

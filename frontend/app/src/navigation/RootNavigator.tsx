@@ -33,6 +33,7 @@ import InvoicesScreen from '../screens/InvoicesScreen';
 import InvoiceDetailScreen from '../screens/InvoiceDetailScreen';
 import AllOrdersScreen from '../screens/AllOrdersScreen';
 import StoreSettingsScreen from '../screens/StoreSettingsScreen';
+import HiddenProductsScreen from '../screens/HiddenProductsScreen';
 import TabBar from '../components/TabBar';
 import { colors } from '../utils/theme';
 
@@ -65,6 +66,7 @@ export type AppStackParamList = {
   InvoiceDetail: { invoiceId: string };
   AllOrders: undefined;
   StoreSettings: undefined;
+  HiddenProducts: undefined;
 };
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -153,6 +155,7 @@ export default function RootNavigator() {
           <AppStack.Screen name="InvoiceDetail" component={InvoiceDetailScreen} />
           <AppStack.Screen name="AllOrders" component={AllOrdersScreen} />
           <AppStack.Screen name="StoreSettings" component={StoreSettingsScreen} />
+          <AppStack.Screen name="HiddenProducts" component={HiddenProductsScreen} />
         </AppStack.Navigator>
       ) : (
         <AuthStack.Navigator screenOptions={{ headerShown: false }}>

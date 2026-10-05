@@ -1,5 +1,4 @@
-// Design tokens for the "Nandam Soft Premium" design — matches
-// Images/Nandam Soft Premium (standalone).html exactly: warm ivory ground,
+// Design tokens for the "Groviews Soft Premium" design: warm ivory ground,
 // maroon accent, Instrument Serif display type + Public Sans body type,
 // soft warm-tinted shadows instead of borders, 22-28px card radii.
 export const colors = {
@@ -26,6 +25,7 @@ export const colors = {
   primaryBg: '#F6EDEE',
   segmentTrack: '#F1E9E0',
   inputBg: '#F6F1EB',
+  surfaceSubtle: '#F6F1EB',
 
   success: '#4F7A63',
   successBg: '#EDF3EF',

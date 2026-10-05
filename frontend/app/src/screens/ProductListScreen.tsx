@@ -7,7 +7,7 @@ import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import type { AppStackParamList, RootTabParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
-import { listProducts, AdminProductSummary } from '../api/catalog';
+import { listProducts, getProductStats, AdminProductSummary } from '../api/catalog';
 import { saveToCache, loadFromCache } from '../utils/offlineCache';
 import OfflineBanner from '../components/OfflineBanner';
 import { SkeletonList } from '../components/ui/Skeleton';
@@ -46,7 +46,11 @@ export default function ProductListScreen({ navigation }: Props) {
   const tabBarHeight = useBottomTabBarHeight();
   const showDialog = useDialog();
   const [activeCount, setActiveCount] = useState(0);
+  const [liveCount, setLiveCount] = useState(0);
+  const [hiddenCount, setHiddenCount] = useState(0);
+  const [offersCount, setOffersCount] = useState(0);
   const [cap, setCap] = useState(5000);
+  const [filterTab, setFilterTab] = useState<'all' | 'live' | 'hidden' | 'offers'>('all');
   // What is typed vs. what is being searched for: the list only reloads when
   // a search is submitted (or the box is cleared), not on every keystroke.
   const [query, setQuery] = useState('');
@@ -81,17 +85,36 @@ export default function ProductListScreen({ navigation }: Props) {
     [navigation, showDialog]
   );
 
-  // Ten products at a time (see usePagedList). If the very first page of the
-  // full list can't be fetched, the last list saved on this phone is shown
-  // instead, so staff can still browse the catalog with no signal.
   const fetchPage = useCallback(
     async (page: number, pageSize: number) => {
       if (!accessToken) return { items: [], total: 0 };
       try {
-        const res = await listProducts(accessToken, { q: appliedQuery || undefined, page, pageSize });
+        const visibilityParam = filterTab === 'live' ? 'visible' : filterTab === 'hidden' ? 'hidden' : 'all';
+        const offersOnlyParam = filterTab === 'offers';
+
+        const res = await listProducts(accessToken, {
+          q: appliedQuery || undefined,
+          page,
+          pageSize,
+          visibility: visibilityParam,
+          offersOnly: offersOnlyParam,
+        });
+
         setActiveCount(res.data.activeCount);
+        setLiveCount(res.data.activeCount);
         setCap(res.data.cap);
         setOfflineSince(null);
+
+        getProductStats(accessToken)
+          .then((statsRes) => {
+            setActiveCount(statsRes.data.activeCount);
+            setLiveCount(statsRes.data.liveCount);
+            setHiddenCount(statsRes.data.hiddenCount);
+            setOffersCount(statsRes.data.offersCount);
+            setCap(statsRes.data.cap);
+          })
+          .catch(() => {});
+
         return { items: res.data.items, total: res.data.total };
       } catch (err) {
         if (page === 1 && !appliedQuery) {
@@ -106,7 +129,7 @@ export default function ProductListScreen({ navigation }: Props) {
         throw err;
       }
     },
-    [accessToken, appliedQuery]
+    [accessToken, appliedQuery, filterTab]
   );
 
   const {
@@ -130,12 +153,22 @@ export default function ProductListScreen({ navigation }: Props) {
     <View style={styles.container}>
       <ScreenHeader
         title="Products"
-        subtitle={`${activeCount} live listings`}
+        subtitle={`${activeCount} live listings · ${hiddenCount} hidden`}
         showBack={false}
         rightAction={
-          <TouchableOpacity style={styles.addChip} onPress={() => navigation.navigate('ProductForm', {})} activeOpacity={0.8}>
-            <Text style={styles.addChipText}>+ New</Text>
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.hiddenHeaderChip}
+              onPress={() => navigation.navigate('HiddenProducts')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="eye-off-outline" size={14} color={colors.primary} />
+              <Text style={styles.hiddenHeaderChipText}>Hidden ({hiddenCount})</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.addChip} onPress={() => navigation.navigate('ProductForm', {})} activeOpacity={0.8}>
+              <Text style={styles.addChipText}>+ New</Text>
+            </TouchableOpacity>
+          </View>
         }
       />
 
@@ -148,8 +181,6 @@ export default function ProductListScreen({ navigation }: Props) {
           value={query}
           onChangeText={(text) => {
             setQuery(text);
-            // Clearing the box brings the full list back without needing a
-            // second tap on search.
             if (!text.trim()) setAppliedQuery('');
           }}
           onSubmitEditing={() => setAppliedQuery(query.trim())}
@@ -159,6 +190,42 @@ export default function ProductListScreen({ navigation }: Props) {
           <Ionicons name="barcode-outline" size={19} color={colors.primary} />
         </TouchableOpacity>
       </Card>
+
+      {/* Filter Tabs */}
+      <View style={styles.filterRow}>
+        <TouchableOpacity
+          style={[styles.filterChip, filterTab === 'all' && styles.filterChipActive]}
+          onPress={() => setFilterTab('all')}
+        >
+          <Text style={[styles.filterChipText, filterTab === 'all' && styles.filterChipTextActive]}>
+            All
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterChip, filterTab === 'live' && styles.filterChipActive]}
+          onPress={() => setFilterTab('live')}
+        >
+          <Text style={[styles.filterChipText, filterTab === 'live' && styles.filterChipTextActive]}>
+            Live ({liveCount})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterChip, filterTab === 'hidden' && styles.filterChipActive]}
+          onPress={() => setFilterTab('hidden')}
+        >
+          <Text style={[styles.filterChipText, filterTab === 'hidden' && styles.filterChipTextActive]}>
+            Hidden ({hiddenCount})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterChip, filterTab === 'offers' && styles.filterChipActive]}
+          onPress={() => setFilterTab('offers')}
+        >
+          <Text style={[styles.filterChipText, filterTab === 'offers' && styles.filterChipTextActive]}>
+            Offers ({offersCount})
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.statsRow}>
         <Text style={styles.statsText}>
@@ -189,7 +256,7 @@ export default function ProductListScreen({ navigation }: Props) {
           }
           ListEmptyComponent={
             <Text style={styles.emptyText}>
-              {appliedQuery ? `No products match "${appliedQuery}".` : 'No products yet.'}
+              {appliedQuery ? `No products match "${appliedQuery}".` : 'No products found.'}
             </Text>
           }
           ListFooterComponent={
@@ -220,6 +287,11 @@ export default function ProductListScreen({ navigation }: Props) {
                 : item.trackingMode === 'serialized'
                 ? `${item.availableCount} pieces`
                 : `${item.availableCount} in stock`;
+
+            const regular = Number(item.regularPrice || item.subcategory.storePrice);
+            const offer = item.offerPrice ? Number(item.offerPrice) : null;
+            const hasActiveOffer = Boolean(item.isOfferActive && offer && offer < regular);
+
             return (
               <TouchableOpacity onPress={() => navigation.navigate('ProductForm', { productId: item.id })} activeOpacity={0.85}>
                 <Card style={styles.productCard}>
@@ -234,17 +306,26 @@ export default function ProductListScreen({ navigation }: Props) {
                       {item.sku} · {item.category.name} › {item.subcategory.name}
                     </Text>
                     <View style={styles.badgeRow}>
+                      {item.isHidden && <Badge label="Hidden" tone="neutral" />}
+                      {hasActiveOffer && <Badge label="Offer" tone="primary" />}
                       <Badge label={stockLabel} tone={stockTone} />
-                      {item.channelVisibility !== 'both' && (
+                      {item.channelVisibility !== 'both' && !item.isHidden && (
                         <Badge label={VISIBILITY_LABEL[item.channelVisibility]} tone="neutral" />
                       )}
                       {!item.isActive && <Badge label="Inactive" tone="neutral" />}
                     </View>
                   </View>
-                  {/* Store price, never the online one: this app sells at the
-                      counter, and showing the website's figure here invited
-                      staff to charge it by mistake. */}
-                  <Text style={styles.price}>₹{item.subcategory.storePrice}</Text>
+
+                  <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
+                    {hasActiveOffer && offer ? (
+                      <>
+                        <Text style={styles.offerPriceText}>₹{offer.toLocaleString('en-IN')}</Text>
+                        <Text style={styles.regularStrikethrough}>₹{regular.toLocaleString('en-IN')}</Text>
+                      </>
+                    ) : (
+                      <Text style={styles.price}>₹{regular.toLocaleString('en-IN')}</Text>
+                    )}
+                  </View>
                 </Card>
               </TouchableOpacity>
             );
@@ -269,6 +350,40 @@ const styles = StyleSheet.create({
   retryText: { ...typography.bodySmSemibold, color: colors.primary },
   emptyText: { ...typography.body, color: colors.textMuted, textAlign: 'center', marginTop: 40 },
   container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.md },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2 },
+  hiddenHeaderChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs + 2,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  hiddenHeaderChipText: { ...typography.bodySmSemibold, fontSize: 12, color: colors.primary },
+  filterRow: {
+    flexDirection: 'row',
+    gap: spacing.xs + 2,
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+  },
+  filterChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSubtle,
+  },
+  filterChipActive: { backgroundColor: colors.primary },
+  filterChipText: { ...typography.bodySm, color: colors.textMuted },
+  filterChipTextActive: { ...typography.bodySmSemibold, color: '#fff' },
+  offerPriceText: { ...typography.bodySemibold, color: colors.primary, fontSize: 15 },
+  regularStrikethrough: {
+    ...typography.caption,
+    color: colors.textMuted,
+    textDecorationLine: 'line-through',
+  },
   addChip: {
     backgroundColor: colors.primaryBg,
     borderRadius: radius.pill,

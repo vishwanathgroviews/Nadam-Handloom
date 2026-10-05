@@ -4,7 +4,8 @@ import { getSecureItem, setSecureItem } from '../utils/secureStorage';
 
 // Shared with AuthContext.tsx, which persists/reads the same key at login,
 // mpin-setup, and logout.
-export const REFRESH_TOKEN_KEY = 'nandam_staff_refresh_token';
+export const REFRESH_TOKEN_KEY = 'groviews_staff_refresh_token';
+export const LEGACY_REFRESH_TOKEN_KEY = 'nandam_staff_refresh_token';
 
 // A physical device can't reach "localhost" (that's the device itself) or
 // the Android-emulator loopback alias 10.0.2.2 — it needs the dev machine's
@@ -163,7 +164,10 @@ export function registerAuthHandlers(handlers: {
 export async function refreshAccessToken(): Promise<string> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
-      const storedRefreshToken = await getSecureItem(REFRESH_TOKEN_KEY);
+      let storedRefreshToken = await getSecureItem(REFRESH_TOKEN_KEY);
+      if (!storedRefreshToken) {
+        storedRefreshToken = await getSecureItem(LEGACY_REFRESH_TOKEN_KEY);
+      }
       if (!storedRefreshToken) {
         const error = new Error('No refresh token stored') as ApiError;
         error.status = 401;

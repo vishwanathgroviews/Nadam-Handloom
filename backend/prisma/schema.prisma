@@ -222,6 +222,7 @@ model Category {
   storageKey  String? // object storage key for imageUrl, set only when uploaded via the admin app (not seed-time relative paths)
   sortOrder   Int     @default(0)
   isActive    Boolean @default(true) // kept for query-safety; no longer exposed as an admin toggle — hide/unhide is a Subcategory-level action now
+  isOfferActive Boolean @default(false)
 
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -246,6 +247,7 @@ model Subcategory {
   storageKey  String? // object storage key for imageUrl, set only when uploaded via the admin app
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true) // false = hidden from the customer web
+  isOfferActive Boolean @default(false)
 
   onlinePrice Decimal  @db.Decimal(10, 2) // shown on the customer web, charged via Razorpay
   storePrice  Decimal  @db.Decimal(10, 2) // shown only in the admin app on scan
@@ -297,6 +299,16 @@ model Product {
   isFeatured Boolean @default(false)
   isActive   Boolean @default(true)
 
+  // Individual product pricing and offer overrides
+  regularPrice  Decimal? @db.Decimal(10, 2)
+  offerPrice    Decimal? @db.Decimal(10, 2)
+  isOfferActive Boolean  @default(false)
+
+  // Direct visibility toggle: hidden products are excluded from the customer
+  // storefront and normal catalog, but stay accessible to staff in the Hidden
+  // Products section and can still be sold via POS.
+  isHidden      Boolean  @default(false)
+
   // Set when staff delete a product that already has sales history. Such a
   // product can't be removed outright — its order lines and invoices point at
   // it — so it is archived instead: hidden from every list, lookup and sale,
@@ -316,6 +328,8 @@ model Product {
   @@index([categoryId, isActive])
   @@index([isFeatured])
   @@index([subcategoryId, isActive])
+  @@index([isHidden, isActive])
+  @@index([isOfferActive])
 }
 
 // One row per individually-barcoded physical unit. Every physical item is
@@ -491,9 +505,11 @@ model OrderItem {
   pieceId       String? // exact physical piece sold, serialized mode only
   piece         Piece?  @relation(fields: [pieceId], references: [id])
   nameSnapshot  String
-  priceSnapshot Decimal @db.Decimal(10, 2)
-  imageSnapshot String?
-  quantity      Int
+  priceSnapshot        Decimal  @db.Decimal(10, 2)
+  isOfferSnapshot      Boolean  @default(false)
+  regularPriceSnapshot Decimal? @db.Decimal(10, 2)
+  imageSnapshot        String?
+  quantity             Int
 
   @@index([orderId])
 }

@@ -129,7 +129,7 @@ export default function AppSplash({ ready }: Props) {
           minimumFontScale={0.7}
           allowFontScaling={false}
         >
-          NANDAM HANDLOOMS
+          GROVIEWS
         </Text>
       </Animated.View>
     </Animated.View>

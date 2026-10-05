@@ -1,0 +1,71 @@
+/* Reusable WhatsApp product share button */
+.btn-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #25D366;
+  color: #ffffff;
+  border: 1.5px solid #20ba5a;
+  border-radius: var(--radius-md);
+  height: 48px;
+  width: 50px;
+  flex: 0 0 50px;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.22);
+  transition: var(--transition-smooth);
+  text-decoration: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-whatsapp:hover {
+  background-color: #20ba5a;
+  border-color: #1ba04d;
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn-whatsapp:active {
+  transform: translateY(0);
+  background-color: #1da851;
+  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2);
+}
+
+.btn-whatsapp:focus-visible {
+  outline: 2px solid #25D366;
+  outline-offset: 2px;
+}
+
+.btn-whatsapp-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.btn-whatsapp-text {
+  display: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* Responsive behavior: when buttons stack on mobile devices */
+@media (max-width: 640px) {
+  .btn-whatsapp {
+    width: 100%;
+    flex: none;
+    height: auto;
+    padding: 13px 28px;
+    gap: 8px;
+  }
+
+  .btn-whatsapp-text {
+    display: inline;
+  }
+}

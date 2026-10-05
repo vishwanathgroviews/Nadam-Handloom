@@ -18,10 +18,11 @@ const TAP = { scale: 0.97 };
 
 export default function ProductCard({ product }) {
   const image = product.images?.[0]?.url || product.image;
-  // Price/MRP are subcategory-level — every product in a subcategory shares them.
-  const onlinePrice = product.subcategory?.onlinePrice;
-  const mrp = product.subcategory?.mrp;
-  const discount = discountPercent(mrp, onlinePrice);
+  const isOffer = Boolean(product.isOfferActive && product.offerPrice);
+  const sellingPrice = product.regularPrice ?? product.subcategory?.onlinePrice;
+  const effectivePrice = isOffer ? product.offerPrice : sellingPrice;
+  const mrp = product.subcategory?.mrp || (isOffer ? sellingPrice : null);
+  const discount = discountPercent(mrp, effectivePrice);
   const tilt = useTilt3D(12);
 
   return (
@@ -35,18 +36,19 @@ export default function ProductCard({ product }) {
       style={{ perspective: 900, rotateX: tilt.rotateX, rotateY: tilt.rotateY }}
     >
       <div className="product-card-image-wrap">
-        {product.isFeatured && <span className="product-card-badge">Bestseller</span>}
+        {isOffer ? (
+          <span className="product-card-badge" style={{ background: '#e11d48' }}>Special Offer</span>
+        ) : product.isFeatured ? (
+          <span className="product-card-badge">Bestseller</span>
+        ) : null}
         {image && <img src={image} alt={product.name} loading="lazy" />}
-        {/* No sold-out overlay: the API only ever returns products that can
-            be bought (see IN_STOCK in catalog.service.ts). Every listing is a
-            single piece, so a sold one is gone rather than restockable. */}
       </div>
       <div className="product-card-body">
         {product.category?.name && <span className="product-card-category">{product.category.name}</span>}
         <span className="product-card-title">{product.name}</span>
         <div className="price-row">
-          <span className="price-current">{formatPrice(onlinePrice)}</span>
-          {discount > 0 && (
+          <span className="price-current">{formatPrice(effectivePrice)}</span>
+          {discount > 0 && mrp && (
             <>
               <span className="price-mrp">{formatPrice(mrp)}</span>
               <span className="price-discount">{discount}% off</span>

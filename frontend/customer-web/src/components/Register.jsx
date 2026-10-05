@@ -109,7 +109,7 @@ export default function Register() {
                 type="text"
                 name="last_name"
                 className="form-input"
-                placeholder="e.g. Nandam"
+                placeholder="e.g. Sharma"
                 value={formData.last_name}
                 onChange={handleChange}
               />

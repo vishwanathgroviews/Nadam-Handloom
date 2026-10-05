@@ -70,13 +70,25 @@ const CRAFT_IMAGES = [
 export default function Home() {
   const [categories, setCategories] = useState([]);
   const [featured, setFeatured] = useState([]);
+  const [specialOffers, setSpecialOffers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.getCategories(), api.getProducts({ featured: true, pageSize: 8 })])
-      .then(([cats, products]) => {
+    Promise.all([
+      api.getCategories(),
+      api.getProducts({ featured: true, pageSize: 8 }),
+      api.getProducts({ offers: true, pageSize: 8 }).catch(() => ({ items: [] })),
+    ])
+      .then(([cats, products, offers]) => {
         setCategories(cats);
-        setFeatured(products.items);
+        const nonOfferFeatured = (products.items || []).filter(
+          (p) => !(p.isOfferActive && p.offerPrice && Number(p.offerPrice) > 0)
+        );
+        setFeatured(nonOfferFeatured);
+        const offerItems = (offers?.items || []).filter(
+          (p) => Boolean(p.isOfferActive && p.offerPrice && Number(p.offerPrice) > 0)
+        );
+        setSpecialOffers(offerItems);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -123,6 +135,39 @@ export default function Home() {
           </motion.div>
         )}
       </section>
+
+      {specialOffers.length > 0 && (
+        <section className="section container">
+          <motion.div
+            className="section-header"
+            variants={fadeInUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
+            <div>
+              <h2 className="section-title">Special Offers</h2>
+              <p className="section-subtitle">Handcrafted weaves with limited-time festive pricing</p>
+            </div>
+            <Link to="/shop?offers=true" className="section-link">
+              View all <ArrowRight size={15} />
+            </Link>
+          </motion.div>
+          <motion.div
+            className="product-grid"
+            variants={staggerContainer(0.06)}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportOnce}
+          >
+            {specialOffers.map((product) => (
+              <motion.div key={product.id} variants={fadeInUp}>
+                <ProductCard product={product} />
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+      )}
 
       <section className="section container">
         <motion.div
@@ -173,7 +218,7 @@ export default function Home() {
             <span className="hero-eyebrow craft-eyebrow">Our Craft</span>
             <h2 className="section-title">Every Thread Has a Story</h2>
             <p>
-              Nandam Handlooms works directly with weaver collectives to bring you pattu and cotton sarees, dress
+              Groviews works directly with weaver collectives to bring you pattu and cotton sarees, dress
               materials, and lehanga sets that carry generations of craft — from hand-painted Kalamkari to intricate
               zari brocade. No two pieces are ever quite the same.
             </p>

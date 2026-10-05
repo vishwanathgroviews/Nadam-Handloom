@@ -112,9 +112,15 @@
 
 .product-actions {
   display: flex;
+  align-items: center;
   gap: 12px;
   width: 100%;
   margin-top: 16px;
+}
+
+.product-actions .btn-block {
+  flex: 1;
+  min-width: 0;
 }
 
 /* On wide screens the details stay in view beside a tall photo while it
@@ -131,7 +137,17 @@
     grid-template-columns: 1fr;
     gap: 24px;
   }
+}
+
+@media (max-width: 600px) {
   .product-actions {
     flex-direction: column;
+    align-items: stretch;
+  }
+
+  .product-actions .btn-block {
+    width: 100%;
+    flex: none;
   }
 }
+

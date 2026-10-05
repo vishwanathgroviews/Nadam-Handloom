@@ -66,7 +66,7 @@ export default function MpinLoginScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <BrandMark size={56} />
         <Text style={styles.title}>Welcome{'\n'}back.</Text>
-        <Text style={styles.subtitle}>Sign in to the Nandam workspace</Text>
+        <Text style={styles.subtitle}>Sign in to the Groviews workspace</Text>
 
         <View style={styles.formCard}>
           {error ? (

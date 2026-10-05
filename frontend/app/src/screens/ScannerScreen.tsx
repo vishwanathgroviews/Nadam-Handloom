@@ -245,6 +245,9 @@ export default function ScannerScreen({ navigation }: Props) {
       // A barcoded piece is one physical saree; a quantity product can go on
       // the same line more than once.
       serialized: found.mode !== 'quantity',
+      regularPrice: found.regularPrice,
+      isOfferActive: found.isOfferActive,
+      isHidden: found.isHidden,
     });
     billRef.current = next;
     setBill(next);
@@ -679,8 +682,19 @@ export default function ScannerScreen({ navigation }: Props) {
                 <Text style={styles.categoryLine}>{lookup.categoryName}</Text>
 
                 <View style={styles.priceRow}>
-                  <Text style={styles.priceValue}>₹{lookup.storePrice}</Text>
+                  {lookup.isOfferActive && lookup.offerPrice ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+                      <Text style={[styles.priceValue, { color: colors.primary }]}>₹{lookup.storePrice}</Text>
+                      <Text style={{ ...typography.bodySm, color: colors.textMuted, textDecorationLine: 'line-through' }}>
+                        ₹{lookup.regularPrice || lookup.storePrice}
+                      </Text>
+                      <Badge label="OFFER" tone="primary" />
+                    </View>
+                  ) : (
+                    <Text style={styles.priceValue}>₹{lookup.storePrice}</Text>
+                  )}
                   <Badge label={STATUS_LABEL[lookup.status] || lookup.status} tone={STATUS_TONE[lookup.status] || 'neutral'} />
+                  {lookup.isHidden && <Badge label="Hidden" tone="neutral" />}
                 </View>
 
                 {mode === 'sell' && lookup.status !== 'in_stock' && (
@@ -723,6 +737,8 @@ export default function ScannerScreen({ navigation }: Props) {
                         </Text>
                         <Text style={styles.billLineMeta}>
                           {line.code} · store ₹{line.storePrice}
+                          {line.isOfferActive ? ' · [Offer applied]' : ''}
+                          {line.isHidden ? ' · [Hidden item]' : ''}
                           {line.quantity > 1 ? ` · ₹${lineTotal(line).toLocaleString('en-IN')}` : ''}
                         </Text>
                       </View>

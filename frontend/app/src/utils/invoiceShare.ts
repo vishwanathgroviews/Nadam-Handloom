@@ -29,5 +29,5 @@ export interface InvoiceShareDetails {
 export const invoiceCaption = ({ invoiceNumber, totalAmount }: InvoiceShareDetails): string => {
   const amount = Number(totalAmount);
   const amountText = Number.isFinite(amount) ? `₹${amount.toLocaleString('en-IN')}` : String(totalAmount);
-  return `Thank you for shopping at Nandam Handlooms! Your invoice ${invoiceNumber} for ${amountText} is attached.`;
+  return `Thank you for shopping at Groviews! Your invoice ${invoiceNumber} for ${amountText} is attached.`;
 };

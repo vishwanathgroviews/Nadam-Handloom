@@ -19,6 +19,8 @@ describe('StoreContactContext', () => {
     expect(result.current.phone).toBe('+917382968566');
     expect(result.current.displayPhone).toBe('+91 73829 68566');
     expect(result.current.tel).toBe('+917382968566');
+    expect(result.current.whatsappNumber).toBe('6301151166');
+    expect(result.current.whatsappRecipient).toBe('916301151166');
   });
 
   it('loads and reflects dynamic store phone number from backend', async () => {
@@ -26,6 +28,7 @@ describe('StoreContactContext', () => {
       phone: '+919876543210',
       displayPhone: '+91 98765 43210',
       tel: '+919876543210',
+      whatsappNumber: '9988776655',
     });
 
     const { result } = renderHook(() => useStoreContact(), { wrapper });
@@ -34,6 +37,8 @@ describe('StoreContactContext', () => {
       expect(result.current.phone).toBe('+919876543210');
       expect(result.current.displayPhone).toBe('+91 98765 43210');
       expect(result.current.tel).toBe('+919876543210');
+      expect(result.current.whatsappNumber).toBe('9988776655');
+      expect(result.current.whatsappRecipient).toBe('919988776655');
     });
   });
 });

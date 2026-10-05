@@ -32,6 +32,9 @@ export default function CategoryCard({ category }) {
         ) : (
           <div className="category-card-placeholder" aria-hidden="true" />
         )}
+        {category.isOfferActive && (
+          <span className="category-card-badge">Special Offer</span>
+        )}
         <div className="category-card-overlay">
           <span>{category.name}</span>
         </div>

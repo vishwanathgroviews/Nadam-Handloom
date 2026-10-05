@@ -25,11 +25,18 @@ export const addRecentSearch = (list: string[], term: string, max = MAX_RECENT_S
  * searches shouldn't be offered to the next person who signs in.
  */
 export const recentSearchesKey = (userId: string | null | undefined, scope: string) =>
+  `groviews_recent_searches_${userId ?? 'anon'}_${scope}`;
+
+export const legacyRecentSearchesKey = (userId: string | null | undefined, scope: string) =>
   `nandam_recent_searches_${userId ?? 'anon'}_${scope}`;
 
 export const loadRecentSearches = async (key: string): Promise<string[]> => {
   try {
-    const raw = await AsyncStorage.getItem(key);
+    let raw = await AsyncStorage.getItem(key);
+    if (!raw && key.startsWith('groviews_recent_searches_')) {
+      const legacyKey = key.replace(/^groviews_recent_searches_/, 'nandam_recent_searches_');
+      raw = await AsyncStorage.getItem(legacyKey);
+    }
     const parsed = raw ? JSON.parse(raw) : [];
     // Tolerate anything odd a previous build (or a corrupt write) left behind.
     return Array.isArray(parsed)

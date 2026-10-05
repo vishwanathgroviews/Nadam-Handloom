@@ -48,13 +48,13 @@ export const buildShipmentMessage = (input: ShipmentMessageInput): string => {
 
   if (!input.awbNumber) {
     return (
-      `Hi ${name}, this is Nandam Handlooms regarding your order ${input.orderNumber}.\n` +
+      `Hi ${name}, this is Groviews regarding your order ${input.orderNumber}.\n` +
       productBlock
     ).trimEnd();
   }
 
   return (
-    `Hi ${name}, your Nandam Handlooms order ${input.orderNumber} has shipped via ${carrier}.\n\n` +
+    `Hi ${name}, your Groviews order ${input.orderNumber} has shipped via ${carrier}.\n\n` +
     `Tracking ID (AWB): ${input.awbNumber}\n` +
     `Track it here: ${input.trackingUrl}\n` +
     productBlock +

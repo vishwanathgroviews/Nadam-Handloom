@@ -72,8 +72,8 @@ const envSchema = z.object({
   // invoices work out of the box; override without a code change if the
   // rate or registration details ever change.
   GST_RATE_PERCENT: z.coerce.number().positive().default(5),
-  COMPANY_NAME: z.string().default('Nandam Handlooms'),
-  COMPANY_ADDRESS: z.string().default('Hussain Katta, Mangalagiri, Andhra Pradesh, 522503, India'),
+  COMPANY_NAME: z.string().default('Groviews'),
+  COMPANY_ADDRESS: z.string().default('Mayuri Tech Park, Near the NRI Exit, Mangalagiri, Guntur District, Andhra Pradesh'),
   COMPANY_MOBILE: z.string().default('+919494170180'),
   COMPANY_GSTIN: z.string().default('37CCWPN2487C1Z2'),
   // Same object the RN app's BRAND_LOGO_URL already points at — a fixed

@@ -42,12 +42,12 @@ export default function StaffHomeScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <ScreenHeader
-          title="Nandam Handlooms"
+          title="Groviews"
           showBack={false}
           titleNode={
             <View style={styles.brandRow}>
               <BrandMark size={30} />
-              <Text style={[typography.h2, styles.brandWordmark]} numberOfLines={1}>Nandam Handlooms</Text>
+              <Text style={[typography.h2, styles.brandWordmark]} numberOfLines={1}>Groviews</Text>
             </View>
           }
         />
@@ -88,6 +88,11 @@ export default function StaffHomeScreen({ navigation }: Props) {
             <View style={styles.manageIconWrap}><Ionicons name="shirt-outline" size={18} color={colors.primary} /></View>
             <Text style={styles.manageLabel}>Products</Text>
             <Text style={styles.manageHint}>{stats ? `${stats.products.activeCount} live` : '—'}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.manageCard} onPress={() => navigation.navigate('HiddenProducts')} activeOpacity={0.8}>
+            <View style={styles.manageIconWrap}><Ionicons name="eye-off-outline" size={18} color={colors.primary} /></View>
+            <Text style={styles.manageLabel}>Hidden</Text>
+            <Text style={styles.manageHint}>Sell hidden items</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.manageCard} onPress={() => navigation.navigate('Invoices')} activeOpacity={0.8}>
             <View style={styles.manageIconWrap}><Ionicons name="document-text-outline" size={18} color={colors.primary} /></View>

@@ -57,6 +57,9 @@ const EVENTS: Record<string, EventSpec> = {
   product_updated: { title: 'Product details changed', icon: 'create-outline', tone: 'catalog' },
   product_deleted: { title: 'Product deleted', icon: 'trash-outline', tone: 'security' },
   product_image_updated: { title: 'Product photo changed', icon: 'image-outline', tone: 'catalog' },
+  product_hidden: { title: 'Product hidden from website', icon: 'eye-off-outline', tone: 'catalog' },
+  product_unhidden: { title: 'Product shown on website', icon: 'eye-outline', tone: 'catalog' },
+  product_sold_out: { title: 'Product marked sold out', icon: 'checkmark-circle-outline', tone: 'catalog' },
 
   // Categories
   category_created: { title: 'Category added', icon: 'folder-open-outline', tone: 'catalog' },

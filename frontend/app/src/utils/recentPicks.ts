@@ -35,6 +35,9 @@ export const addRecentPick = (list: RecentPick[], pick: RecentPick, max = MAX_RE
  * be offered to the next person who signs in.
  */
 export const recentPicksKey = (userId: string | null | undefined, scope: string) =>
+  `groviews_recent_picks_${userId ?? 'anon'}_${scope}`;
+
+export const legacyRecentPicksKey = (userId: string | null | undefined, scope: string) =>
   `nandam_recent_picks_${userId ?? 'anon'}_${scope}`;
 
 const isPick = (item: unknown): item is RecentPick =>
@@ -43,7 +46,11 @@ const isPick = (item: unknown): item is RecentPick =>
 
 export const loadRecentPicks = async (key: string): Promise<RecentPick[]> => {
   try {
-    const raw = await AsyncStorage.getItem(key);
+    let raw = await AsyncStorage.getItem(key);
+    if (!raw && key.startsWith('groviews_recent_picks_')) {
+      const legacyKey = key.replace(/^groviews_recent_picks_/, 'nandam_recent_picks_');
+      raw = await AsyncStorage.getItem(legacyKey);
+    }
     const parsed = raw ? JSON.parse(raw) : [];
     // Tolerate anything odd a previous build (or a corrupt write) left behind.
     return Array.isArray(parsed) ? parsed.filter(isPick).slice(0, MAX_RECENT_PICKS) : [];

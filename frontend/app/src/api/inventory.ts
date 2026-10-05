@@ -7,6 +7,10 @@ export interface ScanLookupResult {
   productName: string;
   categoryName: string;
   storePrice: string;
+  regularPrice?: string | null;
+  offerPrice?: string | null;
+  isOfferActive?: boolean;
+  isHidden?: boolean;
   pieceId?: string;
   barcode?: string;
   sku?: string;

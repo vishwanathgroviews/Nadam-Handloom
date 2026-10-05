@@ -22,6 +22,9 @@ export interface BillLine {
    * quantity, where scanning again means one more of them.
    */
   serialized: boolean;
+  regularPrice?: string | null;
+  isOfferActive?: boolean;
+  isHidden?: boolean;
 }
 
 export interface ScannedItem {
@@ -31,6 +34,9 @@ export interface ScannedItem {
   storePrice: string;
   priceInput: string;
   serialized: boolean;
+  regularPrice?: string | null;
+  isOfferActive?: boolean;
+  isHidden?: boolean;
 }
 
 /** The price this line actually sells at: what was typed, else the store price. */

@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "Nandam Handlooms Staff",
-    "slug": "nandam-handlooms-staff",
+    "name": "Groviews Staff",
+    "slug": "groviews-staff",
+    "scheme": "groviews-staff",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -10,14 +11,14 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.nandamhandlooms.staff",
+      "bundleIdentifier": "com.groviews.staff",
       "infoPlist": {
         "NSCameraUsageDescription": "Used to scan product barcodes for lookup and in-store sales.",
         "NSPhotoLibraryUsageDescription": "Used to add a photo to a product listing."
       }
     },
     "android": {
-      "package": "com.nandamhandlooms.staff",
+      "package": "com.groviews.staff",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_MEDIA_IMAGES",
@@ -25,9 +26,9 @@
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#5C1420"
+        "backgroundColor": "#FFFFFF"
       },
-      "versionCode": 21
+      "versionCode": 22
     },
     "plugins": [
       [
@@ -45,7 +46,7 @@
       [
         "expo-notifications",
         {
-          "color": "#7A1F2B"
+          "color": "#111111"
         }
       ],
       "expo-secure-store",
@@ -56,9 +57,9 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-logo.png",
-          "imageWidth": 180,
+          "imageWidth": 240,
           "resizeMode": "contain",
-          "backgroundColor": "#5C1420"
+          "backgroundColor": "#FFFFFF"
         }
       ],
       "./plugins/withWhatsAppQueries"

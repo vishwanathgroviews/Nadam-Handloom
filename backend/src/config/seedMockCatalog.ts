@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { SUBCATEGORIES_BY_CATEGORY_SLUG } from '../../prisma/subcategorySeedData';
+import { SUBCATEGORIES_BY_CATEGORY_SLUG } from './subcategorySeedData';
 
 const S3_BUCKET = process.env.S3_BUCKET_NAME || 'nandamhandlooms-media';
 const S3_REGION = process.env.S3_REGION || 'ap-south-1';
@@ -39,6 +39,7 @@ export const PRODUCTS = [
     name: 'Magenta Pure Pattu Silk Saree with Pinstripe Checks and Gold Temple Border',
     technique: 'Checks', borderStyle: 'Temple Border', purity: 'Pure Pattu', zariTier: '350/50', blouseType: 'Plain Blouse', pattern: 'Checks', color: 'Magenta', fabric: 'Pure Silk',
     occasion: ['Wedding', 'Gifting'], stock: 4, isFeatured: true,
+    regularPrice: 12999, offerPrice: 10499, isOfferActive: true,
     images: [IMG('products/kanjivaram-magenta-plain-gold.jpg')],
   },
   {
@@ -161,6 +162,7 @@ export async function seedFullCatalog(db: any) {
       imageUrl: cat.image,
       sortOrder: cat.sortOrder,
       isActive: true,
+      isOfferActive: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -187,6 +189,7 @@ export async function seedFullCatalog(db: any) {
         mrp: pricing.mrp,
         sortOrder: i,
         isActive: true,
+        isOfferActive: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -222,6 +225,9 @@ export async function seedFullCatalog(db: any) {
       trackingMode: 'quantity',
       isFeatured: prod.isFeatured,
       isActive: true,
+      regularPrice: 'regularPrice' in prod ? (prod as any).regularPrice : null,
+      offerPrice: 'offerPrice' in prod ? (prod as any).offerPrice : null,
+      isOfferActive: 'isOfferActive' in prod ? Boolean((prod as any).isOfferActive) : false,
       createdAt: new Date(),
       updatedAt: new Date(),
     });

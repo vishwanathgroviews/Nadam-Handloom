@@ -50,7 +50,7 @@ import { goToTab } from '../navigation/tabs';
 import ScreenHeader from '../components/ui/ScreenHeader';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { FilterChip } from '../components/ui/Chip';
+import { FilterChip, Badge } from '../components/ui/Chip';
 import { colors, radius, spacing, typography } from '../utils/theme';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'ProductForm'>;
@@ -104,6 +104,10 @@ export default function ProductFormScreen({ route, navigation }: Props) {
   // is staged for upload.
   const [editingPhotoUri, setEditingPhotoUri] = useState<string | null>(null);
   const [isFeatured, setIsFeatured] = useState(false);
+  const [regularPriceInput, setRegularPriceInput] = useState('');
+  const [isOfferActive, setIsOfferActive] = useState(false);
+  const [offerPriceInput, setOfferPriceInput] = useState('');
+  const [isHidden, setIsHidden] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   // Lets staff scan/type this product's first unit(s) while still creating
@@ -148,6 +152,10 @@ export default function ProductFormScreen({ route, navigation }: Props) {
         setSku(p.sku);
         setProductName(p.name);
         setIsFeatured(p.isFeatured);
+        setRegularPriceInput(p.regularPrice ? String(p.regularPrice) : '');
+        setIsOfferActive(p.isOfferActive ?? false);
+        setOfferPriceInput(p.offerPrice ? String(p.offerPrice) : '');
+        setIsHidden(p.isHidden ?? false);
       } catch (err: any) {
         setError(err.message || 'Failed to load product');
       } finally {
@@ -246,6 +254,8 @@ export default function ProductFormScreen({ route, navigation }: Props) {
     // unset for a new one. trackingMode is still sent (just not
     // user-editable): 'serialized' by default for a new product, or an
     // existing product's already-loaded value, unchanged.
+    const parsedRegular = regularPriceInput.trim() ? Number(regularPriceInput.trim()) : null;
+    const parsedOffer = isOfferActive && offerPriceInput.trim() ? Number(offerPriceInput.trim()) : null;
     return {
       categoryId,
       subcategoryId,
@@ -253,8 +263,23 @@ export default function ProductFormScreen({ route, navigation }: Props) {
       trackingMode,
       isFeatured,
       isActive,
+      regularPrice: parsedRegular,
+      offerPrice: parsedOffer,
+      isOfferActive,
+      isHidden,
     };
-  }, [categoryId, subcategoryId, channelVisibility, trackingMode, isFeatured, isActive]);
+  }, [
+    categoryId,
+    subcategoryId,
+    channelVisibility,
+    trackingMode,
+    isFeatured,
+    isActive,
+    regularPriceInput,
+    isOfferActive,
+    offerPriceInput,
+    isHidden,
+  ]);
 
   const tryAddBarcode = useCallback(
     async (rawCode: string) => {
@@ -322,6 +347,21 @@ export default function ProductFormScreen({ route, navigation }: Props) {
     setError('');
     if (!categoryId) return setError('Select a category');
     if (!subcategoryId) return setError('Select a subcategory');
+
+    const regularEffective = regularPriceInput.trim()
+      ? Number(regularPriceInput.trim())
+      : (subcategories.find((s) => s.id === subcategoryId) ? Number(subcategories.find((s) => s.id === subcategoryId)?.storePrice) : 0);
+
+    if (isOfferActive) {
+      const offer = Number(offerPriceInput.trim());
+      if (!offerPriceInput.trim() || !Number.isFinite(offer) || offer <= 0) {
+        return setError('Enter a valid offer price greater than ₹0');
+      }
+      if (regularEffective > 0 && offer >= regularEffective) {
+        return setError(`Offer price (₹${offer}) must be lower than the regular price (₹${regularEffective})`);
+      }
+    }
+
     if (!isEdit) {
       // A new product must be sellable the moment it's created: a photo (the
       // only thing shown to customers) and at least one scanned/typed
@@ -623,16 +663,89 @@ export default function ProductFormScreen({ route, navigation }: Props) {
         )}
       </Card>
 
-      {selectedSubcategory && (
-        <Text style={styles.noteText}>
-          Store price ₹{selectedSubcategory.storePrice} is set on the subcategory — change it in Categories.
+      <Text style={styles.sectionLabel}>Pricing &amp; Offers</Text>
+      <Card style={styles.card}>
+        <Text style={styles.fieldLabel}>Regular Store Price (₹)</Text>
+        <TextInput
+          style={styles.input}
+          value={regularPriceInput}
+          onChangeText={setRegularPriceInput}
+          placeholder={selectedSubcategory ? `₹${selectedSubcategory.storePrice} (subcategory price)` : 'e.g. 4500'}
+          placeholderTextColor={colors.textMuted}
+          keyboardType="numeric"
+        />
+        <Text style={styles.helper}>
+          Leave empty to inherit subcategory price{selectedSubcategory ? ` (₹${selectedSubcategory.storePrice})` : ''}.
         </Text>
-      )}
 
-      <View style={styles.switchRow}>
-        <Text style={styles.fieldLabel}>Best Seller</Text>
-        <Switch value={isFeatured} onValueChange={setIsFeatured} trackColor={{ true: colors.primary }} />
-      </View>
+        <View style={[styles.switchRow, { marginTop: spacing.md, marginBottom: spacing.xs }]}>
+          <View style={{ flex: 1, paddingRight: spacing.sm }}>
+            <Text style={styles.fieldLabel}>Special Offer / Discount</Text>
+            <Text style={styles.helper}>Highlight product in Offers section and sell at special rate</Text>
+          </View>
+          <Switch value={isOfferActive} onValueChange={setIsOfferActive} trackColor={{ true: colors.primary }} />
+        </View>
+
+        {isOfferActive && (
+          <View style={styles.offerSection}>
+            <Text style={[styles.fieldLabel, { marginTop: spacing.sm }]}>Offer Price (₹) <Text style={styles.required}>*</Text></Text>
+            <TextInput
+              style={[styles.input, styles.offerInput]}
+              value={offerPriceInput}
+              onChangeText={setOfferPriceInput}
+              placeholder="e.g. 3999"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="numeric"
+            />
+            {(() => {
+              const reg = regularPriceInput.trim()
+                ? Number(regularPriceInput.trim())
+                : (selectedSubcategory ? Number(selectedSubcategory.storePrice) : 0);
+              const off = Number(offerPriceInput.trim());
+              if (reg > 0 && off > 0 && off < reg) {
+                const discountPct = Math.round(((reg - off) / reg) * 100);
+                return (
+                  <View style={styles.discountBadgeWrap}>
+                    <Badge label={`${discountPct}% OFF`} tone="primary" />
+                    <Text style={styles.discountHint}>
+                      Save ₹{(reg - off).toLocaleString('en-IN')} off regular price ₹{reg.toLocaleString('en-IN')}
+                    </Text>
+                  </View>
+                );
+              }
+              if (reg > 0 && off >= reg) {
+                return (
+                  <Text style={styles.offerWarnText}>
+                    Offer price must be lower than regular price (₹{reg.toLocaleString('en-IN')})
+                  </Text>
+                );
+              }
+              return null;
+            })()}
+          </View>
+        )}
+      </Card>
+
+      <Text style={styles.sectionLabel}>Catalog Visibility</Text>
+      <Card style={styles.card}>
+        <View style={styles.switchRow}>
+          <View style={{ flex: 1, paddingRight: spacing.sm }}>
+            <Text style={styles.fieldLabel}>Hide from Catalog</Text>
+            <Text style={styles.helper}>
+              Hidden items do not appear on the website, but staff can view, sell, or manage them in "Hidden Products".
+            </Text>
+          </View>
+          <Switch value={isHidden} onValueChange={setIsHidden} trackColor={{ true: colors.warning }} />
+        </View>
+
+        <View style={[styles.switchRow, { marginTop: spacing.sm, marginBottom: 0 }]}>
+          <View style={{ flex: 1, paddingRight: spacing.sm }}>
+            <Text style={styles.fieldLabel}>Best Seller</Text>
+            <Text style={styles.helper}>Feature this saree prominently on homepage</Text>
+          </View>
+          <Switch value={isFeatured} onValueChange={setIsFeatured} trackColor={{ true: colors.primary }} />
+        </View>
+      </Card>
 
       <Text style={styles.sectionLabel}>Channel &amp; Stock</Text>
       <Card style={styles.card}>
@@ -867,6 +980,25 @@ const styles = StyleSheet.create({
 
   saveButton: { marginTop: spacing.md },
   deleteButton: { marginTop: spacing.md },
+  offerSection: {
+    marginTop: spacing.xs,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+  },
+  offerInput: {
+    marginTop: spacing.xs,
+    borderColor: colors.primary,
+    borderWidth: 1,
+  },
+  discountBadgeWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  discountHint: { ...typography.bodySm, color: colors.primary, flex: 1 },
+  offerWarnText: { ...typography.bodySm, color: colors.error, marginTop: spacing.xs },
   error: {
     color: colors.error,
     backgroundColor: colors.errorBg,

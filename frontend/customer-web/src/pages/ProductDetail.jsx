@@ -4,6 +4,8 @@ import { ShoppingBag, Zap, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { formatPrice, discountPercent } from '../utils/format';
+import WhatsAppShareButton from '../components/WhatsAppShareButton';
+import { updateProductMeta, resetProductMeta } from '../utils/meta';
 import './ProductDetail.css';
 
 const ATTRIBUTE_LABELS = [
@@ -37,6 +39,21 @@ export default function ProductDetail() {
       .catch(() => setNotFound(true));
   }, [slug]);
 
+  useEffect(() => {
+    if (product) {
+      updateProductMeta(product, activeImage);
+    }
+    return () => {
+      resetProductMeta();
+    };
+  }, [product, activeImage]);
+
+  useEffect(() => {
+    if (notFound) {
+      document.title = 'Product Not Found | Groviews';
+    }
+  }, [notFound]);
+
   if (notFound) {
     return (
       <div className="container state-block">
@@ -51,15 +68,11 @@ export default function ProductDetail() {
     return <p className="container state-block">Loading…</p>;
   }
 
-  // Price/MRP/description are subcategory-level — shared by every product in it.
-  const onlinePrice = product.subcategory.onlinePrice;
-  const mrp = product.subcategory.mrp;
-  const discount = discountPercent(mrp, onlinePrice);
-  // A unit received via the admin app's barcode intake flow only ever
-  // creates a Piece row and never touches the legacy `stock` counter —
-  // The API 404s a sold product rather than returning it, so reaching this
-  // page at all means it is available — the not-found branch above is what
-  // an old link or a stale tab now lands on.
+  const isOffer = Boolean(product.isOfferActive && product.offerPrice);
+  const sellingPrice = product.regularPrice ?? product.subcategory.onlinePrice;
+  const effectivePrice = isOffer ? product.offerPrice : sellingPrice;
+  const mrp = product.subcategory.mrp || (isOffer ? sellingPrice : null);
+  const discount = discountPercent(mrp, effectivePrice);
 
   // Each listing is a single piece — one tap puts that piece in the cart,
   // there is no amount to choose.
@@ -107,12 +120,17 @@ export default function ProductDetail() {
           <h1 className="product-title">{product.name}</h1>
 
           <div className="price-row product-price-row">
-            <span className="price-current">{formatPrice(onlinePrice)}</span>
-            {discount > 0 && (
+            <span className="price-current">{formatPrice(effectivePrice)}</span>
+            {discount > 0 && mrp && (
               <>
                 <span className="price-mrp">{formatPrice(mrp)}</span>
                 <span className="price-discount">{discount}% off</span>
               </>
+            )}
+            {isOffer && (
+              <span className="badge badge-warning" style={{ backgroundColor: '#e11d48', color: '#fff' }}>
+                Special Offer
+              </span>
             )}
           </div>
 
@@ -144,6 +162,7 @@ export default function ProductDetail() {
             <button className="btn btn-primary btn-block" onClick={handleBuyNow}>
               <Zap size={17} /> Buy Now
             </button>
+            <WhatsAppShareButton product={product} activeImageIndex={activeImage} />
           </div>
         </div>
       </div>

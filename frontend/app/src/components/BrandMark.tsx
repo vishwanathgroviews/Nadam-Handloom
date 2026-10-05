@@ -1,28 +1,29 @@
-import React, { useState } from 'react';
-import { Image, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { BRAND_LOGO_URL } from '../utils/media';
+import React from 'react';
+import { Image, StyleSheet, View } from 'react-native';
 import { colors } from '../utils/theme';
 
-// The Nandam Handlooms logo mark, with a graceful glyph fallback if the S3
-// image is ever unreachable.
-export default function BrandMark({ size }: { size: number }) {
-  const [broken, setBroken] = useState(false);
+const BULB_MARK = require('../../assets/bulb-mark.png');
 
-  if (broken) {
-    return (
-      <Ionicons name="sparkles" size={size * 0.6} color={colors.secondary} style={[styles.fallbackIcon, { width: size }]} />
-    );
-  }
+// The Groviews brand mark, rendered from local bundled asset for instant,
+// crisp rendering with no remote network dependency.
+export default function BrandMark({ size }: { size: number }) {
   return (
-    <Image
-      source={{ uri: BRAND_LOGO_URL }}
-      style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: colors.background }}
-      onError={() => setBroken(true)}
-    />
+    <View style={[styles.container, { width: size, height: size, borderRadius: size / 2 }]}>
+      <Image
+        source={BULB_MARK}
+        style={{ width: size * 0.75, height: size * 0.75 }}
+        resizeMode="contain"
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  fallbackIcon: { textAlign: 'center' },
+  container: {
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.divider,
+  },
 });
