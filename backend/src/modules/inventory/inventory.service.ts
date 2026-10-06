@@ -220,9 +220,19 @@ export interface OfflineOrderLine {
 }
 
 export interface WhatsappCustomer {
+  name?: string;
   phone: string;
   /** The whole delivery address as one block of text — see whatsappCustomerSchema. */
   address: string;
+  notes?: string;
+}
+
+export interface OfflineCustomer {
+  name?: string;
+  fullName?: string;
+  phone?: string;
+  mobile?: string;
+  address?: string;
   notes?: string;
 }
 
@@ -239,19 +249,23 @@ export const createOfflineOrder = async (
   tx: Tx,
   orderNumber: string,
   items: OfflineOrderLine[],
-  customer?: { fullName?: string; phone?: string } | WhatsappCustomer,
+  customer?: OfflineCustomer,
   channel: 'store' | 'whatsapp' = 'store',
   invoiceRequired = true
 ) => {
   const total = items.reduce((sum, item) => sum + Number(item.unitPrice) * item.quantity, 0);
   const isWhatsapp = channel === 'whatsapp';
+  const custName = (customer?.fullName || customer?.name || '').trim();
+  const custPhone = (customer?.phone || customer?.mobile || '').trim();
   // Stored in the same shape every other order uses, so the To Ship screen
   // and the shipment message read one field set regardless of where the
   // order came from: the free-text WhatsApp address lands in line1.
-  const shippingAddress: Prisma.InputJsonValue = isWhatsapp && customer && 'address' in customer
+  // Store counter sales preserve the customer's name and mobile so the
+  // invoice saves and displays them just like online invoices.
+  const shippingAddress: Prisma.InputJsonValue = isWhatsapp && customer && customer.address
     ? {
-        fullName: '',
-        phone: customer.phone,
+        fullName: custName,
+        phone: custPhone,
         line1: customer.address,
         line2: null,
         city: '',
@@ -259,7 +273,11 @@ export const createOfflineOrder = async (
         pincode: '',
         ...(customer.notes ? { notes: customer.notes } : {}),
       }
-    : ({ ...(customer ?? {}) } as Prisma.InputJsonObject);
+    : {
+        fullName: custName,
+        phone: custPhone,
+        ...(customer ?? {}),
+      };
 
   const order = await tx.order.create({
     data: {
@@ -593,13 +611,9 @@ export const scanSell = async (
     for (const item of input.items) {
       lines.push(await resolveAndClaimOfflineSaleItem(tx, item.code, item, actorId, orderNumber));
     }
-    // A counter sale records no customer, full stop. The app sends none (a
-    // mobile typed to share the invoice on WhatsApp stays on the phone), and
-    // anything a client did send is dropped here, so nothing about a walk-in
-    // customer can reach the order — or the invoice, which copies its
-    // customer details from the order. Only a WhatsApp order, which has to be
-    // couriered, keeps a delivery number and address.
-    const customer = channel === 'whatsapp' ? input.customer : undefined;
+    // Store and WhatsApp orders save customer name and mobile (if provided)
+    // so they are recorded on the order and the generated invoice.
+    const customer = input.customer;
     const order = await createOfflineOrder(tx, orderNumber, lines, customer, channel, invoiceRequired);
 
     return {

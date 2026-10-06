@@ -131,11 +131,9 @@ export default function ScannerScreen({ navigation }: Props) {
   // whether the customer wants an invoice.
   const [invoiceChoice, setInvoiceChoice] = useState<InvoiceChoice | null>(null);
   const [invoiceChoiceMissing, setInvoiceChoiceMissing] = useState(false);
-  // A counter customer's mobile, typed only so their invoice can be sent to
-  // them on WhatsApp. It stays in this screen's memory: it is never sent to
-  // the server (runSell has no field for it on a store sale, and the server
-  // drops customer details on store sales anyway), never written to the
-  // phone's storage, and is cleared when the next sale starts.
+  // Customer name and mobile for store sales — saved on the invoice so it
+  // doesn't default to 'Walk-in customer', and used to send the invoice on WhatsApp.
+  const [customerName, setCustomerName] = useState('');
   const [invoiceMobile, setInvoiceMobile] = useState('');
   const [invoiceMobileError, setInvoiceMobileError] = useState('');
   // Only used for a WhatsApp sale — it's a remote order, so it can't be
@@ -175,6 +173,7 @@ export default function ScannerScreen({ navigation }: Props) {
     setChannelMissing(false);
     setInvoiceChoice(null);
     setInvoiceChoiceMissing(false);
+    setCustomerName('');
     setInvoiceMobile('');
     setInvoiceMobileError('');
     setScanNotice('');
@@ -306,9 +305,8 @@ export default function ScannerScreen({ navigation }: Props) {
         return;
       }
 
-      // A WhatsApp order is going to be couriered, so it can't be recorded
-      // without a number to message and an address to ship to.
-      let customerPayload: WhatsappCustomerInput | undefined;
+      // Customer details for WhatsApp (required) and store sales (optional)
+      let customerPayload: any = undefined;
       if (saleChannel === 'whatsapp') {
         if (!customer.phone.trim() || customer.address.trim().length < 5) {
           setError("Enter the customer's mobile number and full delivery address first.");
@@ -319,6 +317,30 @@ export default function ScannerScreen({ navigation }: Props) {
           phone: customer.phone.trim(),
           address: customer.address.trim(),
         };
+      } else if (saleChannel === 'store') {
+        const name = customerName.trim();
+        const rawMobile = invoiceMobile.trim();
+        const cleanPhone = cleanMobile(rawMobile) || rawMobile;
+
+        if (invoiceChoice === 'required') {
+          if (!name) {
+            setError("Enter the customer's name for the invoice.");
+            setPhase('result');
+            return;
+          }
+          if (!rawMobile || !cleanMobile(rawMobile)) {
+            setError("Enter the customer's valid 10-digit mobile number for the invoice.");
+            setPhase('result');
+            return;
+          }
+        }
+
+        if (name || cleanPhone) {
+          customerPayload = {
+            ...(name ? { name } : {}),
+            ...(cleanPhone ? { phone: cleanPhone } : {}),
+          };
+        }
       }
 
       setPhase('processing');
@@ -346,7 +368,7 @@ export default function ScannerScreen({ navigation }: Props) {
         setPhase('result');
       }
     },
-    [accessToken, saleChannel, invoiceChoice, customer]
+    [accessToken, saleChannel, invoiceChoice, customer, customerName, invoiceMobile]
   );
 
   // Same print/share path the Invoices screen uses —
@@ -648,7 +670,7 @@ export default function ScannerScreen({ navigation }: Props) {
                         </>
                       )}
                     </TouchableOpacity>
-                    <Text style={styles.helper}>The number is not saved anywhere.</Text>
+                    <Text style={styles.helper}>Saved with this invoice.</Text>
                   </View>
                 ) : null}
 
@@ -813,9 +835,21 @@ export default function ScannerScreen({ navigation }: Props) {
 
           {saleChannel === 'store' && (
             <View style={styles.customerForm}>
+              <Text style={styles.helper}>
+                {invoiceChoice === 'required'
+                  ? "Customer name and mobile are required for the store invoice."
+                  : 'Customer details (optional unless invoice is requested):'}
+              </Text>
               <TextInput
                 style={styles.customerInput}
-                placeholder="Customer mobile (to send the invoice on WhatsApp)"
+                placeholder={invoiceChoice === 'required' ? "Customer name *" : "Customer name"}
+                placeholderTextColor={colors.textMuted}
+                value={customerName}
+                onChangeText={setCustomerName}
+              />
+              <TextInput
+                style={styles.customerInput}
+                placeholder={invoiceChoice === 'required' ? "Customer 10-digit mobile number *" : "Customer mobile"}
                 placeholderTextColor={colors.textMuted}
                 keyboardType="phone-pad"
                 maxLength={14}
@@ -825,8 +859,9 @@ export default function ScannerScreen({ navigation }: Props) {
                   setInvoiceMobileError('');
                 }}
               />
+              {invoiceMobileError ? <Text style={styles.fieldError}>{invoiceMobileError}</Text> : null}
               <Text style={styles.helper}>
-                Optional. Used only to send the invoice on WhatsApp — it is not saved anywhere.
+                Saved with the store invoice. Mobile number is also used to send the invoice on WhatsApp.
               </Text>
             </View>
           )}

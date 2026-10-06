@@ -49,6 +49,67 @@ if (isMock) {
       });
     }
 
+    const existingInvoices = await fake.client.invoice.findMany({});
+    if (existingInvoices.length === 0) {
+      const order1 = await fake.client.order.create({
+        data: {
+          orderNumber: 'ORD-000001',
+          channel: 'online',
+          status: 'delivered',
+          subtotal: 3000,
+          total: 3000,
+          shippingAddress: { fullName: 'Sada', phone: '9848571449' },
+          invoiceRequired: true,
+        },
+      });
+      await fake.client.invoice.create({
+        data: {
+          invoiceNumber: 'INV-000001',
+          orderId: order1.id,
+          channel: 'online',
+          customerName: 'Sada',
+          customerMobile: '9848571449',
+          gstRatePercent: 5,
+          taxableValue: 2857.14,
+          cgstAmount: 71.43,
+          sgstAmount: 71.43,
+          totalAmount: 3000,
+          storageKey: 'invoices/inv-000001.pdf',
+          url: 'http://localhost:4000/uploads/invoices/inv-000001.pdf',
+          generatedBy: 'system',
+        },
+      });
+
+      const order2 = await fake.client.order.create({
+        data: {
+          orderNumber: 'ORD-000002',
+          channel: 'store',
+          status: 'delivered',
+          subtotal: 95238.10,
+          total: 95238.10,
+          shippingAddress: { fullName: 'Ramesh Kumar', phone: '9848123456' },
+          invoiceRequired: true,
+        },
+      });
+      await fake.client.invoice.create({
+        data: {
+          invoiceNumber: 'INV-000002',
+          orderId: order2.id,
+          channel: 'store',
+          customerName: 'Ramesh Kumar',
+          customerMobile: '9848123456',
+          gstRatePercent: 5,
+          taxableValue: 90702.96,
+          cgstAmount: 2267.67,
+          sgstAmount: 2267.47,
+          totalAmount: 95238.10,
+          storageKey: 'invoices/inv-000002.pdf',
+          url: 'http://localhost:4000/uploads/invoices/inv-000002.pdf',
+          generatedBy: 'system',
+        },
+      });
+    }
+
     console.log(`[Mock DB] In-memory database active. Admin login: ${adminMobile} / MPIN: ${adminMpin}`);
   };
 

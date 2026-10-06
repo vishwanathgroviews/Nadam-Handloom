@@ -54,9 +54,11 @@ export const generateInvoiceForOrder = async (orderId: string, actorId: string) 
     throw new BadRequestError('This sale was recorded without an invoice');
   }
 
-  const address = order.shippingAddress as { fullName?: string; phone?: string } | null;
-  const customerName = order.address?.fullName ?? address?.fullName ?? null;
-  const customerMobile = order.address?.phone ?? address?.phone ?? null;
+  const address = order.shippingAddress as { fullName?: string; name?: string; phone?: string; mobile?: string } | null;
+  const rawName = order.address?.fullName ?? address?.fullName ?? address?.name ?? null;
+  const rawMobile = order.address?.phone ?? address?.phone ?? address?.mobile ?? null;
+  const customerName = rawName && rawName.trim() ? rawName.trim() : null;
+  const customerMobile = rawMobile && rawMobile.trim() ? rawMobile.trim() : null;
 
   const lines: InvoiceLine[] = order.items.map((item) => ({
     name: item.nameSnapshot,

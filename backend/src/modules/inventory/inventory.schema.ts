@@ -19,8 +19,18 @@ export const scanLookupSchema = z.object({
 // One free-text address is what staff actually have, and it is all the
 // courier label needs.
 export const whatsappCustomerSchema = z.object({
+  name: z.string().trim().max(100).optional(),
   phone: z.string().trim().min(6, 'Enter a valid mobile number').max(20),
   address: z.string().trim().min(5, 'Enter the full delivery address').max(600),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const offlineCustomerSchema = z.object({
+  name: z.string().trim().max(100).optional(),
+  fullName: z.string().trim().max(100).optional(),
+  phone: z.string().trim().max(20).optional(),
+  mobile: z.string().trim().max(20).optional(),
+  address: z.string().trim().max(600).optional(),
   notes: z.string().trim().max(500).optional(),
 });
 
@@ -61,7 +71,7 @@ export const scanSellSchema = z
     channel: z.enum(['store', 'whatsapp'], {
       error: 'Choose where this sale is happening: Offline Store or Through WhatsApp',
     }),
-    customer: whatsappCustomerSchema.optional(),
+    customer: offlineCustomerSchema.optional(),
     // Required, with no default, for the same reason as `channel`: staff must
     // say on every sale whether the customer wants an invoice. false still
     // records the whole sale — it just never gets an invoice, so it stays
@@ -74,10 +84,15 @@ export const scanSellSchema = z
     message: 'Scan or enter at least one product',
     path: ['items'],
   })
-  .refine((data) => data.channel !== 'whatsapp' || data.customer, {
-    message: 'A mobile number and delivery address are required for a WhatsApp order',
-    path: ['customer'],
-  })
+  .refine(
+    (data) =>
+      data.channel !== 'whatsapp' ||
+      Boolean(data.customer?.phone && data.customer.phone.length >= 6 && data.customer?.address && data.customer.address.length >= 5),
+    {
+      message: 'A mobile number and delivery address are required for a WhatsApp order',
+      path: ['customer'],
+    }
+  )
   .transform((data) => ({
     channel: data.channel,
     customer: data.customer,

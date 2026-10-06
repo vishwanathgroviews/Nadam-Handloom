@@ -19,10 +19,16 @@ export interface ScanLookupResult {
 }
 
 export interface WhatsappCustomerInput {
+  name?: string;
   phone: string;
   /** The entire delivery address as one block of text — see the WhatsApp form in ScannerScreen. */
   address: string;
   notes?: string;
+}
+
+export interface StoreCustomerInput {
+  name?: string;
+  phone?: string;
 }
 
 export interface ScanSellItemInput {
@@ -96,9 +102,9 @@ export const scanSell = (
   items: ScanSellItemInput[],
   options: {
     // 'store' (default) closes the sale at the counter; 'whatsapp' records a
-    // remote order that still has to be shipped, so it needs `customer`.
+    // remote order that still has to be shipped. Both can take customer details.
     channel?: 'store' | 'whatsapp';
-    customer?: WhatsappCustomerInput;
+    customer?: WhatsappCustomerInput | StoreCustomerInput;
     // Required by the server: staff choose on every bill. false still
     // records the sale in full, it just never gets an invoice.
     invoiceRequired?: boolean;

@@ -121,11 +121,14 @@ export const renderInvoicePdf = async (input: InvoiceRenderInput): Promise<Buffe
   doc.text(`Date: ${input.dateLabel}`, MARGIN, y, { width: USABLE_WIDTH, align: 'right' });
   y += 14;
 
-  if (input.customerName) {
+  const displayName = input.customerName || (input.customerMobile ? 'Walk-in customer' : null);
+  if (displayName || input.customerMobile) {
     doc.font('Helvetica-Bold').text('Customer', MARGIN, y);
     y += 12;
-    doc.font('Helvetica').text(input.customerName, MARGIN, y);
-    y += 12;
+    if (displayName) {
+      doc.font('Helvetica').text(displayName, MARGIN, y);
+      y += 12;
+    }
     if (input.customerMobile) {
       doc.text(`Mobile: ${input.customerMobile}`, MARGIN, y);
       y += 12;

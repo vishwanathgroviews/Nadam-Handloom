@@ -1141,11 +1141,10 @@ describe('piece intake (receivePieces) and inventory reads', () => {
   });
 });
 
-// A walk-in customer's mobile is used on the phone to send the invoice on
-// WhatsApp and must never be stored. The app doesn't send it; this proves the
-// server throws it away even if a client does.
-describe('counter sales store no customer data', () => {
-  it('keeps no customer details on the order or the invoice of a store sale', async () => {
+// Store invoices save customer name and mobile when provided (just like online
+// invoices), and default to null (walk-in customer) when omitted.
+describe('counter sales customer data', () => {
+  it('saves customer name and mobile on the order and invoice of a store sale when provided', async () => {
     const staffToken = await createStaffToken('9000000170', 'STAFF');
     const category = seedCategory();
     const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 2 });
@@ -1154,18 +1153,35 @@ describe('counter sales store no customer data', () => {
       .send({
         items: [{ code: product.sku }],
         channel: 'store', invoiceRequired: true,
-        customer: { phone: '9876512345', address: 'Should never be kept' },
+        customer: { name: 'Sada', phone: '9848571449' },
       });
     expect(res.status).toBe(200);
 
     const order = fake.db.order.find((o: any) => o.id === res.body.data.orderId);
-    expect(JSON.stringify(order)).not.toContain('9876512345');
-    expect(JSON.stringify(order)).not.toContain('Should never be kept');
+    expect(order.shippingAddress.fullName).toBe('Sada');
+    expect(order.shippingAddress.phone).toBe('9848571449');
 
     const invoice = fake.db.invoice.find((i: any) => i.orderId === order.id);
-    expect(invoice).toBeTruthy(); // the invoice itself is still generated and kept
-    expect(invoice.customerMobile ?? null).toBeNull();
-    expect(JSON.stringify(invoice)).not.toContain('9876512345');
+    expect(invoice).toBeTruthy();
+    expect(invoice.customerName).toBe('Sada');
+    expect(invoice.customerMobile).toBe('9848571449');
+  });
+
+  it('defaults customer details to null on store sales when omitted (walk-in)', async () => {
+    const staffToken = await createStaffToken('9000000172', 'STAFF');
+    const category = seedCategory();
+    const product = seedProduct(category.id, { trackingMode: 'quantity', stock: 2 });
+
+    const res = await request(app).post('/api/v1/admin/inventory/scan-sell').set('Authorization', `Bearer ${staffToken}`)
+      .send({
+        items: [{ code: product.sku }],
+        channel: 'store', invoiceRequired: true,
+      });
+    expect(res.status).toBe(200);
+
+    const invoice = fake.db.invoice.find((i: any) => i.orderId === res.body.data.orderId);
+    expect(invoice.customerName).toBeNull();
+    expect(invoice.customerMobile).toBeNull();
   });
 
   it('still keeps the delivery number and address on a WhatsApp order', async () => {
