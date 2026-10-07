@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
+import sharp from 'sharp';
 
 vi.mock('../../config/prisma', async () => {
   const { createFakePrisma } = await import('../../test/fakePrisma');
@@ -24,6 +25,11 @@ import { ACTIVE_PRODUCT_CAP } from './catalog.admin.service';
 import app from '../../app';
 
 const fake = (prismaModule as any).__fake;
+
+// Uploads are decoded and re-compressed on the way in, so they have to be
+// real pictures — arbitrary bytes are (rightly) refused.
+const picture = (width = 60, height = 80) =>
+  sharp({ create: { width, height, channels: 3, background: '#7a1f3d' } }).jpeg().toBuffer();
 
 let roles: Record<string, { id: string }>;
 let fixture: ReturnType<typeof seedCatalogFixture>;
@@ -118,7 +124,7 @@ describe('catalog admin — categories', () => {
     const firstRes = await request(app)
       .post(`/api/v1/admin/categories/${categoryId}/image`)
       .set('Authorization', `Bearer ${adminToken}`)
-      .attach('image', Buffer.from('fake-image-bytes'), { filename: 'photo.jpg', contentType: 'image/jpeg' });
+      .attach('image', await picture(), { filename: 'photo.jpg', contentType: 'image/jpeg' });
     expect(firstRes.status).toBe(200);
     expect(firstRes.body.data.imageUrl).toBe('https://cdn.example.com/categories/first.jpg');
     expect(storageProvider.deleteObject).not.toHaveBeenCalled();
@@ -131,7 +137,7 @@ describe('catalog admin — categories', () => {
     const secondRes = await request(app)
       .post(`/api/v1/admin/categories/${categoryId}/image`)
       .set('Authorization', `Bearer ${adminToken}`)
-      .attach('image', Buffer.from('fake-image-bytes-2'), { filename: 'photo2.jpg', contentType: 'image/jpeg' });
+      .attach('image', await picture(), { filename: 'photo2.jpg', contentType: 'image/jpeg' });
     expect(secondRes.status).toBe(200);
     expect(secondRes.body.data.imageUrl).toBe('https://cdn.example.com/categories/second.jpg');
     expect(storageProvider.deleteObject).toHaveBeenCalledWith('categories/first.jpg');
@@ -536,6 +542,56 @@ describe('catalog admin — products', () => {
 
     expect(res.status).toBe(503);
     expect(res.body.code).toBe('STORAGE_NOT_CONFIGURED');
+  });
+
+  // What the staff app sends is ~600 KB; a listing page shows 12 of them.
+  // Whatever arrives — here a large PNG — only a small JPEG may be stored.
+  it('stores an uploaded product picture as a JPEG of at most 80 KB', async () => {
+    const staffToken = await createToken('STAFF', '9000000026');
+    (storageProvider.isConfigured as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    (storageProvider.upload as ReturnType<typeof vi.fn>).mockClear();
+    (storageProvider.upload as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      url: 'https://cdn.example.com/products/new.jpg',
+      key: 'products/new.jpg',
+    });
+    const upload = await sharp({
+      create: { width: 1200, height: 1600, channels: 3, noise: { type: 'gaussian', mean: 128, sigma: 40 } },
+    })
+      .png()
+      .toBuffer();
+
+    const res = await request(app)
+      .post(`/api/v1/admin/products/${fixture.products[0]!.id}/image`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .attach('image', upload, { filename: 'IMG_0412.png', contentType: 'image/png' });
+
+    expect(res.status).toBe(200);
+    const stored = (storageProvider.upload as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+    expect(stored.folder).toBe('products');
+    expect(stored.contentType).toBe('image/jpeg');
+    expect(stored.filename).toMatch(/\.jpg$/);
+    expect(stored.buffer.length).toBeLessThanOrEqual(80 * 1024);
+    expect(stored.buffer.length).toBeLessThan(upload.length / 10);
+    expect((await sharp(stored.buffer).metadata()).format).toBe('jpeg');
+
+    (storageProvider.isConfigured as ReturnType<typeof vi.fn>).mockReturnValue(false);
+  });
+
+  it('refuses a file that only claims to be a picture, and stores nothing', async () => {
+    const staffToken = await createToken('STAFF', '9000000027');
+    (storageProvider.isConfigured as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    (storageProvider.upload as ReturnType<typeof vi.fn>).mockClear();
+
+    const res = await request(app)
+      .post(`/api/v1/admin/products/${fixture.products[0]!.id}/image`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .attach('image', Buffer.from('fake-image-bytes'), { filename: 'photo.jpg', contentType: 'image/jpeg' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toMatch(/could not be read/i);
+    expect(storageProvider.upload).not.toHaveBeenCalled();
+
+    (storageProvider.isConfigured as ReturnType<typeof vi.fn>).mockReturnValue(false);
   });
 });
 

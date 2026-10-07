@@ -3,6 +3,7 @@ import { planReposition, nextPosition, PositionUpdate } from './displayOrder';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { AppError, BadRequestError, ConflictError, NotFoundError } from '../../utils/errors';
 import { PAID_STATUSES } from '../../utils/constants';
+import { compressPicture, STORED_PICTURE } from '../../utils/compressImage';
 import { slugify } from '../../utils/slug';
 import { logAuthEvent } from '../auth/auditLog.service';
 import { storageProvider } from '../../providers/storage';
@@ -729,6 +730,8 @@ export const deleteProduct = async (productId: string, req: AuthenticatedRequest
   return { id: productId, name: product.name, archived: hasSalesHistory };
 };
 
+// Limits on what may be sent. What gets stored is always smaller: every
+// upload below goes through compressPicture first.
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
@@ -751,9 +754,8 @@ export const uploadProductImage = async (
   if (!product || product.deletedAt) throw new NotFoundError('Product not found');
 
   const uploaded = await storageProvider.upload({
-    buffer: file.buffer,
-    contentType: file.mimetype,
-    filename: file.originalname,
+    buffer: await compressPicture(file.buffer),
+    ...STORED_PICTURE,
     folder: 'products',
   });
 
@@ -803,9 +805,8 @@ export const uploadCategoryImage = async (
   if (!category) throw new NotFoundError('Category not found');
 
   const uploaded = await storageProvider.upload({
-    buffer: file.buffer,
-    contentType: file.mimetype,
-    filename: file.originalname,
+    buffer: await compressPicture(file.buffer),
+    ...STORED_PICTURE,
     folder: 'categories',
   });
 
@@ -853,9 +854,8 @@ export const uploadSubcategoryImage = async (
   // Own prefix, separate from category images — see storage provider's
   // folder-parameterized key convention.
   const uploaded = await storageProvider.upload({
-    buffer: file.buffer,
-    contentType: file.mimetype,
-    filename: file.originalname,
+    buffer: await compressPicture(file.buffer),
+    ...STORED_PICTURE,
     folder: 'subcategories',
   });
 
