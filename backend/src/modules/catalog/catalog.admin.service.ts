@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { planReposition, nextPosition, PositionUpdate } from './displayOrder';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
@@ -24,16 +25,20 @@ export const ACTIVE_PRODUCT_CAP = 5000;
 
 const uniqueSlug = async (model: 'category' | 'product', base: string, excludeId?: string): Promise<string> => {
   const root = slugify(base);
+  // The whole family of this name in one query. A product takes its
+  // subcategory's name unless staff type another, so one name is shared by
+  // dozens of products — asking for "name", "name-2", "name-3"… one query at
+  // a time made every save slower than the one before (5 s by the 50th).
+  const where = { OR: [{ slug: root }, { slug: { startsWith: `${root}-` } }] };
+  const rows =
+    model === 'category'
+      ? await prisma.category.findMany({ where, select: { id: true, slug: true } })
+      : await prisma.product.findMany({ where, select: { id: true, slug: true } });
+  const taken = new Set(rows.filter((row) => row.id !== excludeId).map((row) => row.slug));
+
   let candidate = root;
   let n = 2;
-  const exists = async (slug: string) => {
-    const row =
-      model === 'category'
-        ? await prisma.category.findUnique({ where: { slug } })
-        : await prisma.product.findUnique({ where: { slug } });
-    return Boolean(row) && row!.id !== excludeId;
-  };
-  while (await exists(candidate)) {
+  while (taken.has(candidate)) {
     candidate = `${root}-${n}`;
     n += 1;
   }
@@ -452,15 +457,19 @@ const deriveCategoryCode = (categorySlug: string): string => {
   return code.slice(0, 4) || 'GEN';
 };
 
-const nextSku = async (categoryId: string, categorySlug: string): Promise<string> => {
-  const code = deriveCategoryCode(categorySlug);
-  let seq = (await prisma.product.count({ where: { categoryId } })) + 1;
-  let sku = `NH-${code}-${String(seq).padStart(3, '0')}`;
-  while (await prisma.product.findUnique({ where: { sku } })) {
-    seq += 1;
-    sku = `NH-${code}-${String(seq).padStart(3, '0')}`;
+const nextSku = async (categorySlug: string): Promise<string> => {
+  const prefix = `NH-${deriveCategoryCode(categorySlug)}-`;
+  // One past the highest number already issued under this prefix, read in a
+  // single query. Counting the category's products instead comes up short as
+  // soon as one has been deleted, and then has to probe upwards one SKU at a
+  // time for a free one.
+  const issued = await prisma.product.findMany({ where: { sku: { startsWith: prefix } }, select: { sku: true } });
+  let highest = 0;
+  for (const { sku } of issued) {
+    const number = sku.slice(prefix.length);
+    if (/^\d+$/.test(number)) highest = Math.max(highest, Number(number));
   }
-  return sku;
+  return `${prefix}${String(highest + 1).padStart(3, '0')}`;
 };
 
 const assertActivationAllowed = async () => {
@@ -520,6 +529,9 @@ export const getProductById = async (productId: string) => {
   return withCount!;
 };
 
+// How many times a product save retries after losing the race for a slug/SKU.
+const MAX_CREATE_ATTEMPTS = 5;
+
 const assertSubcategoryBelongsToCategory = async (subcategoryId: string, categoryId: string) => {
   const subcategory = await prisma.subcategory.findUnique({ where: { id: subcategoryId } });
   if (!subcategory) throw new BadRequestError('Subcategory not found');
@@ -540,45 +552,65 @@ export const createProduct = async (data: CreateProductInput, req: Authenticated
   // hold a single, visually-distinct listing (see the "one price/description
   // per subcategory" design), so a separate product name is often redundant.
   const name = data.name?.trim() || subcategory.name;
-  const slug = await uniqueSlug('product', name);
-  const sku = await nextSku(data.categoryId, category.slug);
 
   // The product and the units staff scanned for it are written together: if a
   // barcode turns out to be taken, the whole creation rolls back rather than
   // leaving a listed product with no stock behind (which is what a separate
   // follow-up call used to do whenever it failed).
   const barcodes = data.barcodes ?? [];
-  const product = await prisma.$transaction(async (tx) => {
-    const created = await tx.product.create({
-      data: {
-        slug,
-        sku,
-        name,
-        categoryId: data.categoryId,
-        subcategoryId: data.subcategoryId,
-        technique: data.technique ?? null,
-        borderStyle: data.borderStyle ?? null,
-        purity: data.purity ?? null,
-        zariTier: data.zariTier ?? null,
-        blouseType: data.blouseType ?? null,
-        pattern: data.pattern ?? null,
-        color: data.color ?? null,
-        fabric: data.fabric ?? null,
-        occasion: data.occasion ?? [],
-        channelVisibility: data.channelVisibility,
-        trackingMode: data.trackingMode,
-        isFeatured: data.isFeatured,
-        isActive: data.isActive,
-      },
-      include: PRODUCT_ADMIN_INCLUDE,
+  const createWith = (slug: string, sku: string) =>
+    prisma.$transaction(async (tx) => {
+      const created = await tx.product.create({
+        data: {
+          slug,
+          sku,
+          name,
+          categoryId: data.categoryId,
+          subcategoryId: data.subcategoryId,
+          technique: data.technique ?? null,
+          borderStyle: data.borderStyle ?? null,
+          purity: data.purity ?? null,
+          zariTier: data.zariTier ?? null,
+          blouseType: data.blouseType ?? null,
+          pattern: data.pattern ?? null,
+          color: data.color ?? null,
+          fabric: data.fabric ?? null,
+          occasion: data.occasion ?? [],
+          channelVisibility: data.channelVisibility,
+          trackingMode: data.trackingMode,
+          isFeatured: data.isFeatured,
+          isActive: data.isActive,
+        },
+        include: PRODUCT_ADMIN_INCLUDE,
+      });
+
+      if (barcodes.length) {
+        await claimPiecesForProduct(tx, created.id, barcodes, req.user!.id);
+      }
+
+      return created;
     });
 
-    if (barcodes.length) {
-      await claimPiecesForProduct(tx, created.id, barcodes, req.user!.id);
+  // The slug and SKU are read before the write, so two phones saving in the
+  // same instant are both handed the same "next free" pair. The database
+  // accepts the first and refuses the second — which staff saw as "A record
+  // with these details already exists" on a product that was perfectly fine.
+  // The refused save wrote nothing (the transaction rolled back), so it takes
+  // a fresh pair and goes again. A clash on a barcode surfaces on that second
+  // pass as the named BARCODE_ALREADY_ASSIGNED error rather than this generic one.
+  let product: Awaited<ReturnType<typeof createWith>> | undefined;
+  for (let attempt = 1; !product; attempt += 1) {
+    const slug = await uniqueSlug('product', name);
+    const sku = await nextSku(category.slug);
+    try {
+      product = await createWith(slug, sku);
+    } catch (err) {
+      const takenMeanwhile = err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002';
+      if (!takenMeanwhile || attempt >= MAX_CREATE_ATTEMPTS) throw err;
+      // Three phones that collided once would otherwise retry in step.
+      await new Promise((resolve) => setTimeout(resolve, Math.random() * 120));
     }
-
-    return created;
-  });
+  }
 
   await logAuthEvent({
     authAccountId: req.user!.id,

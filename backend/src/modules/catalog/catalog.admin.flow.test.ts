@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import sharp from 'sharp';
+import { Prisma } from '@prisma/client';
 
 vi.mock('../../config/prisma', async () => {
   const { createFakePrisma } = await import('../../test/fakePrisma');
@@ -364,6 +365,111 @@ describe('catalog admin — products', () => {
     expect(res.body.data.sku).toMatch(/^NH-KS-\d{3}$/);
     expect(res.body.data.channelVisibility).toBe('both');
     expect(res.body.data.trackingMode).toBe('quantity');
+  });
+
+  // A product takes its subcategory's name unless staff type one, so a single
+  // name ends up on dozens of products. Finding the next free slug used to
+  // cost one query per product already carrying the name, which made every
+  // save slower than the last — 5 seconds by the 50th on the live shop.
+  it('finds the next slug and SKU without a query per product that shares the name', async () => {
+    const staffToken = await createToken('STAFF', '9000000020');
+    for (let i = 1; i <= 60; i++) {
+      fake.db.product.push({
+        ...fake.db.product[0],
+        id: randomUUID(),
+        name: 'Kanchi Border',
+        slug: i === 1 ? 'kanchi-border' : `kanchi-border-${i}`,
+        sku: `NH-KS-${String(i).padStart(3, '0')}`,
+      });
+    }
+    const reads = (['findUnique', 'findFirst', 'findMany', 'count'] as const).map((method) =>
+      vi.spyOn(fake.client.product, method)
+    );
+
+    const res = await request(app)
+      .post('/api/v1/admin/products')
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ categoryId: fixture.category.id, subcategoryId: fixture.subcategory.id });
+    const readCount = reads.reduce((total, spy) => total + spy.mock.calls.length, 0);
+    reads.forEach((spy) => spy.mockRestore());
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.slug).toBe('kanchi-border-61');
+    expect(res.body.data.sku).toBe('NH-KS-061');
+    expect(readCount).toBeLessThan(12);
+  });
+
+  // A deleted product leaves a gap, so "how many products are in this
+  // category, plus one" lands on a number that is still in use.
+  it('numbers a new SKU past the highest one issued, not by counting products', async () => {
+    const staffToken = await createToken('STAFF', '9000000020');
+    fake.db.product.push({ ...fake.db.product[0], id: randomUUID(), slug: 'older-saree', sku: 'NH-KS-007' });
+
+    const res = await request(app)
+      .post('/api/v1/admin/products')
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ name: 'Emerald Test Saree', categoryId: fixture.category.id, subcategoryId: fixture.subcategory.id });
+
+    expect(res.status).toBe(201);
+    expect(res.body.data.sku).toBe('NH-KS-008');
+  });
+
+  // Two phones pressing Save in the same second are both handed the same
+  // "next free" slug and SKU. The second was refused with "A record with
+  // these details already exists" and staff had to press Save again.
+  it('takes the next slug and SKU when another phone saved in the same instant', async () => {
+    const staffToken = await createToken('STAFF', '9000000020');
+    const realTransaction = fake.client.$transaction;
+    const transaction = vi.spyOn(fake.client, '$transaction').mockImplementationOnce(async (arg: any) => {
+      // The other phone's product lands after this save read what was free
+      // and before it wrote.
+      fake.db.product.push({
+        ...fake.db.product[0],
+        id: randomUUID(),
+        name: 'Emerald Test Saree',
+        slug: 'emerald-test-saree',
+        sku: 'NH-KS-001',
+      });
+      return realTransaction(arg);
+    });
+
+    const res = await request(app)
+      .post('/api/v1/admin/products')
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({
+        name: 'Emerald Test Saree',
+        categoryId: fixture.category.id,
+        subcategoryId: fixture.subcategory.id,
+        barcodes: ['NH9001'],
+      });
+    const attempts = transaction.mock.calls.length;
+    transaction.mockRestore();
+
+    expect(res.status).toBe(201);
+    expect(attempts).toBe(2);
+    expect(res.body.data.slug).toBe('emerald-test-saree-2');
+    expect(res.body.data.sku).toBe('NH-KS-002');
+    // The refused first attempt left nothing behind: one product, one unit.
+    expect(fake.db.product.filter((p: any) => p.slug === 'emerald-test-saree-2')).toHaveLength(1);
+    expect(fake.db.piece.filter((p: any) => p.barcode === 'NH9001')).toHaveLength(1);
+  });
+
+  it('gives up after a few attempts rather than retrying forever', async () => {
+    const staffToken = await createToken('STAFF', '9000000020');
+    const create = vi.spyOn(fake.client.product, 'create').mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('Unique constraint failed', { code: 'P2002', clientVersion: 'test' })
+    );
+
+    const res = await request(app)
+      .post('/api/v1/admin/products')
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ name: 'Emerald Test Saree', categoryId: fixture.category.id, subcategoryId: fixture.subcategory.id });
+    const attempts = create.mock.calls.length;
+    create.mockRestore();
+
+    expect(res.status).toBe(409);
+    expect(res.body.code).toBe('CONFLICT');
+    expect(attempts).toBe(5);
   });
 
   // Assigning the scanned units in the same transaction is what stops a

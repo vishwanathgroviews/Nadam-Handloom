@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { Prisma } from '@prisma/client';
 
 /**
  * A minimal in-memory stand-in for PrismaClient, scoped to exactly the query
@@ -16,6 +17,12 @@ const MODELS = [
   'piece', 'reservation', 'stockLedger', 'subcategoryCatalogPdf',
   'deviceToken', 'eventsOutbox', 'invoice', 'appConfig',
 ];
+
+// Unique indexes the application leans on the database to enforce. Only the
+// ones a test exercises — like the rest of this file, not a general emulator.
+const UNIQUE_FIELDS: Record<string, string[]> = {
+  product: ['slug', 'sku'],
+};
 
 type RelationKind = 'hasOne' | 'hasMany' | 'belongsTo';
 interface RelationDef {
@@ -364,6 +371,15 @@ function createModel(db: Db, name: string) {
     },
     create: async ({ data }: { data: Row }) => {
       const row: Row = withDefaults(name, { id: randomUUID(), createdAt: new Date(), updatedAt: new Date(), ...data });
+      for (const field of UNIQUE_FIELDS[name] ?? []) {
+        if (row[field] != null && table().some((r) => r[field] === row[field])) {
+          throw new Prisma.PrismaClientKnownRequestError(`Unique constraint failed on the fields: (\`${field}\`)`, {
+            code: 'P2002',
+            clientVersion: 'fake',
+            meta: { modelName: name, target: [field] },
+          });
+        }
+      }
       applyNestedWrites(name, row, db, row.id);
       table().push(row);
       return clone(row);
