@@ -22,5 +22,11 @@ export const goToTab = (
   tab: RootTabName,
   params?: Record<string, unknown>
 ) => {
-  navigation.navigate('Home', { screen: tab, ...(params ? { params } : {}) });
+  // `pop` is what makes this an unwind. Without it, navigate() from a screen
+  // stacked above the tabs (the product form, after a save) does not go back
+  // to the existing 'Home' — it pushes a second one on top and leaves the
+  // form mounted underneath. Every product saved then left another form and
+  // another full set of tabs alive, and all of them reloaded their lists
+  // each time the session renewed: 95 copies by midday in the shop.
+  navigation.navigate('Home', { screen: tab, ...(params ? { params } : {}) }, { pop: true });
 };
