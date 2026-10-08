@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { SUPPORTED_BARCODE_TYPES } from '../utils/barcodeTypes';
 import { ScanStabilizer } from '../utils/scanStabilizer';
 import { normalizeBarcode } from '../utils/barcode';
+import { isScanZoomedIn, scanZoom, scanZoomAvailable, setScanZoomedIn } from '../utils/scanZoom';
 import { colors, radius } from '../utils/theme';
 
 interface Props {
@@ -38,6 +39,9 @@ interface Props {
  *
  * 2. **A scan counts only when consecutive frames agree** — see
  *    ScanStabilizer for why a single frame is not evidence.
+ *
+ * 3. **On iPhone the preview is zoomed in** — see scanZoom for why the small
+ *    tags could not be read without it. Android is untouched.
  */
 export default function CameraScanner({
   active, onScan, busy = false, height = 240, suspendedMessage = null,
@@ -45,8 +49,11 @@ export default function CameraScanner({
   const isFocused = useIsFocused();
   const [permission, requestPermission] = useCameraPermissions();
   const stabilizer = useRef(new ScanStabilizer());
+  const [zoomedIn, setZoomedIn] = useState(isScanZoomedIn);
+  const [cameraReady, setCameraReady] = useState(false);
 
   const live = active && isFocused && !suspendedMessage;
+  const canZoom = scanZoomAvailable(Platform.OS);
 
   // Ask the moment the camera is wanted, rather than making the user find an
   // in-app button first.
@@ -62,6 +69,20 @@ export default function CameraScanner({
   useEffect(() => {
     if (!live) stabilizer.current.reset();
   }, [live]);
+
+  // Every preview is a new camera that has to report ready for itself;
+  // scanZoom uses that moment to set the zoom on the running camera.
+  useEffect(() => {
+    if (!live) setCameraReady(false);
+  }, [live]);
+
+  const handleCameraReady = useCallback(() => setCameraReady(true), []);
+
+  const toggleZoom = useCallback(() => {
+    const next = !zoomedIn;
+    setScanZoomedIn(next);
+    setZoomedIn(next);
+  }, [zoomedIn]);
 
   const handleBarcodeScanned = useCallback(
     ({ data }: { data: string }) => {
@@ -106,6 +127,8 @@ export default function CameraScanner({
         <>
           <CameraView
             style={StyleSheet.absoluteFill}
+            zoom={scanZoom(Platform.OS, zoomedIn, cameraReady)}
+            onCameraReady={handleCameraReady}
             barcodeScannerSettings={{ barcodeTypes: SUPPORTED_BARCODE_TYPES }}
             onBarcodeScanned={handleBarcodeScanned}
           />
@@ -114,6 +137,28 @@ export default function CameraScanner({
           <View style={styles.viewfinderWrap} pointerEvents="none">
             <View style={styles.viewfinder} />
           </View>
+          {canZoom && (
+            <>
+              {zoomedIn && (
+                <View style={styles.zoomHintWrap} pointerEvents="none">
+                  <Text style={styles.zoomHint}>Hold the phone about a hand away from the tag</Text>
+                </View>
+              )}
+              <TouchableOpacity
+                style={[styles.zoomChip, zoomedIn && styles.zoomChipOn]}
+                onPress={toggleZoom}
+                activeOpacity={0.85}
+                hitSlop={10}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: zoomedIn }}
+                accessibilityLabel="Zoom"
+              >
+                <Text style={[styles.zoomChipText, zoomedIn && styles.zoomChipTextOn]}>
+                  {zoomedIn ? 'Zoom on' : 'Zoom off'}
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
         </>
       ) : (
         // Nothing is rendered in the camera's place while it is not ours to
@@ -138,6 +183,12 @@ const styles = StyleSheet.create({
   pausedText: { color: 'rgba(255,255,255,0.55)', fontSize: 12.5 },
   viewfinderWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   viewfinder: { width: 250, height: 110, borderRadius: radius.md, borderWidth: 2, borderColor: 'rgba(255,255,255,0.85)' },
+  zoomChip: { position: 'absolute', top: 10, right: 10, borderRadius: radius.md, paddingVertical: 6, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(0,0,0,0.45)' },
+  zoomChipOn: { backgroundColor: 'rgba(255,255,255,0.92)' },
+  zoomChipText: { color: '#fff', fontSize: 12.5, fontWeight: '700' },
+  zoomChipTextOn: { color: '#000' },
+  zoomHintWrap: { position: 'absolute', left: 0, right: 0, bottom: 10, alignItems: 'center' },
+  zoomHint: { color: '#fff', fontSize: 12.5, textAlign: 'center', paddingVertical: 3, paddingHorizontal: 10, borderRadius: radius.md, overflow: 'hidden', backgroundColor: 'rgba(0,0,0,0.45)' },
   permissionPrompt: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 },
   permissionText: { color: '#fff', textAlign: 'center', fontSize: 13 },
   permissionButton: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 12, paddingHorizontal: 20 },
