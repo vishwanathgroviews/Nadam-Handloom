@@ -7,10 +7,17 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(16, 'JWT_ACCESS_SECRET must be at least 16 characters'),
   JWT_REFRESH_SECRET: z.string().min(16, 'JWT_REFRESH_SECRET must be at least 16 characters'),
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
-  // Sessions shouldn't outlive a day unattended — once the refresh token
-  // expires, both apps' existing MPIN-login screens are the natural,
-  // low-friction way back in (no full re-registration needed).
+  // A website session shouldn't outlive a day unattended — once the refresh
+  // token expires, the MPIN-login screen is the natural, low-friction way
+  // back in (no full re-registration needed).
   JWT_REFRESH_EXPIRES_IN: z.string().default('1d'),
+  // The phone apps (ios/android sessions — today that is only the staff
+  // app) stay signed in for a week without being opened. A shop phone that
+  // sat idle over a day off used to ask for the MPIN again; every refresh
+  // restarts the week, so a phone in regular use is never asked. A lost
+  // phone is cut off by resetting that account's MPIN, which revokes every
+  // session at once.
+  JWT_APP_REFRESH_EXPIRES_IN: z.string().default('7d'),
   FRONTEND_URL: z.string().default('http://localhost:5173'),
   // Extra origins the CORS allowlist should accept besides FRONTEND_URL,
   // comma-separated — e.g. a dev machine's LAN address so customer-web can

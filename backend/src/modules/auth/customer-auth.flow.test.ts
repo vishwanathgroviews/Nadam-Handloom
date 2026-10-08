@@ -75,6 +75,29 @@ describe('customer auth flow', () => {
     expect(logout.status).toBe(200);
   });
 
+  // The longer sign-in is for the phone apps only; a browser session still
+  // runs out after a day unused, and its cookie says the same.
+  it('keeps a website session at 1 day, before and after a refresh', async () => {
+    await registerVerifyAndSetMpin('9876543211');
+    const daysLeft = (session: any) => (session.expiresAt.getTime() - Date.now()) / 86_400_000;
+
+    const login = await request(app).post('/api/v1/auth/customer/login').send({ phone: '9876543211', mpin: '284759' });
+    expect(login.status).toBe(200);
+    const signedIn = fake.db.session[fake.db.session.length - 1];
+    expect(signedIn.platform).toBe('web');
+    expect(daysLeft(signedIn)).toBeGreaterThan(0.99);
+    expect(daysLeft(signedIn)).toBeLessThanOrEqual(1);
+    expect(String(login.headers['set-cookie'])).toContain('Max-Age=86400');
+
+    const refresh = await request(app).post('/api/v1/auth/refresh').set('Cookie', login.headers['set-cookie']);
+    expect(refresh.status).toBe(200);
+    const renewed = fake.db.session[fake.db.session.length - 1];
+    expect(renewed.platform).toBe('web');
+    expect(daysLeft(renewed)).toBeGreaterThan(0.99);
+    expect(daysLeft(renewed)).toBeLessThanOrEqual(1);
+    expect(String(refresh.headers['set-cookie'])).toContain('Max-Age=86400');
+  });
+
   it('locks the account after 5 wrong MPIN attempts', async () => {
     await registerVerifyAndSetMpin('9876500000');
 

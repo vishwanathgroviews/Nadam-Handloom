@@ -10,7 +10,10 @@ import { logAuthEvent } from './auditLog.service';
 export type Platform = 'web' | 'ios' | 'android';
 
 const REFRESH_TOKEN_COOKIE = 'refreshToken';
-const REFRESH_TOKEN_TTL_MS = () => parseDurationMs(env.JWT_REFRESH_EXPIRES_IN);
+// How long a session may sit unused before it has to be signed into again:
+// the website's own length, or the longer one the phone apps get.
+const REFRESH_TOKEN_TTL_MS = (platform: Platform) =>
+  parseDurationMs(platform === 'web' ? env.JWT_REFRESH_EXPIRES_IN : env.JWT_APP_REFRESH_EXPIRES_IN);
 
 interface IssueSessionInput {
   authAccountId: string;
@@ -32,7 +35,7 @@ const setRefreshCookie = (res: Response, token: string) => {
     secure: isProduction,
     sameSite: 'strict',
     path: '/api/v1/auth',
-    maxAge: REFRESH_TOKEN_TTL_MS(),
+    maxAge: REFRESH_TOKEN_TTL_MS('web'),
   });
 };
 
@@ -60,7 +63,7 @@ export const issueSession = async ({
       deviceName: deviceName ?? null,
       ipAddress: req.ip ?? null,
       userAgent: req.headers['user-agent'] ?? null,
-      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS()),
+      expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS(platform)),
     },
   });
 

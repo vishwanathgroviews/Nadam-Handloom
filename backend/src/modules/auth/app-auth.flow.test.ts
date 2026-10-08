@@ -74,6 +74,56 @@ describe('app (mobile) auth flow', () => {
     expect(loginEvent?.source).toBe('staff_app');
   });
 
+  // A shop phone left alone over a day off must not ask for the MPIN again:
+  // a phone-app session is good for a week unused, and every refresh starts
+  // a fresh week.
+  it('keeps a phone signed in for 7 days without use, and restarts the 7 days on every refresh', async () => {
+    await registerVerifyAndSetMpin('9000000007');
+    const daysLeft = (session: any) => (session.expiresAt.getTime() - Date.now()) / 86_400_000;
+
+    const login = await request(app)
+      .post('/api/v1/auth/app/login')
+      .send({ mobile: '9000000007', mpin: '284759', platform: 'ios' });
+    expect(login.status).toBe(200);
+    const signedIn = fake.db.session[fake.db.session.length - 1];
+    expect(signedIn.platform).toBe('ios');
+    expect(daysLeft(signedIn)).toBeGreaterThan(6.99);
+    expect(daysLeft(signedIn)).toBeLessThanOrEqual(7);
+
+    const refresh = await request(app)
+      .post('/api/v1/auth/refresh')
+      .send({ refreshToken: login.body.data.tokens.refreshToken });
+    expect(refresh.status).toBe(200);
+    const renewed = fake.db.session[fake.db.session.length - 1];
+    expect(renewed.id).not.toBe(signedIn.id);
+    expect(renewed.platform).toBe('ios');
+    expect(daysLeft(renewed)).toBeGreaterThan(6.99);
+    expect(daysLeft(renewed)).toBeLessThanOrEqual(7);
+  });
+
+  it('still asks for the MPIN once a phone has gone unused past its 7 days', async () => {
+    await registerVerifyAndSetMpin('9000000008');
+    const login = await request(app)
+      .post('/api/v1/auth/app/login')
+      .send({ mobile: '9000000008', mpin: '284759', platform: 'android' });
+    const session = fake.db.session[fake.db.session.length - 1];
+
+    // six days in: still good
+    session.expiresAt = new Date(Date.now() + 86_400_000);
+    const stillGood = await request(app)
+      .post('/api/v1/auth/refresh')
+      .send({ refreshToken: login.body.data.tokens.refreshToken });
+    expect(stillGood.status).toBe(200);
+
+    // the renewed session, left alone until it has run out
+    const renewed = fake.db.session[fake.db.session.length - 1];
+    renewed.expiresAt = new Date(Date.now() - 1000);
+    const tooLate = await request(app)
+      .post('/api/v1/auth/refresh')
+      .send({ refreshToken: stillGood.body.data.tokens.refreshToken });
+    expect(tooLate.status).toBe(401);
+  });
+
   it('locks the account after 5 wrong MPIN attempts', async () => {
     await registerVerifyAndSetMpin('9000000002');
 
