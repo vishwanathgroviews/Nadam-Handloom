@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import { File, UploadType } from 'expo-file-system';
-import { apiRequest, API_BASE_URL, fetchWithTimeout, UPLOAD_TIMEOUT_MS } from './client';
+import { apiRequest, API_BASE_URL, fetchWithTimeout, retryWithFreshToken, UPLOAD_TIMEOUT_MS } from './client';
+import type { ApiError } from './client';
 
 export interface UploadImageInput {
   uri: string;
@@ -32,12 +33,11 @@ export interface UploadImageInput {
 // through the platform's own HTTP stack, identically in Expo Go, dev clients
 // and release builds. Web has no native module and no file:// URIs, so it
 // keeps the browser-correct Blob path, where FormData behaves per spec.
-const uploadImage = async <T>(
-  path: string,
+const sendImage = async <T>(
+  url: string,
   token: string,
   image: UploadImageInput
 ): Promise<T> => {
-  const url = `${API_BASE_URL}${path}`;
   let status: number;
   let rawBody: string;
 
@@ -81,11 +81,36 @@ const uploadImage = async <T>(
   }
 
   if (status < 200 || status >= 300) {
-    const error = new Error(data.message || `Image upload failed (HTTP ${status})`) as Error & { code?: string };
+    const error = new Error(data.message || `Image upload failed (HTTP ${status})`) as ApiError;
+    error.status = status;
     error.code = data.code;
     throw error;
   }
   return data.data as T;
+};
+
+// The upload does not go through apiRequest, so it has to do for itself what
+// apiRequest does for every other call: when the server says the access
+// token has expired, get a new one and send the photo again.
+//
+// It used to send the photo once, with whatever token the screen was holding.
+// That token is 15 minutes old at most, and the product save that runs just
+// before the upload is exactly where it tends to run out: the save was
+// refused, apiRequest refreshed and retried it, and the screen — still
+// holding the old token — then sent the photo with it. The product was saved
+// with its barcodes and no photo ("the photo failed to upload").
+const uploadImage = async <T>(
+  path: string,
+  token: string,
+  image: UploadImageInput
+): Promise<T> => {
+  const url = `${API_BASE_URL}${path}`;
+  try {
+    return await sendImage<T>(url, token, image);
+  } catch (err) {
+    if ((err as ApiError).status !== 401) throw err;
+    return retryWithFreshToken(err, (freshToken) => sendImage<T>(url, freshToken, image));
+  }
 };
 
 export type ChannelVisibility = 'online_only' | 'store_only' | 'both' | 'hidden';

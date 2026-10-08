@@ -201,6 +201,29 @@ export async function refreshAccessToken(): Promise<string> {
   return refreshPromise;
 }
 
+// What happens to a call the server answered 401: one refresh, one retry
+// with the new token. Shared by apiRequest and the photo uploads in
+// catalog.ts, which have to use the native multipart uploader and so cannot
+// go through apiRequest — and which used to skip this step altogether (see
+// uploadImage there).
+export async function retryWithFreshToken<T>(rejection: unknown, retry: (token: string) => Promise<T>): Promise<T> {
+  try {
+    const newToken = await refreshAccessToken();
+    return await retry(newToken);
+  } catch (refreshErr) {
+    // Session genuinely rejected (or no refresh token to try): sign out.
+    if (isAuthFailure(refreshErr) || (refreshErr as ApiError)?.code === 'NO_REFRESH_TOKEN') {
+      onAuthExpired?.();
+      throw rejection;
+    }
+    // Couldn't reach the server to find out. Leave the session alone and
+    // report the transport problem — the call is retryable, and throwing
+    // the user back to the login screen over one dropped request is what
+    // the "it logged me out by itself" reports were.
+    throw refreshErr;
+  }
+}
+
 export async function apiRequest<T = any>(path: string, options: RequestOptions = {}): Promise<T> {
   try {
     return await rawRequest<T>(path, options);
@@ -208,21 +231,7 @@ export async function apiRequest<T = any>(path: string, options: RequestOptions 
     const apiError = err as ApiError;
     const isAuthEndpoint = path.startsWith('/auth/');
     if (apiError.status === 401 && options.token && !isAuthEndpoint) {
-      try {
-        const newToken = await refreshAccessToken();
-        return await rawRequest<T>(path, { ...options, token: newToken });
-      } catch (refreshErr) {
-        // Session genuinely rejected (or no refresh token to try): sign out.
-        if (isAuthFailure(refreshErr) || (refreshErr as ApiError)?.code === 'NO_REFRESH_TOKEN') {
-          onAuthExpired?.();
-          throw apiError;
-        }
-        // Couldn't reach the server to find out. Leave the session alone and
-        // report the transport problem — the call is retryable, and throwing
-        // the user back to the login screen over one dropped request is what
-        // the "it logged me out by itself" reports were.
-        throw refreshErr;
-      }
+      return retryWithFreshToken(apiError, (newToken) => rawRequest<T>(path, { ...options, token: newToken }));
     }
     throw err;
   }
