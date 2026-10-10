@@ -7,6 +7,7 @@ import { api } from '../services/api';
 import AddressForm from '../components/AddressForm';
 import { formatPrice } from '../utils/format';
 import { loadRazorpayScript } from '../utils/razorpay';
+import PaymentSuccessModal from '../components/PaymentSuccessModal';
 import './CheckoutPage.css';
 
 export default function CheckoutPage() {

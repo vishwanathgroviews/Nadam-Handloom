@@ -28,7 +28,7 @@
 }
 
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
@@ -39,12 +39,8 @@ body {
   font-family: 'Outfit', sans-serif;
   background-color: var(--bg-ivory);
   color: var(--text-dark);
-  /* Guards against the mobile off-canvas nav (position:fixed + transform,
-     see StoreLayout.css) still counting toward document scrollWidth while
-     translated off-screen — a well-known cross-browser quirk with that
-     combination — which otherwise let the page rubber-band/scroll
-     horizontally by a few pixels on touch devices. */
-  overflow-x: hidden;
+  /* overflow-x: clip prevents horizontal scrolling without breaking position: sticky */
+  overflow-x: clip;
 }
 
 #root {

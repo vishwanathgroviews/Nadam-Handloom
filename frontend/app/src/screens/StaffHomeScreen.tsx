@@ -89,6 +89,11 @@ export default function StaffHomeScreen({ navigation }: Props) {
             <Text style={styles.manageLabel}>Products</Text>
             <Text style={styles.manageHint}>{stats ? `${stats.products.activeCount} live` : '—'}</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.manageCard} onPress={() => navigation.navigate('Categories')} activeOpacity={0.8}>
+            <View style={styles.manageIconWrap}><Ionicons name="albums-outline" size={18} color={colors.primary} /></View>
+            <Text style={styles.manageLabel}>Catalog</Text>
+            <Text style={styles.manageHint}>Categories & PDFs</Text>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.manageCard} onPress={() => navigation.navigate('Invoices')} activeOpacity={0.8}>
             <View style={styles.manageIconWrap}><Ionicons name="document-text-outline" size={18} color={colors.primary} /></View>
             <Text style={styles.manageLabel}>Invoices</Text>

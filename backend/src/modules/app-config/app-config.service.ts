@@ -75,8 +75,13 @@ const toColumns = (data: UpdateAppConfigInput) => ({
   iosUpdateUrl: data.ios.updateUrl,
 });
 
-export const getAppConfig = async (): Promise<AppConfigView> =>
-  toView(await prisma.appConfig.findUnique({ where: { id: CONFIG_ID } }));
+export const getAppConfig = async (): Promise<AppConfigView> => {
+  try {
+    return toView(await prisma.appConfig.findUnique({ where: { id: CONFIG_ID } }));
+  } catch {
+    return toView(null);
+  }
+};
 
 export const updateAppConfig = async (
   data: UpdateAppConfigInput,

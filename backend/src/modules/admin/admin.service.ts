@@ -8,6 +8,7 @@ import { env } from '../../config/env';
 import { logAuthEvent } from '../auth/auditLog.service';
 import { getLowStock } from '../inventory/inventory.service';
 import { getProductStats } from '../catalog/catalog.admin.service';
+import { isMockDb } from '../catalog/catalog.mock';
 import { presentAuditEvents } from './auditLog.present';
 import { AUDIT_GROUPS, AuditGroup } from './auditLog.groups';
 
@@ -531,6 +532,22 @@ const productsSoldFor = async (orders: { id: string }[]): Promise<SoldProductLin
 // ADMIN-only gate on the same kind of data. STAFF still gets lowStockCount
 // and the product cap/remaining, which they need operationally.
 export const getDashboardStats = async (roles: string[]) => {
+  if (isMockDb()) {
+    const productStats = { activeCount: 660, cap: 5000, remaining: 4340 };
+    if (!roles.includes('ADMIN')) {
+      return { lowStockCount: 4, products: productStats };
+    }
+    return {
+      today: {
+        online: { count: 3, total: 8400, products: [] },
+        store: { count: 5, total: 14200, products: [] },
+        whatsapp: { count: 2, total: 5600, products: [] },
+      },
+      lowStockCount: 4,
+      products: productStats,
+    };
+  }
+
   const [lowStock, productStats] = await Promise.all([getLowStock(), getProductStats()]);
 
   if (!roles.includes('ADMIN')) {

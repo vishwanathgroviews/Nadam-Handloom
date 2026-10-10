@@ -24,6 +24,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import OrderConfirmation from './pages/OrderConfirmation';
 import MyOrders from './pages/MyOrders';
 import OrderDetail from './pages/OrderDetail';
+import OrderTracking from './pages/OrderTracking';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
               <Route element={<StoreLayout />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/shop" element={<ProductListPage />} />
+                <Route path="/bestsellers" element={<Navigate to="/shop?featured=true" replace />} />
                 <Route path="/category/:slug" element={<CategoryPage />} />
                 <Route path="/category/:slug/:subcategoryId" element={<ProductListPage />} />
                 <Route path="/product/:slug" element={<ProductDetail />} />
@@ -50,6 +52,7 @@ function App() {
                 <Route path="/account" element={<ProfileSettings />} />
                 <Route path="/account/orders" element={<MyOrders />} />
                 <Route path="/account/orders/:orderId" element={<OrderDetail />} />
+                <Route path="/account/tracking" element={<OrderTracking />} />
               </Route>
 
               {/* Auth lifecycle screens — branded banner layout */}

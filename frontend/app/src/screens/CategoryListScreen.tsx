@@ -18,7 +18,7 @@ type Props = NativeStackScreenProps<AppStackParamList, 'Categories'>;
 const CACHE_KEY = 'categories';
 
 export default function CategoryListScreen({ navigation }: Props) {
-  const { accessToken } = useAuth();
+  const { accessToken, role } = useAuth();
   const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -58,9 +58,11 @@ export default function CategoryListScreen({ navigation }: Props) {
         title="Categories"
         subtitle="Categories are just name, description, and photo. Open one to manage its subcategories — that's where price, description, and Hide/Unhide live."
         rightAction={
-          <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('CategoryForm', {})} activeOpacity={0.8}>
-            <Text style={styles.addButtonText}>+ New</Text>
-          </TouchableOpacity>
+          role === 'ADMIN' ? (
+            <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('CategoryForm', {})} activeOpacity={0.8}>
+              <Text style={styles.addButtonText}>+ New</Text>
+            </TouchableOpacity>
+          ) : undefined
         }
       />
 

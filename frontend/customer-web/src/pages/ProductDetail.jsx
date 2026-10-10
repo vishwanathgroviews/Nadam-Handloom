@@ -4,6 +4,8 @@ import { ShoppingBag, Zap, CheckCircle2 } from 'lucide-react';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { formatPrice, discountPercent } from '../utils/format';
+import WhatsAppShareButton from '../components/WhatsAppShareButton';
+import { updateProductMeta, resetProductMeta } from '../utils/meta';
 import './ProductDetail.css';
 
 const ATTRIBUTE_LABELS = [
@@ -37,6 +39,15 @@ export default function ProductDetail() {
       .catch(() => setNotFound(true));
   }, [slug]);
 
+  useEffect(() => {
+    if (product) {
+      updateProductMeta(product, activeImage);
+    }
+    return () => {
+      resetProductMeta();
+    };
+  }, [product, activeImage]);
+
   if (notFound) {
     return (
       <div className="container state-block">
@@ -61,15 +72,17 @@ export default function ProductDetail() {
   // page at all means it is available — the not-found branch above is what
   // an old link or a stale tab now lands on.
 
-  // Each listing is a single piece — one tap puts that piece in the cart,
-  // there is no amount to choose.
+  const isAvailable = (product.stock === undefined || product.stock > 0) && product.isActive !== false;
+
   const handleAddToCart = () => {
+    if (!isAvailable) return;
     addItem(product);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
   const handleBuyNow = () => {
+    if (!isAvailable) return;
     addItem(product);
     navigate('/checkout');
   };
@@ -116,7 +129,11 @@ export default function ProductDetail() {
             )}
           </div>
 
-          <span className="badge badge-success">In Stock</span>
+          {isAvailable ? (
+            <span className="badge badge-success">In Stock</span>
+          ) : (
+            <span className="badge badge-danger">Currently Unavailable / Sold Out</span>
+          )}
 
           <p className="product-description">{product.subcategory.description}</p>
 
@@ -137,14 +154,38 @@ export default function ProductDetail() {
             </tbody>
           </table>
 
-          <div className="product-actions">
-            <button className="btn btn-outline btn-block" onClick={handleAddToCart}>
-              {added ? <><CheckCircle2 size={17} /> Added to Cart</> : <><ShoppingBag size={17} /> Add to Cart</>}
-            </button>
-            <button className="btn btn-primary btn-block" onClick={handleBuyNow}>
-              <Zap size={17} /> Buy Now
-            </button>
-          </div>
+          {isAvailable ? (
+            <div className="product-actions">
+              <button className="btn btn-outline btn-block" onClick={handleAddToCart}>
+                {added ? <><CheckCircle2 size={17} /> Added to Cart</> : <><ShoppingBag size={17} /> Add to Cart</>}
+              </button>
+              <button className="btn btn-primary btn-block" onClick={handleBuyNow}>
+                <Zap size={17} /> Buy Now
+              </button>
+              <WhatsAppShareButton product={product} activeImageIndex={activeImage} />
+            </div>
+          ) : (
+            <div className="product-actions">
+              <button
+                type="button"
+                className="btn btn-block"
+                disabled
+                style={{
+                  opacity: 0.65,
+                  cursor: 'not-allowed',
+                  background: 'var(--bg-muted, #f3f3f3)',
+                  color: 'var(--text-muted, #777)',
+                  border: '1px solid var(--border-color, #e0e0e0)',
+                }}
+              >
+                Sold Out / Unavailable for Purchase
+              </button>
+              <Link to="/shop" className="btn btn-outline btn-block" style={{ textAlign: 'center' }}>
+                Browse Available Handlooms
+              </Link>
+              <WhatsAppShareButton product={product} activeImageIndex={activeImage} />
+            </div>
+          )}
         </div>
       </div>
     </div>

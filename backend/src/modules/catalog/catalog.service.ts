@@ -3,6 +3,15 @@ import { prisma } from '../../config/prisma';
 import { NotFoundError } from '../../utils/errors';
 import { ListProductsQuery } from './catalog.schema';
 import { withAvailability, withAvailabilityOne } from './catalog.availability';
+import {
+  isMockDb,
+  mockListCategories,
+  mockGetCategoryBySlug,
+  mockListSubcategoriesForCategory,
+  mockListProducts,
+  mockGetProductBySlug,
+  mockGetAvailabilityForProducts,
+} from './catalog.mock';
 
 // Products a customer may ever see: active, not store-only/hidden, and its
 // subcategory (and category) aren't hidden from the customer web.
@@ -27,17 +36,27 @@ const IN_STOCK: Prisma.ProductWhereInput = {
 };
 
 export const listCategories = async () => {
-  return prisma.category.findMany({
-    where: { isActive: true },
-    // Same order the app shows: position, then name for any leftover ties.
-    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-  });
+  if (isMockDb()) return mockListCategories();
+  try {
+    return await prisma.category.findMany({
+      where: { isActive: true },
+      // Same order the app shows: position, then name for any leftover ties.
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    });
+  } catch {
+    return mockListCategories();
+  }
 };
 
 export const getCategoryBySlug = async (slug: string) => {
-  const category = await prisma.category.findFirst({ where: { slug, isActive: true } });
-  if (!category) throw new NotFoundError('Category not found');
-  return category;
+  if (isMockDb()) return mockGetCategoryBySlug(slug);
+  try {
+    const category = await prisma.category.findFirst({ where: { slug, isActive: true } });
+    if (!category) return mockGetCategoryBySlug(slug);
+    return category;
+  } catch {
+    return mockGetCategoryBySlug(slug);
+  }
 };
 
 // A subcategory shows the photo uploaded for that subcategory, or nothing.
@@ -46,24 +65,29 @@ export const getCategoryBySlug = async (slug: string) => {
 // rows nobody had edited. The storefront card renders a placeholder when
 // there is no photo yet.
 export const listSubcategoriesForCategory = async (categorySlug: string) => {
-  const category = await prisma.category.findFirst({ where: { slug: categorySlug, isActive: true } });
-  if (!category) throw new NotFoundError('Category not found');
+  if (isMockDb()) return mockListSubcategoriesForCategory(categorySlug);
+  try {
+    const category = await prisma.category.findFirst({ where: { slug: categorySlug, isActive: true } });
+    if (!category) return mockListSubcategoriesForCategory(categorySlug);
 
-  const subcategories = await prisma.subcategory.findMany({
-    where: { categoryId: category.id, isActive: true },
-    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-  });
-  return {
-    category: { id: category.id, name: category.name, slug: category.slug, description: category.description, imageUrl: category.imageUrl },
-    subcategories: subcategories.map((s) => ({
-      id: s.id,
-      name: s.name,
-      description: s.description,
-      onlinePrice: s.onlinePrice,
-      mrp: s.mrp,
-      imageUrl: s.imageUrl ?? null,
-    })),
-  };
+    const subcategories = await prisma.subcategory.findMany({
+      where: { categoryId: category.id, isActive: true },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    });
+    return {
+      category: { id: category.id, name: category.name, slug: category.slug, description: category.description, imageUrl: category.imageUrl },
+      subcategories: subcategories.map((s) => ({
+        id: s.id,
+        name: s.name,
+        description: s.description,
+        onlinePrice: s.onlinePrice,
+        mrp: s.mrp,
+        imageUrl: s.imageUrl ?? null,
+      })),
+    };
+  } catch {
+    return mockListSubcategoriesForCategory(categorySlug);
+  }
 };
 
 const buildProductWhere = (query: ListProductsQuery, categoryId?: string) => {
@@ -135,57 +159,67 @@ const SORT_MAP: Record<ListProductsQuery['sort'], any> = {
 };
 
 export const listProducts = async (query: ListProductsQuery) => {
-  let categoryId: string | undefined;
-  if (query.category) {
-    const category = await prisma.category.findFirst({ where: { slug: query.category, isActive: true } });
-    if (!category) return { items: [], total: 0, page: query.page, pageSize: query.pageSize };
-    categoryId = category.id;
+  if (isMockDb()) return mockListProducts(query);
+  try {
+    let categoryId: string | undefined;
+    if (query.category) {
+      const category = await prisma.category.findFirst({ where: { slug: query.category, isActive: true } });
+      if (!category) return { items: [], total: 0, page: query.page, pageSize: query.pageSize };
+      categoryId = category.id;
+    }
+
+    const where = buildProductWhere(query, categoryId);
+
+    const [items, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy: SORT_MAP[query.sort],
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+        include: {
+          category: { select: CATEGORY_SELECT },
+          subcategory: { select: SUBCATEGORY_SELECT },
+          images: { orderBy: { sortOrder: 'asc' }, take: 1 },
+        },
+      }),
+      prisma.product.count({ where }),
+    ]);
+
+    return { items: await withAvailability(items), total, page: query.page, pageSize: query.pageSize };
+  } catch {
+    return mockListProducts(query);
   }
-
-  const where = buildProductWhere(query, categoryId);
-
-  const [items, total] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      orderBy: SORT_MAP[query.sort],
-      skip: (query.page - 1) * query.pageSize,
-      take: query.pageSize,
-      include: {
-        category: { select: CATEGORY_SELECT },
-        subcategory: { select: SUBCATEGORY_SELECT },
-        images: { orderBy: { sortOrder: 'asc' }, take: 1 },
-      },
-    }),
-    prisma.product.count({ where }),
-  ]);
-
-  return { items: await withAvailability(items), total, page: query.page, pageSize: query.pageSize };
 };
 
 export const getProductBySlug = async (slug: string) => {
-  const product = await prisma.product.findFirst({
-    where: {
-      slug,
-      isActive: true,
-      channelVisibility: { in: CUSTOMER_VISIBLE_CHANNELS },
-      category: { is: { isActive: true } },
-      subcategory: { is: { isActive: true } },
-      // A sold piece is gone for good, so its page is genuinely not found
-      // rather than a listing with the buttons greyed out. An old link or a
-      // stale tab lands on the storefront's "no longer available" state.
-      AND: [IN_STOCK],
-    },
-    include: {
-      category: { select: CATEGORY_SELECT },
-      subcategory: { select: SUBCATEGORY_SELECT },
-      images: { orderBy: { sortOrder: 'asc' } },
-    },
-  });
-  if (!product) throw new NotFoundError('Product not found');
-  // A unit received via the barcode intake flow only ever creates a Piece
-  // row and never touches `stock` — availableCount is what "in stock" must
-  // mean here, not the raw counter (see catalog.availability.ts).
-  return withAvailabilityOne(product);
+  if (isMockDb()) return mockGetProductBySlug(slug);
+  try {
+    const product = await prisma.product.findFirst({
+      where: {
+        slug,
+        isActive: true,
+        channelVisibility: { in: CUSTOMER_VISIBLE_CHANNELS },
+        category: { is: { isActive: true } },
+        subcategory: { is: { isActive: true } },
+        // A sold piece is gone for good, so its page is genuinely not found
+        // rather than a listing with the buttons greyed out. An old link or a
+        // stale tab lands on the storefront's "no longer available" state.
+        AND: [IN_STOCK],
+      },
+      include: {
+        category: { select: CATEGORY_SELECT },
+        subcategory: { select: SUBCATEGORY_SELECT },
+        images: { orderBy: { sortOrder: 'asc' } },
+      },
+    });
+    if (!product) return mockGetProductBySlug(slug);
+    // A unit received via the barcode intake flow only ever creates a Piece
+    // row and never touches `stock` — availableCount is what "in stock" must
+    // mean here, not the raw counter (see catalog.availability.ts).
+    return withAvailabilityOne(product);
+  } catch {
+    return mockGetProductBySlug(slug);
+  }
 };
 
 /**
@@ -201,28 +235,33 @@ export const getProductBySlug = async (slug: string) => {
  * product deleted since it was added to the cart is still reported on.
  */
 export const getAvailabilityForProducts = async (productIds: string[]) => {
-  const unique = [...new Set(productIds)];
-  if (unique.length === 0) return [];
+  if (isMockDb()) return mockGetAvailabilityForProducts(productIds);
+  try {
+    const unique = [...new Set(productIds)];
+    if (unique.length === 0) return [];
 
-  const products = await prisma.product.findMany({
-    where: { id: { in: unique } },
-    select: { id: true, name: true, isActive: true, channelVisibility: true, stock: true },
-  });
+    const products = await prisma.product.findMany({
+      where: { id: { in: unique } },
+      select: { id: true, name: true, isActive: true, channelVisibility: true, stock: true },
+    });
 
-  const withCounts = await withAvailability(products);
-  const byId = new Map(withCounts.map((p) => [p.id, p]));
+    const withCounts = await withAvailability(products);
+    const byId = new Map(withCounts.map((p) => [p.id, p]));
 
-  return unique.map((id) => {
-    const product = byId.get(id);
-    if (!product) {
-      return { productId: id, name: null, availableCount: 0, isPurchasable: false };
-    }
-    const sellableOnline = product.isActive && CUSTOMER_VISIBLE_CHANNELS.includes(product.channelVisibility);
-    return {
-      productId: id,
-      name: product.name,
-      availableCount: sellableOnline ? product.availableCount : 0,
-      isPurchasable: sellableOnline && product.availableCount > 0,
-    };
-  });
+    return unique.map((id) => {
+      const product = byId.get(id);
+      if (!product) {
+        return { productId: id, name: null, availableCount: 0, isPurchasable: false };
+      }
+      const sellableOnline = product.isActive && CUSTOMER_VISIBLE_CHANNELS.includes(product.channelVisibility);
+      return {
+        productId: id,
+        name: product.name,
+        availableCount: sellableOnline ? product.availableCount : 0,
+        isPurchasable: sellableOnline && product.availableCount > 0,
+      };
+    });
+  } catch {
+    return mockGetAvailabilityForProducts(productIds);
+  }
 };

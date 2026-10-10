@@ -558,6 +558,9 @@ export function createFakePrisma() {
     }
   };
 
+  client.$connect = async () => {};
+  client.$disconnect = async () => {};
+
   return { client, db };
 }
 

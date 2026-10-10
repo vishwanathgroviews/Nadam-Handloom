@@ -1,58 +1,56 @@
-/* Deterministic column counts (rather than auto-fill/minmax) so however many
-   categories exist, rows stay full — no lonely single card stranded on its
-   own row. 3 columns is the sweet spot for our current 5-6 categories on
-   desktop; tablet/mobile step down to 2 so two full rows still balance.
-   Full container width (matching the product grid below it) with a
-   moderate landscape aspect ratio — tall enough to read as a real photo
-   tile, short enough not to dominate the page like the original 4:5 cards. */
+/* Antigravity floating card system for categories */
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  perspective: 1200px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  width: 100%;
 }
 
 .category-card-motion {
-  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
+.antigravity-card,
 .category-card {
   position: relative;
   display: block;
-  height: 100%;
-  aspect-ratio: 16 / 11;
-  border-radius: var(--radius-md);
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   overflow: hidden;
   text-decoration: none;
-  box-shadow: var(--shadow-card);
-  transform-style: preserve-3d;
-  will-change: transform;
+  background: var(--card-bg, #ffffff);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: transform 350ms cubic-bezier(0.25, 1, 0.5, 1), box-shadow 350ms cubic-bezier(0.25, 1, 0.5, 1), border-color 350ms cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: transform, box-shadow;
 }
 
-@media (max-width: 640px) {
-  .category-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  .category-card {
-    aspect-ratio: 4 / 3;
-  }
+.antigravity-card:hover,
+.category-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
+.antigravity-card img,
 .category-card img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  object-position: center;
+  display: block;
+  transition: transform 350ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
+.antigravity-card:hover img,
 .category-card:hover img {
-  transform: scale(1.07);
+  transform: scale(1.05);
 }
 
-/* Shown when a category or subcategory has no photo of its own. Nothing is
-   borrowed from a parent or a product, so this is what an un-photographed
-   row looks like until someone uploads one. */
+/* Shown when a category or subcategory has no photo of its own. */
 .category-card-placeholder {
   width: 100%;
   height: 100%;
@@ -65,20 +63,41 @@
     var(--color-surface, #faf6f1);
 }
 
+.antigravity-card-overlay,
 .category-card-overlay {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: flex-end;
-  padding: 16px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(20, 8, 10, 0.75) 100%);
+  padding: 18px 16px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 100%);
+  pointer-events: none;
 }
 
+.antigravity-card-overlay span,
 .category-card-overlay span {
   color: #fff;
   font-family: 'Playfair Display', serif;
   font-weight: 700;
   font-size: 1.05rem;
+  line-height: 1.3;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+@media (max-width: 480px) {
+  .category-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .category-card-overlay,
+  .antigravity-card-overlay {
+    padding: 12px 10px;
+  }
+  .category-card-overlay span,
+  .antigravity-card-overlay span {
+    font-size: 0.88rem;
+    line-height: 1.25;
+  }
 }
 
 .craft-story {
@@ -130,5 +149,19 @@
 @media (max-width: 800px) {
   .craft-story-inner {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .antigravity-card,
+  .category-card,
+  .antigravity-card:hover,
+  .category-card:hover,
+  .antigravity-card img,
+  .category-card img,
+  .antigravity-card:hover img,
+  .category-card:hover img {
+    transition: none !important;
+    transform: none !important;
   }
 }

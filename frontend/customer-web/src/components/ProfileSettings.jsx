@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   User, Phone, LogOut, Package, Save, CheckCircle, MapPin, AlertCircle,
-  ShieldCheck, KeyRound, Plus, Pencil, Trash2, Star, BadgeCheck,
+  ShieldCheck, KeyRound, Plus, Pencil, Trash2, Star, BadgeCheck, Truck,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -21,10 +21,12 @@ export default function ProfileSettings() {
     last_name: '',
     display_name: '',
     phone: '',
+    city: '',
     state: '',
     pincode: ''
   });
 
+  const [showProfileSettings, setShowProfileSettings] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState('');
@@ -49,6 +51,7 @@ export default function ProfileSettings() {
       last_name: currentUser.userProfile?.lastName || '',
       display_name: currentUser.userProfile?.displayName || '',
       phone: currentUser.phone || '',
+      city: currentUser.userProfile?.preferences?.city || '',
       state: currentUser.userProfile?.preferences?.state || '',
       pincode: currentUser.userProfile?.preferences?.pincode || ''
     });
@@ -76,6 +79,10 @@ export default function ProfileSettings() {
     if (!formData.last_name.trim()) newErrors.last_name = 'Last name is required';
     if (!formData.display_name.trim()) newErrors.display_name = 'Display name is required';
 
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required';
+    }
+
     if (!formData.state.trim()) {
       newErrors.state = 'State is required';
     }
@@ -98,21 +105,19 @@ export default function ProfileSettings() {
     setSuccessMsg('');
     try {
       await api.updateUserProfile(currentUser.id, {
-        firstName: formData.first_name,
-        lastName: formData.last_name,
-        displayName: formData.display_name,
-        // Preferences (theme/language) are no longer offered. The API
-        // replaces this object wholesale, so saving drops whatever was
-        // stored for them — nothing reads those keys any more, and state and
-        // pincode (which the address flow does use) are still carried.
+        firstName: formData.first_name.trim(),
+        lastName: formData.last_name.trim(),
+        displayName: formData.display_name.trim(),
         preferences: {
-          state: formData.state,
-          pincode: formData.pincode
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+          pincode: formData.pincode.trim()
         }
       });
 
       await refreshUser();
       setSuccessMsg('Profile updated successfully.');
+      setShowProfileSettings(false);
     } catch (err) {
       setErrors({ api: err.message || 'Error saving changes.' });
     } finally {
@@ -175,7 +180,13 @@ export default function ProfileSettings() {
 
   if (status === 'loading' || !currentUser) return null;
 
-  const initial = (formData.display_name || formData.first_name || 'U').trim().charAt(0).toUpperCase();
+  const profileDisplayName =
+    formData.display_name ||
+    `${formData.first_name || ''} ${formData.last_name || ''}`.trim() ||
+    currentUser.userProfile?.displayName ||
+    'My Account';
+
+  const initial = profileDisplayName.charAt(0).toUpperCase();
   const memberSince = currentUser.createdAt
     ? new Date(currentUser.createdAt).toLocaleDateString('en-IN', MEMBER_SINCE_FORMAT)
     : null;
@@ -190,17 +201,27 @@ export default function ProfileSettings() {
           <div className="profile-sidebar-identity">
             <div className="profile-avatar" aria-hidden="true">{initial}</div>
             <div>
-              <p className="profile-sidebar-name">{formData.display_name || formData.first_name || 'My Account'}</p>
+              <p className="profile-sidebar-name">{profileDisplayName}</p>
               <p className="profile-sidebar-phone">{formData.phone}</p>
               {memberSince && <p className="profile-sidebar-since">Member since {memberSince}</p>}
             </div>
           </div>
           <nav className="profile-nav">
-            <span className="profile-nav-item active">
-              <User size={16} /> <span>My Profile</span>
-            </span>
+            <button
+              type="button"
+              className={`profile-nav-item ${showProfileSettings ? 'active' : ''}`}
+              onClick={() => {
+                setShowProfileSettings((prev) => !prev);
+                setSuccessMsg('');
+              }}
+            >
+              <User size={16} /> <span>Profile Settings</span>
+            </button>
             <Link to="/account/orders" className="profile-nav-item">
               <Package size={16} /> <span>My Orders</span>
+            </Link>
+            <Link to="/account/tracking" className="profile-nav-item">
+              <Truck size={16} /> <span>Order Tracking</span>
             </Link>
             <button type="button" onClick={handleLogout} className="profile-nav-item danger">
               <LogOut size={16} /> <span>Logout</span>
@@ -209,9 +230,59 @@ export default function ProfileSettings() {
         </aside>
 
         <div className="profile-main">
-          <div className="profile-main-header">
-            <h1 className="profile-main-title">My Profile</h1>
-            <p className="profile-main-subtitle">Manage your personal details, addresses, and account security</p>
+          {/* Desktop Header */}
+          <div className="profile-main-header desktop-only">
+            <div className="profile-main-header-row">
+              <div>
+                <h1 className="profile-main-title">{profileDisplayName}</h1>
+                <p className="profile-main-subtitle">
+                  <Phone size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                  {formData.phone}
+                </p>
+              </div>
+              <button
+                type="button"
+                className={`profile-quick-btn ${showProfileSettings ? 'active' : ''}`}
+                onClick={() => {
+                  setShowProfileSettings((prev) => !prev);
+                  setSuccessMsg('');
+                }}
+                aria-expanded={showProfileSettings}
+              >
+                <User size={15} /> <span>Profile Settings</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Profile Header — dedicated mobile experience */}
+          <div className="profile-top-card mobile-only">
+            <div className="profile-top-identity">
+              <div className="profile-top-avatar" aria-hidden="true">{initial}</div>
+              <div className="profile-top-info">
+                <h1 className="profile-top-name">{profileDisplayName}</h1>
+                <p className="profile-top-phone">
+                  <Phone size={15} />
+                  <span>{formData.phone}</span>
+                  <span className="profile-verified-badge"><BadgeCheck size={14} /> Verified</span>
+                </p>
+                {memberSince && <p className="profile-top-since">Customer since {memberSince}</p>}
+              </div>
+            </div>
+
+            {/* Quick Section Navigation */}
+            <div className="profile-quick-nav">
+              <button
+                type="button"
+                className={`profile-quick-btn ${showProfileSettings ? 'active' : ''}`}
+                onClick={() => {
+                  setShowProfileSettings((prev) => !prev);
+                  setSuccessMsg('');
+                }}
+                aria-expanded={showProfileSettings}
+              >
+                <User size={15} /> <span>Profile Settings</span>
+              </button>
+            </div>
           </div>
 
           {successMsg && (
@@ -226,83 +297,101 @@ export default function ProfileSettings() {
             </div>
           )}
 
-          <form onSubmit={handleSave} className="profile-form">
-            <section className="profile-card">
-              <h2 className="profile-card-title"><User size={16} /> Personal Info</h2>
-              <div className="form-row">
+          {/* Profile Settings Form — rendered ONLY after user clicks Profile Settings */}
+          {showProfileSettings && (
+            <form id="profile-settings-section" onSubmit={handleSave} className="profile-form">
+              <section className="profile-card">
+                <h2 className="profile-card-title"><User size={16} /> Personal Info</h2>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="input-label">First Name</label>
+                    <div className="input-wrapper">
+                      <input
+                        type="text"
+                        name="first_name"
+                        className="form-input"
+                        value={formData.first_name}
+                        onChange={handleChange}
+                      />
+                      <User size={18} className="input-icon" />
+                    </div>
+                    {errors.first_name && <span className="error-msg">{errors.first_name}</span>}
+                  </div>
+
+                  <div className="form-group">
+                    <label className="input-label">Last Name</label>
+                    <div className="input-wrapper">
+                      <input
+                        type="text"
+                        name="last_name"
+                        className="form-input"
+                        value={formData.last_name}
+                        onChange={handleChange}
+                      />
+                      <User size={18} className="input-icon" />
+                    </div>
+                    {errors.last_name && <span className="error-msg">{errors.last_name}</span>}
+                  </div>
+                </div>
+
                 <div className="form-group">
-                  <label className="input-label">First Name</label>
+                  <label className="input-label">Display Name</label>
                   <div className="input-wrapper">
                     <input
                       type="text"
-                      name="first_name"
+                      name="display_name"
                       className="form-input"
-                      value={formData.first_name}
+                      value={formData.display_name}
                       onChange={handleChange}
                     />
                     <User size={18} className="input-icon" />
                   </div>
-                  {errors.first_name && <span className="error-msg">{errors.first_name}</span>}
+                  {errors.display_name && <span className="error-msg">{errors.display_name}</span>}
                 </div>
+              </section>
 
+              <section className="profile-card">
+                <h2 className="profile-card-title"><MapPin size={16} /> Contact &amp; Location</h2>
                 <div className="form-group">
-                  <label className="input-label">Last Name</label>
+                  <label className="input-label">Registered Phone Number</label>
                   <div className="input-wrapper">
-                    <input
-                      type="text"
-                      name="last_name"
-                      className="form-input"
-                      value={formData.last_name}
-                      onChange={handleChange}
-                    />
-                    <User size={18} className="input-icon" />
+                    <input type="tel" className="form-input" value={formData.phone} readOnly disabled />
+                    <Phone size={18} className="input-icon" />
+                    <BadgeCheck size={16} className="profile-verified-icon" title="Verified" />
                   </div>
-                  {errors.last_name && <span className="error-msg">{errors.last_name}</span>}
+                  <span className="input-helper">Contact support to change your registered mobile number.</span>
                 </div>
-              </div>
 
-              <div className="form-group">
-                <label className="input-label">Display Name</label>
-                <div className="input-wrapper">
-                  <input
-                    type="text"
-                    name="display_name"
-                    className="form-input"
-                    value={formData.display_name}
-                    onChange={handleChange}
-                  />
-                  <User size={18} className="input-icon" />
-                </div>
-                {errors.display_name && <span className="error-msg">{errors.display_name}</span>}
-              </div>
-            </section>
-
-            <section className="profile-card">
-              <h2 className="profile-card-title"><MapPin size={16} /> Contact &amp; Location</h2>
-              <div className="form-group">
-                <label className="input-label">Phone Number</label>
-                <div className="input-wrapper">
-                  <input type="tel" className="form-input" value={formData.phone} readOnly disabled />
-                  <Phone size={18} className="input-icon" />
-                  <BadgeCheck size={16} className="profile-verified-icon" title="Verified" />
-                </div>
-                <span className="input-helper">Contact support to change your registered mobile number.</span>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="input-label">State</label>
-                  <div className="input-wrapper">
-                    <input
-                      type="text"
-                      name="state"
-                      className="form-input"
-                      value={formData.state}
-                      onChange={handleChange}
-                    />
-                    <MapPin size={18} className="input-icon" />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="input-label">City</label>
+                    <div className="input-wrapper">
+                      <input
+                        type="text"
+                        name="city"
+                        className="form-input"
+                        value={formData.city}
+                        onChange={handleChange}
+                      />
+                      <MapPin size={18} className="input-icon" />
+                    </div>
+                    {errors.city && <span className="error-msg">{errors.city}</span>}
                   </div>
-                  {errors.state && <span className="error-msg">{errors.state}</span>}
+
+                  <div className="form-group">
+                    <label className="input-label">State</label>
+                    <div className="input-wrapper">
+                      <input
+                        type="text"
+                        name="state"
+                        className="form-input"
+                        value={formData.state}
+                        onChange={handleChange}
+                      />
+                      <MapPin size={18} className="input-icon" />
+                    </div>
+                    {errors.state && <span className="error-msg">{errors.state}</span>}
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -320,17 +409,17 @@ export default function ProfileSettings() {
                   </div>
                   {errors.pincode && <span className="error-msg">{errors.pincode}</span>}
                 </div>
+              </section>
+
+              <div className="profile-submit-row">
+                <button type="submit" className="submit-btn" disabled={loading}>
+                  <Save size={18} /> {loading ? 'Saving Changes...' : 'Save Changes'}
+                </button>
               </div>
-            </section>
+            </form>
+          )}
 
-            <div className="profile-submit-row">
-              <button type="submit" className="submit-btn" disabled={loading}>
-                <Save size={18} /> {loading ? 'Saving Changes...' : 'Save Settings'}
-              </button>
-            </div>
-          </form>
-
-          <section className="profile-card">
+          <section id="address-section" className="profile-card">
             <div className="profile-card-title-row">
               <h2 className="profile-card-title"><MapPin size={16} /> Addresses</h2>
               {addressFormMode === null && (
@@ -405,7 +494,7 @@ export default function ProfileSettings() {
             )}
           </section>
 
-          <section className="profile-card">
+          <section id="security-section" className="profile-card">
             <h2 className="profile-card-title"><ShieldCheck size={16} /> Security</h2>
             <div className="profile-security-row">
               <div>

@@ -8,17 +8,22 @@ import { startReservationExpirySweep } from './modules/inventory/inventory.servi
 import { startEventDispatchSweep } from './modules/events/events.service';
 import { startRetentionSweep } from './modules/retention/retention.service';
 
+import { isMockDb } from './modules/catalog/catalog.mock';
+
 async function bootstrap() {
   try {
-    await prisma.$connect();
-    console.log('Successfully connected to the database');
+    if (!isMockDb()) {
+      await prisma.$connect();
+      console.log('Successfully connected to the database');
+      startReservationExpirySweep();
+      startEventDispatchSweep();
+      startRetentionSweep();
+    } else {
+      console.log('Running with mock database (USE_MOCK_DB=true or DATABASE_URL="mock")');
+    }
 
     logIntegrationStatus();
-
     startRateLimitCleanup();
-    startReservationExpirySweep();
-    startEventDispatchSweep();
-    startRetentionSweep();
 
     const server = app.listen(env.PORT, () => {
       console.log(`Server is running on port ${env.PORT}`);

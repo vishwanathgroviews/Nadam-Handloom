@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
 import { api } from '../services/api';
 import { formatPrice } from '../utils/format';
+import PaymentSuccessModal from '../components/PaymentSuccessModal';
 import './OrderConfirmation.css';
 
 // Checkout only ever navigates here right after a successful verifyPayment
@@ -29,6 +30,7 @@ export default function OrderConfirmation() {
   const [order, setOrder] = useState(null);
   const [invoice, setInvoice] = useState(null);
   const [error, setError] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(true);
 
   useEffect(() => {
     api.getOrder(orderId).then(setOrder).catch(() => setError('We could not find this order.'));
@@ -70,6 +72,14 @@ export default function OrderConfirmation() {
 
   return (
     <div className="container order-confirmation">
+      <PaymentSuccessModal
+        isOpen={showSuccessModal}
+        orderNumber={order.orderNumber}
+        orderId={order.id}
+        amount={order.total}
+        onClose={() => setShowSuccessModal(false)}
+      />
+
       <div className="order-confirmation-card">
         <CheckCircle2 size={52} className="order-confirmation-icon" />
         <h1 className="section-title">Order Confirmed!</h1>

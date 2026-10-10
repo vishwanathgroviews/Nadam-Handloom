@@ -73,10 +73,13 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.getCategories(), api.getProducts({ featured: true, pageSize: 8 })])
+    Promise.all([
+      api.getCategories(),
+      api.getProducts({ featured: true, sort: 'newest', pageSize: 4 }),
+    ])
       .then(([cats, products]) => {
         setCategories(cats);
-        setFeatured(products.items);
+        setFeatured(products.items.slice(0, 4));
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -133,10 +136,10 @@ export default function Home() {
           viewport={viewportOnce}
         >
           <div>
-            <h2 className="section-title">Bestsellers</h2>
+            <h2 className="section-title">Best Sellers</h2>
             <p className="section-subtitle">Loved by our customers, woven for you</p>
           </div>
-          <Link to="/shop" className="section-link">
+          <Link to="/shop?featured=true" className="section-link">
             View all <ArrowRight size={15} />
           </Link>
         </motion.div>
@@ -152,7 +155,7 @@ export default function Home() {
             whileInView="visible"
             viewport={viewportOnce}
           >
-            {featured.map((product) => (
+            {featured.slice(0, 4).map((product) => (
               <motion.div key={product.id} variants={fadeInUp}>
                 <ProductCard product={product} />
               </motion.div>
