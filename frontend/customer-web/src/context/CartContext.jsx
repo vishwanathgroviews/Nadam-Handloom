@@ -1,4 +1,5 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import CartToast from '../components/CartToast';
 
 const CART_STORAGE_KEY = 'NANDAM_CART_V1';
 const CartContext = createContext(undefined);
@@ -36,38 +37,97 @@ const readCart = () => {
 // constant, never a control.
 export function CartProvider({ children }) {
   const [items, setItems] = useState(readCart);
+  const [toast, setToast] = useState(null);
+  const toastTimerRef = useRef(null);
+
+  // Keep a synchronous ref to items to immediately guard against rapid duplicate clicks
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   useEffect(() => {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
   }, [items]);
 
-  const addItem = useCallback((product) => {
-    setItems((prev) => {
-      // Already in the cart — nothing to add, and nothing to increment.
-      if (prev.some((i) => i.productId === product.id)) return prev;
-      // Price/MRP are subcategory-level — every product in a subcategory shares them.
-      const onlinePrice = Number(product.subcategory?.onlinePrice);
-      return [
-        ...prev,
-        {
-          productId: product.id,
-          slug: product.slug,
-          name: product.name,
-          price: onlinePrice,
-          mrp: Number(product.subcategory?.mrp ?? onlinePrice),
-          image: product.images?.[0]?.url ?? product.image,
-          stock: product.availableCount,
-          quantity: 1,
-        },
-      ];
-    });
+  const dismissToast = useCallback(() => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+    setToast(null);
   }, []);
+
+  const showToast = useCallback((message, type = 'success') => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    setToast({ id: Date.now(), message, type });
+    toastTimerRef.current = setTimeout(() => {
+      setToast(null);
+      toastTimerRef.current = null;
+    }, 2500); // Auto dismiss after 2.5 seconds (within 2–3s requirement)
+  }, []);
+
+  const isInCart = useCallback(
+    (productId) => {
+      if (!productId) return false;
+      return items.some((i) => i.productId === productId);
+    },
+    [items]
+  );
+
+  const addItem = useCallback(
+    (product) => {
+      if (!product || !product.id) return false;
+
+      // Stock and availability validation
+      const isAvailable =
+        (product.availableCount !== undefined
+          ? product.availableCount > 0
+          : product.stock === undefined || product.stock > 0) && product.isActive !== false;
+
+      if (!isAvailable) {
+        showToast('This item is currently sold out or unavailable.', 'error');
+        return false;
+      }
+
+      // Check synchronous ref to prevent duplicate additions on rapid clicks
+      if (itemsRef.current.some((i) => i.productId === product.id)) {
+        return false;
+      }
+
+      const onlinePrice = Number(
+        product.subcategory?.onlinePrice ?? product.onlinePrice ?? product.price ?? 0
+      );
+      const newItem = {
+        productId: product.id,
+        slug: product.slug,
+        name: product.name,
+        price: onlinePrice,
+        mrp: Number(product.subcategory?.mrp ?? product.mrp ?? onlinePrice),
+        image: product.images?.[0]?.url ?? product.image ?? product.imageUrl,
+        stock: product.availableCount ?? product.stock ?? 1,
+        quantity: 1,
+      };
+
+      itemsRef.current = [...itemsRef.current, newItem];
+      setItems(itemsRef.current);
+      showToast('Product added to cart successfully!', 'success');
+      return true;
+    },
+    [showToast]
+  );
 
   const removeItem = useCallback((productId) => {
-    setItems((prev) => prev.filter((i) => i.productId !== productId));
+    itemsRef.current = itemsRef.current.filter((i) => i.productId !== productId);
+    setItems(itemsRef.current);
   }, []);
 
-  const clearCart = useCallback(() => setItems([]), []);
+  const clearCart = useCallback(() => {
+    itemsRef.current = [];
+    setItems([]);
+  }, []);
 
   // One line = one piece, so the subtotal is a plain sum of prices and the
   // count is simply how many lines there are.
@@ -75,11 +135,27 @@ export function CartProvider({ children }) {
   const itemCount = items.length;
 
   const value = useMemo(
-    () => ({ items, addItem, removeItem, clearCart, subtotal, itemCount }),
-    [items, addItem, removeItem, clearCart, subtotal, itemCount]
+    () => ({
+      items,
+      addItem,
+      removeItem,
+      clearCart,
+      subtotal,
+      itemCount,
+      isInCart,
+      toast,
+      showToast,
+      dismissToast,
+    }),
+    [items, addItem, removeItem, clearCart, subtotal, itemCount, isInCart, toast, showToast, dismissToast]
   );
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  return (
+    <CartContext.Provider value={value}>
+      {children}
+      <CartToast toast={toast} onDismiss={dismissToast} />
+    </CartContext.Provider>
+  );
 }
 
 export function useCart() {
@@ -87,3 +163,4 @@ export function useCart() {
   if (!ctx) throw new Error('useCart must be used within a CartProvider');
   return ctx;
 }
+

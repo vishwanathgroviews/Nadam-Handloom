@@ -152,14 +152,36 @@ export const reserveItemsForOrder = async (
 /** Payment captured: converts every active reservation on this order into a real sale. */
 export const finalizeReservationsForOrder = async (tx: Tx, orderId: string): Promise<void> => {
   const reservations = await tx.reservation.findMany({ where: { orderId, status: 'active' } });
-  for (const r of reservations) {
-    if (r.pieceId) {
-      await tx.piece.update({ where: { id: r.pieceId }, data: { status: 'sold_online', soldAt: new Date() } });
+  if (reservations.length > 0) {
+    for (const r of reservations) {
+      if (r.pieceId) {
+        await tx.piece.update({ where: { id: r.pieceId }, data: { status: 'sold_online', soldAt: new Date() } });
+      }
+      await tx.reservation.update({ where: { id: r.id }, data: { status: 'converted' } });
+      await tx.stockLedger.create({
+        data: { productId: r.productId, pieceId: r.pieceId, delta: 0, reason: 'online_sale', channel: 'online', ref: orderId },
+      });
     }
-    await tx.reservation.update({ where: { id: r.id }, data: { status: 'converted' } });
-    await tx.stockLedger.create({
-      data: { productId: r.productId, pieceId: r.pieceId, delta: 0, reason: 'online_sale', channel: 'online', ref: orderId },
-    });
+  } else {
+    // If reservations had lapsed or were released before a delayed capture arrived,
+    // ensure inventory reflects the sale:
+    const items = await tx.orderItem.findMany({ where: { orderId } });
+    for (const item of items) {
+      if (item.pieceId) {
+        await tx.piece.updateMany({
+          where: { id: item.pieceId, status: { in: ['in_stock', 'reserved'] } },
+          data: { status: 'sold_online', soldAt: new Date() },
+        });
+      } else {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } },
+        });
+      }
+      await tx.stockLedger.create({
+        data: { productId: item.productId, pieceId: item.pieceId, delta: -item.quantity, reason: 'online_sale', channel: 'online', ref: orderId },
+      });
+    }
   }
 };
 
@@ -200,6 +222,19 @@ export const sweepExpiredReservations = async (): Promise<number> => {
       await tx.stockLedger.create({
         data: { productId: fresh.productId, pieceId: fresh.pieceId, delta: fresh.quantity, reason: 'release', channel: 'online', ref: fresh.orderId },
       });
+
+      // If no active reservations remain for this order, transition pending_payment order to payment_failed
+      const remainingActive = await tx.reservation.count({
+        where: { orderId: fresh.orderId, status: 'active' },
+      });
+      if (remainingActive === 0) {
+        const order = await tx.order.findUnique({ where: { id: fresh.orderId } });
+        if (order && order.status === 'pending_payment') {
+          await tx.order.update({ where: { id: fresh.orderId }, data: { status: 'payment_failed' } });
+          await tx.payment.updateMany({ where: { orderId: fresh.orderId, status: 'created' }, data: { status: 'failed' } });
+        }
+      }
+
       swept += 1;
     });
   }

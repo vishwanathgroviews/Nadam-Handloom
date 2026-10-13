@@ -76,7 +76,7 @@ export default function MaintenanceGate({ children }) {
             height: '56px',
             margin: '0 auto 20px',
             borderRadius: '50%',
-            background: 'rgba(122, 31, 43, 0.08)',
+            background: 'rgba(36, 91, 87, 0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

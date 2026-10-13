@@ -181,4 +181,134 @@ describe('orders flow', () => {
 
     expect(res.status).toBe(404);
   });
+
+  it('cancels order on customer dismissal, releasing reservation immediately and restoring stock', async () => {
+    const token = await registerAndLogin('9876500007');
+    const addressRes = await request(app)
+      .post('/api/v1/addresses')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ fullName: 'Test Customer', phone: '9876500007', line1: 'Line 1', city: 'Hyderabad', state: 'Telangana', pincode: '500001' });
+
+    const product = fixture.products[0]!;
+    const initialStock = product.stock;
+
+    const checkoutRes = await request(app)
+      .post('/api/v1/orders/checkout')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ items: [{ productId: product.id, quantity: 1 }], addressId: addressRes.body.data.id });
+    expect(checkoutRes.status).toBe(201);
+    const { orderId } = checkoutRes.body.data;
+
+    // Stock was held
+    expect(fake.db.product.find((p: any) => p.id === product.id).stock).toBe(initialStock - 1);
+    const activeRes = fake.db.reservation.find((r: any) => r.orderId === orderId);
+    expect(activeRes.status).toBe('active');
+
+    // Customer cancels
+    const cancelRes = await request(app)
+      .post(`/api/v1/orders/${orderId}/cancel`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ reason: 'cancelled' });
+
+    expect(cancelRes.status).toBe(200);
+    expect(cancelRes.body.data.status).toBe('cancelled');
+
+    // Stock restored immediately
+    expect(fake.db.product.find((p: any) => p.id === product.id).stock).toBe(initialStock);
+    expect(fake.db.reservation.find((r: any) => r.orderId === orderId).status).toBe('released');
+
+    const order = fake.db.order.find((o: any) => o.id === orderId);
+    expect(order.status).toBe('cancelled');
+    const payment = fake.db.payment.find((p: any) => p.orderId === orderId);
+    expect(payment.status).toBe('failed');
+  });
+
+  it('allows retry payment on a cancelled order and finalizes the sale', async () => {
+    const token = await registerAndLogin('9876500008');
+    const addressRes = await request(app)
+      .post('/api/v1/addresses')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ fullName: 'Test Customer', phone: '9876500008', line1: 'Line 1', city: 'Hyderabad', state: 'Telangana', pincode: '500001' });
+
+    const product = fixture.products[0]!;
+    const initialStock = product.stock;
+
+    const checkoutRes = await request(app)
+      .post('/api/v1/orders/checkout')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ items: [{ productId: product.id, quantity: 1 }], addressId: addressRes.body.data.id });
+    const { orderId } = checkoutRes.body.data;
+
+    // Cancel first
+    await request(app)
+      .post(`/api/v1/orders/${orderId}/cancel`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ reason: 'cancelled' });
+
+    expect(fake.db.product.find((p: any) => p.id === product.id).stock).toBe(initialStock);
+
+    // Customer retries payment
+    const retryRes = await request(app)
+      .post(`/api/v1/orders/${orderId}/retry-payment`)
+      .set('Authorization', `Bearer ${token}`)
+      .send();
+
+    expect(retryRes.status).toBe(200);
+    expect(retryRes.body.data.orderId).toBe(orderId);
+    expect(retryRes.body.data.razorpayOrderId).toBeTruthy();
+
+    // Re-reserved
+    expect(fake.db.product.find((p: any) => p.id === product.id).stock).toBe(initialStock - 1);
+
+    // Now pay successfully
+    const verifyRes = await request(app)
+      .post(`/api/v1/orders/${orderId}/verify-payment`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        razorpay_order_id: retryRes.body.data.razorpayOrderId,
+        razorpay_payment_id: 'pay_retry_123',
+        razorpay_signature: 'sig_valid',
+      });
+
+    expect(verifyRes.status).toBe(200);
+    expect(verifyRes.body.data.status).toBe('processing');
+
+    const order = fake.db.order.find((o: any) => o.id === orderId);
+    expect(order.status).toBe('processing');
+    expect(fake.db.product.find((p: any) => p.id === product.id).stock).toBe(initialStock - 1);
+  });
+
+  it('rejects retry payment if item stock was taken before retry', async () => {
+    const token = await registerAndLogin('9876500009');
+    const addressRes = await request(app)
+      .post('/api/v1/addresses')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ fullName: 'Test Customer', phone: '9876500009', line1: 'Line 1', city: 'Hyderabad', state: 'Telangana', pincode: '500001' });
+
+    const lowStockProduct = fixture.products[1]!; // stock: 1
+    const checkoutRes = await request(app)
+      .post('/api/v1/orders/checkout')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ items: [{ productId: lowStockProduct.id, quantity: 1 }], addressId: addressRes.body.data.id });
+    const { orderId } = checkoutRes.body.data;
+
+    // Customer cancels
+    await request(app)
+      .post(`/api/v1/orders/${orderId}/cancel`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ reason: 'cancelled' });
+
+    // Another buyer buys the last item
+    const targetProduct = fake.db.product.find((p: any) => p.id === lowStockProduct.id);
+    targetProduct.stock = 0;
+
+    // Retry fails cleanly with OUT_OF_STOCK
+    const retryRes = await request(app)
+      .post(`/api/v1/orders/${orderId}/retry-payment`)
+      .set('Authorization', `Bearer ${token}`)
+      .send();
+
+    expect(retryRes.status).toBe(409);
+    expect(retryRes.body.code).toBe('OUT_OF_STOCK');
+  });
 });

@@ -205,6 +205,28 @@ describe('Razorpay webhook', () => {
     expect(unknownOrder.status).toBe(200);
   });
 
+  it('handles payment.failed webhook for a known order by marking payment_failed and releasing reservation', async () => {
+    const { orderId, razorpayOrderId } = await placeOrder();
+
+    const res = await request(app)
+      .post('/api/v1/webhooks/razorpay')
+      .set('X-Razorpay-Signature', 'valid-sig')
+      .send({
+        event: 'payment.failed',
+        payload: { payment: { entity: { order_id: razorpayOrderId, id: 'pay_failed_webhook' } } },
+      });
+    expect(res.status).toBe(200);
+
+    const order = fake.db.order.find((o: any) => o.id === orderId);
+    expect(order.status).toBe('payment_failed');
+
+    const payment = fake.db.payment.find((p: any) => p.orderId === orderId);
+    expect(payment.status).toBe('failed');
+
+    const reservations = fake.db.reservation.filter((r: any) => r.orderId === orderId);
+    expect(reservations.every((r: any) => r.status === 'released')).toBe(true);
+  });
+
   it('is rate-limited against a flood of requests to the public endpoint', async () => {
     const { razorpayOrderId } = await placeOrder();
     const payload = capturedPayload(razorpayOrderId, 'pay_flood');

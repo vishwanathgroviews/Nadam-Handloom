@@ -7,7 +7,6 @@ import { api } from '../services/api';
 import AddressForm from '../components/AddressForm';
 import { formatPrice } from '../utils/format';
 import { loadRazorpayScript } from '../utils/razorpay';
-import PaymentSuccessModal from '../components/PaymentSuccessModal';
 import './CheckoutPage.css';
 
 export default function CheckoutPage() {
@@ -20,6 +19,7 @@ export default function CheckoutPage() {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
   const [placingOrder, setPlacingOrder] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState(null);
   const [error, setError] = useState('');
   // productId -> { availableCount, isPurchasable }. Null until the first
   // check returns, so the pay button isn't blocked on a slow network.
@@ -117,6 +117,78 @@ export default function CheckoutPage() {
     }
   };
 
+  const launchRazorpayModal = async (orderId, razorpayOrderId, amount, currency, razorpayKeyId) => {
+    if (!razorpayKeyId) {
+      setError('Online payments are not configured yet. Please contact support to complete this order.');
+      setPlacingOrder(false);
+      return;
+    }
+
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      setError('Could not load the payment gateway. Please check your connection and try again.');
+      setPlacingOrder(false);
+      return;
+    }
+
+    let isSuccessHandled = false;
+    const razorpay = new window.Razorpay({
+      key: razorpayKeyId,
+      amount: Math.round(amount * 100),
+      currency,
+      order_id: razorpayOrderId,
+      name: 'Nandam Handlooms',
+      description: 'Handloom saree order',
+      prefill: { name: user?.userProfile?.displayName, email: user?.email, contact: user?.phone },
+      theme: { color: '#245B57' },
+      handler: async (response) => {
+        isSuccessHandled = true;
+        try {
+          await api.verifyPayment(orderId, {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          });
+          clearCart();
+          navigate(`/order-confirmation/${orderId}`);
+        } catch (err) {
+          setError(err.message || 'Payment verification failed. Please contact support.');
+          setPlacingOrder(false);
+          checkCartAvailability();
+        }
+      },
+      modal: {
+        ondismiss: async () => {
+          if (isSuccessHandled) return;
+          setPlacingOrder(false);
+          setPendingOrderId(orderId);
+          try {
+            await api.cancelOrder(orderId, 'cancelled');
+          } catch (e) {
+            console.error('Failed to notify cancellation', e);
+          }
+          setError('Payment cancelled. Your order was not confirmed. You can try again.');
+          checkCartAvailability();
+        },
+      },
+    });
+
+    razorpay.on('payment.failed', async () => {
+      isSuccessHandled = true;
+      setPlacingOrder(false);
+      setPendingOrderId(orderId);
+      try {
+        await api.cancelOrder(orderId, 'failed');
+      } catch (e) {
+        console.error('Failed to notify payment failure', e);
+      }
+      setError('Payment failed. Please try again.');
+      checkCartAvailability();
+    });
+
+    razorpay.open();
+  };
+
   const handlePlaceOrder = async () => {
     if (hasUnavailable) {
       setError("Can't proceed, some of the products are out of stock");
@@ -129,64 +201,50 @@ export default function CheckoutPage() {
     setError('');
     setPlacingOrder(true);
     try {
-      const checkoutResult = await api.checkout({
-        // Always one piece per line — see CartContext.
-        items: items.map((i) => ({ productId: i.productId, quantity: 1 })),
-        addressId: selectedAddressId,
-      });
+      let checkoutResult;
+      if (pendingOrderId) {
+        try {
+          checkoutResult = await api.retryPayment(pendingOrderId);
+        } catch {
+          // If existing order cannot be retried, place fresh
+          setPendingOrderId(null);
+          checkoutResult = await api.checkout({
+            items: items.map((i) => ({ productId: i.productId, quantity: 1 })),
+            addressId: selectedAddressId,
+          });
+        }
+      } else {
+        checkoutResult = await api.checkout({
+          items: items.map((i) => ({ productId: i.productId, quantity: 1 })),
+          addressId: selectedAddressId,
+        });
+      }
 
       const { orderId, razorpayOrderId, amount, currency, razorpayKeyId } = checkoutResult;
-
-      if (!razorpayKeyId) {
-        setError('Online payments are not configured yet. Please contact support to complete this order.');
-        setPlacingOrder(false);
-        return;
-      }
-
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
-        setError('Could not load the payment gateway. Please check your connection and try again.');
-        setPlacingOrder(false);
-        return;
-      }
-
-      const razorpay = new window.Razorpay({
-        key: razorpayKeyId,
-        amount: Math.round(amount * 100),
-        currency,
-        order_id: razorpayOrderId,
-        name: 'Nandam Handlooms',
-        description: 'Handloom saree order',
-        prefill: { name: user?.userProfile?.displayName, email: user?.email, contact: user?.phone },
-        theme: { color: '#7A1F2B' },
-        handler: async (response) => {
-          try {
-            await api.verifyPayment(orderId, {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-            clearCart();
-            navigate(`/order-confirmation/${orderId}`);
-          } catch (err) {
-            setError(err.message || 'Payment verification failed. Please contact support.');
-            setPlacingOrder(false);
-          }
-        },
-        modal: {
-          ondismiss: () => setPlacingOrder(false),
-        },
-      });
-
-      razorpay.on('payment.failed', () => {
-        setError('Payment failed. Please try again.');
-        setPlacingOrder(false);
-      });
-
-      razorpay.open();
+      setPendingOrderId(orderId);
+      await launchRazorpayModal(orderId, razorpayOrderId, amount, currency, razorpayKeyId);
     } catch (err) {
       setError(err.message || 'Could not place order');
       setPlacingOrder(false);
+      checkCartAvailability();
+    }
+  };
+
+  const handleRetryPayment = async () => {
+    if (!pendingOrderId) {
+      handlePlaceOrder();
+      return;
+    }
+    setError('');
+    setPlacingOrder(true);
+    try {
+      const retryResult = await api.retryPayment(pendingOrderId);
+      const { orderId, razorpayOrderId, amount, currency, razorpayKeyId } = retryResult;
+      await launchRazorpayModal(orderId, razorpayOrderId, amount, currency, razorpayKeyId);
+    } catch (err) {
+      setError(err.message || 'Could not retry payment');
+      setPlacingOrder(false);
+      checkCartAvailability();
     }
   };
 
@@ -194,7 +252,22 @@ export default function CheckoutPage() {
     <div className="container checkout-page">
       <h1 className="section-title">Checkout</h1>
 
-      {error && <div className="alert alert-error">{error}</div>}
+      {error && (
+        <div className="alert alert-error" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>{error}</span>
+          {pendingOrderId && (
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              style={{ marginLeft: '12px', whiteSpace: 'nowrap', backgroundColor: '#fff' }}
+              onClick={handleRetryPayment}
+              disabled={placingOrder}
+            >
+              Retry Payment
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="checkout-layout">
         <div className="checkout-main">
@@ -288,18 +361,26 @@ export default function CheckoutPage() {
             <span>Subtotal ({itemCount} item{itemCount === 1 ? '' : 's'})</span>
             <span>{formatPrice(subtotal)}</span>
           </div>
+          <div className="cart-summary-row">
+            <span>Delivery</span>
+            <span style={{ color: 'var(--success)', fontWeight: 600 }}>FREE (Insured Pan-India)</span>
+          </div>
           <div className="cart-summary-row cart-summary-total">
             <span>Total</span>
-            <span>{formatPrice(total)}</span>
+            <span className="cart-total-amount">{formatPrice(total)}</span>
           </div>
           <button
             className="btn btn-primary btn-block"
-            onClick={handlePlaceOrder}
-            disabled={placingOrder || hasUnavailable}
+            onClick={pendingOrderId ? handleRetryPayment : handlePlaceOrder}
+            disabled={placingOrder || hasUnavailable || !selectedAddressId}
+            style={{ marginTop: '16px' }}
           >
-            {placingOrder ? 'Processing…' : 'Pay & Place Order'}
+            {placingOrder ? 'Securing Payment…' : pendingOrderId ? 'Retry Payment' : 'Proceed to Secure Payment'}
           </button>
-          <p className="checkout-secure-note">Payments are securely processed via Razorpay.</p>
+          <div className="cart-summary-trust" style={{ marginTop: '14px' }}>
+            <span>🔒 Encrypted 256-Bit Checkout via Razorpay</span>
+            <span>🌿 100% Authentic Pitloom Sarees Guaranteed</span>
+          </div>
         </aside>
       </div>
     </div>

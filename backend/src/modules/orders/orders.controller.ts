@@ -25,6 +25,26 @@ export const verifyPayment = async (req: AuthenticatedRequest, res: Response, ne
   }
 };
 
+export const cancelOrder = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const result = await ordersService.cancelOrderPayment(req.user.id, req.params.orderId as string, req.body?.reason);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const retryPayment = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const result = await ordersService.retryOrderPayment(req.user.id, req.params.orderId as string);
+    res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const listOrders = async (req: AuthenticatedRequest & QueryValidatedRequest, res: Response, next: NextFunction) => {
   try {
     if (!req.user) throw new UnauthorizedError();

@@ -152,14 +152,28 @@ export const getCatalogPdfStatus = async (subcategoryId: string) => {
   return prisma.subcategoryCatalogPdf.findUnique({ where: { subcategoryId } });
 };
 
-export const generateCatalogPdf = async (
-  subcategoryId: string,
-  actorId: string
-): Promise<{ pdf: Buffer; productCount: number; url: string }> => {
-  if (!storageProvider.isConfigured()) {
-    throw new AppError('Catalog storage is not configured yet. Please contact support.', 503, 'STORAGE_NOT_CONFIGURED');
-  }
+export interface CatalogPreviewProduct {
+  id: string;
+  name: string;
+  sku: string;
+  imageUrl: string;
+  price: string;
+  mrp: string | null;
+  catalogId: string | null;
+  availableCount: number;
+}
 
+export interface CatalogPreviewData {
+  subcategory: {
+    id: string;
+    name: string;
+    storePrice: string;
+    onlinePrice: string;
+  };
+  products: CatalogPreviewProduct[];
+}
+
+export const getCatalogPreviewProducts = async (subcategoryId: string): Promise<CatalogPreviewData> => {
   const subcategory = await prisma.subcategory.findUnique({ where: { id: subcategoryId } });
   if (!subcategory) throw new NotFoundError('Subcategory not found');
 
@@ -171,19 +185,109 @@ export const generateCatalogPdf = async (
     },
     orderBy: { createdAt: 'asc' },
   });
+
+  const withImages = products.filter((p) => p.images.length > 0);
+  const inStock = withImages.filter((product) => product.stock + product.pieces.length > 0);
+
+  const previewProducts: CatalogPreviewProduct[] = inStock.map((product) => {
+    const ids = product.pieces.map((piece) => catalogIdFor(piece.barcode));
+    return {
+      id: product.id,
+      name: product.name || subcategory.name,
+      sku: product.sku,
+      imageUrl: product.images[0]!.url,
+      price: subcategory.storePrice.toString(),
+      mrp: subcategory.mrp ? subcategory.mrp.toString() : null,
+      catalogId: ids.length > 0 ? ids.join(', ') : null,
+      availableCount: product.stock + product.pieces.length,
+    };
+  });
+
+  return {
+    subcategory: {
+      id: subcategory.id,
+      name: subcategory.name,
+      storePrice: subcategory.storePrice.toString(),
+      onlinePrice: subcategory.onlinePrice.toString(),
+    },
+    products: previewProducts,
+  };
+};
+
+export const generateCatalogPdf = async (
+  subcategoryId: string,
+  actorId: string,
+  selectedProductIds?: string[]
+): Promise<{ pdf: Buffer; productCount: number; url: string }> => {
+  if (!storageProvider.isConfigured()) {
+    throw new AppError('Catalog storage is not configured yet. Please contact support.', 503, 'STORAGE_NOT_CONFIGURED');
+  }
+
+  const subcategory = await prisma.subcategory.findUnique({ where: { id: subcategoryId } });
+  if (!subcategory) throw new NotFoundError('Subcategory not found');
+
+  let sanitizedIds: string[] | undefined;
+  if (selectedProductIds !== undefined) {
+    if (!Array.isArray(selectedProductIds)) {
+      throw new BadRequestError('selectedProductIds must be an array of product IDs');
+    }
+    if (selectedProductIds.length === 0) {
+      throw new BadRequestError('At least one product must be selected to generate the catalog');
+    }
+    sanitizedIds = Array.from(new Set(selectedProductIds));
+    if (sanitizedIds.some((id) => typeof id !== 'string' || !id.trim())) {
+      throw new BadRequestError('Invalid product ID in selection');
+    }
+  }
+
+  const whereClause: any = { subcategoryId, isActive: true, deletedAt: null };
+  if (sanitizedIds) {
+    whereClause.id = { in: sanitizedIds };
+  }
+
+  const products = await prisma.product.findMany({
+    where: whereClause,
+    include: {
+      images: { orderBy: { sortOrder: 'asc' }, take: 1 },
+      pieces: { where: { status: 'in_stock' }, orderBy: { createdAt: 'asc' }, select: { barcode: true } },
+    },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  if (sanitizedIds) {
+    const foundIds = new Set(products.map((p) => p.id));
+    const missing = sanitizedIds.filter((id) => !foundIds.has(id));
+    if (missing.length > 0) {
+      throw new BadRequestError('One or more selected products are invalid or do not belong to this subcategory');
+    }
+  }
+
   const withImages = products.filter((p) => p.images.length > 0);
 
   // Only currently-available products get a page — same availability rule
   // as inventory.service.ts's getLowStock: legacy bulk stock plus however
   // many individually-barcoded pieces are still in_stock.
   const inStock = withImages.filter((product) => product.stock + product.pieces.length > 0);
+
+  if (sanitizedIds) {
+    const eligibleIds = new Set(inStock.map((p) => p.id));
+    const ineligible = sanitizedIds.filter((id) => !eligibleIds.has(id));
+    if (ineligible.length > 0) {
+      throw new BadRequestError('One or more selected products are out of stock or missing photos');
+    }
+  }
+
   if (inStock.length === 0) {
     throw new BadRequestError('This subcategory has no in-stock products with photos right now');
   }
 
+  // Preserve preview order if explicit product IDs were selected
+  const orderedProducts = sanitizedIds
+    ? sanitizedIds.map((id) => inStock.find((p) => p.id === id)!).filter(Boolean)
+    : inStock;
 
   const items: CatalogItem[] = [];
-  for (const product of inStock) {
+  for (const product of orderedProducts) {
     try {
       const imageBuffer = await fetchImageBuffer(product.images[0]!.url);
       // A product is normally one piece; if several are still in stock,

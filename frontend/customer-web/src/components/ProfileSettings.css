@@ -103,7 +103,7 @@
 }
 
 .profile-nav-item.active {
-  background: rgba(122, 31, 43, 0.08);
+  background: rgba(36, 91, 87, 0.08);
   color: var(--primary);
   cursor: default;
 }
@@ -217,7 +217,7 @@
   margin-left: 8px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(122, 31, 43, 0.08);
+  background: rgba(36, 91, 87, 0.08);
   color: var(--primary);
   font-size: 0.7rem;
   font-weight: 700;
@@ -276,7 +276,7 @@
 
 .profile-address-card.is-default {
   border-color: var(--primary);
-  background: rgba(122, 31, 43, 0.04);
+  background: rgba(36, 91, 87, 0.05);
 }
 
 .profile-address-card p {
@@ -389,7 +389,7 @@
   width: 62px;
   height: 62px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary) 0%, #58141E 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #194743 100%);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -399,7 +399,7 @@
   font-weight: 700;
   border: 2px solid var(--secondary);
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(122, 31, 43, 0.2);
+  box-shadow: 0 4px 12px rgba(36, 91, 87, 0.2);
 }
 
 .profile-top-info {
@@ -473,11 +473,11 @@
 .profile-quick-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
-  background: rgba(122, 31, 43, 0.05);
+  background: rgba(36, 91, 87, 0.05);
 }
 
 .profile-quick-btn.active {
-  background: rgba(122, 31, 43, 0.08);
+  background: rgba(36, 91, 87, 0.08);
   border-color: var(--primary);
   color: var(--primary);
 }

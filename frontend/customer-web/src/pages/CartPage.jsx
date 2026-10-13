@@ -12,10 +12,16 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="container state-block cart-empty">
-        <ShoppingBag size={44} />
-        <h3>Your cart is empty</h3>
-        <p>Browse our collections and add something you love.</p>
-        <Link to="/shop" className="btn btn-primary">Start Shopping</Link>
+        <div className="cart-empty-icon-wrap">
+          <ShoppingBag size={48} className="cart-empty-icon" />
+        </div>
+        <h2 className="section-title" style={{ fontSize: '1.6rem', marginTop: '12px' }}>Your Cart is Empty</h2>
+        <p style={{ maxWidth: '420px', lineHeight: '1.6', color: 'var(--text-muted)' }}>
+          Discover the elegance of pure handwoven Mangalagiri pattu silk and cotton sarees crafted by master weavers.
+        </p>
+        <Link to="/shop" className="btn btn-primary" style={{ marginTop: '14px' }}>
+          Explore Handloom Collections
+        </Link>
       </div>
     );
   }
@@ -25,7 +31,14 @@ export default function CartPage() {
 
   return (
     <div className="container cart-page">
-      <h1 className="section-title">Your Cart</h1>
+      <div className="section-header" style={{ marginBottom: '20px' }}>
+        <div>
+          <h1 className="section-title">Your Cart</h1>
+          <p className="section-subtitle">
+            {items.length} handwoven item{items.length !== 1 ? 's' : ''} in your cart
+          </p>
+        </div>
+      </div>
 
       <div className="cart-layout">
         <div className="cart-items">
@@ -40,7 +53,7 @@ export default function CartPage() {
 
                 <div className="cart-item-controls">
                   <button className="cart-item-remove" onClick={() => removeItem(item.productId)}>
-                    <Trash2 size={15} /> Remove
+                    <Trash2 size={14} /> Remove
                   </button>
                 </div>
               </div>
@@ -55,14 +68,22 @@ export default function CartPage() {
             <span>Subtotal</span>
             <span>{formatPrice(subtotal)}</span>
           </div>
+          <div className="cart-summary-row">
+            <span>Shipping</span>
+            <span style={{ color: 'var(--success)', fontWeight: 600 }}>FREE (Insured Pan-India)</span>
+          </div>
           <div className="cart-summary-row cart-summary-total">
             <span>Total</span>
-            <span>{formatPrice(total)}</span>
+            <span className="cart-total-amount">{formatPrice(total)}</span>
           </div>
-          <button className="btn btn-primary btn-block" onClick={() => navigate('/checkout')}>
+          <button className="btn btn-primary btn-block" onClick={() => navigate('/checkout')} style={{ marginTop: '16px' }}>
             Proceed to Checkout
           </button>
-          <Link to="/shop" className="cart-continue-link">Continue Shopping</Link>
+          <div className="cart-summary-trust">
+            <span>🔒 Secure 256-Bit SSL Checkout</span>
+            <span>🪡 Direct from Mangalagiri Weavers</span>
+          </div>
+          <Link to="/shop" className="cart-continue-link">← Continue Shopping</Link>
         </aside>
       </div>
     </div>

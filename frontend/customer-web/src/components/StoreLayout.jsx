@@ -112,6 +112,19 @@ export default function StoreLayout() {
 
   return (
     <div className="store-shell">
+      {/* Top Announcement Bar */}
+      <div className="store-announcement-bar" role="region" aria-label="Store Announcement">
+        <div className="container store-announcement-inner">
+          <div className="store-announcement-text">
+            <span>✨ Authentic Handwoven Mangalagiri Sarees &amp; Silks</span>
+            <span className="announcement-bullet">•</span>
+            <span>Direct from Certified Master Weavers</span>
+            <span className="announcement-bullet">•</span>
+            <span>Free Insured Pan-India Delivery</span>
+          </div>
+        </div>
+      </div>
+
       <header className="store-header">
         <div className="container store-header-inner">
           <button className="store-menu-toggle" onClick={() => setMenuOpen((v) => !v)} aria-label="Toggle menu">
@@ -120,7 +133,10 @@ export default function StoreLayout() {
 
           <Link to="/" className="store-brand">
             <BrandMark size={38} />
-            <span>Nandam Handlooms</span>
+            <div className="store-brand-details">
+              <span className="store-brand-name">Nandam Handlooms</span>
+              <span className="store-brand-heritage">Heritage Weaves</span>
+            </div>
           </Link>
 
           <nav ref={navRef} className={`store-nav ${menuOpen ? 'open' : ''}`}>
@@ -153,12 +169,13 @@ export default function StoreLayout() {
           </nav>
 
           <form className="store-search" onSubmit={handleSearch}>
-            <Search size={17} className="store-search-icon" />
+            <Search size={16} className="store-search-icon" />
             <input
               type="search"
-              placeholder="Search for sarees, shawls..."
+              placeholder="Search sarees, zari, prints…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search collections"
             />
           </form>
 
@@ -251,52 +268,54 @@ export default function StoreLayout() {
         <Outlet />
       </main>
 
-      <footer className="store-footer">
-        <div className="container store-footer-grid">
-          <div>
-            <div className="store-brand store-footer-brand">
-              <BrandMark size={34} />
-              <span>Nandam Handlooms</span>
+      <footer className={`store-footer ${location.pathname !== '/' ? 'store-footer-compact' : ''}`}>
+        {location.pathname === '/' && (
+          <div className="container store-footer-grid">
+            <div>
+              <div className="store-brand store-footer-brand">
+                <BrandMark size={34} />
+                <span>Nandam Handlooms</span>
+              </div>
+              <p className="store-footer-tagline">
+                Handcrafted sarees and handloom textiles, woven by master artisans and delivered to your doorstep.
+              </p>
             </div>
-            <p className="store-footer-tagline">
-              Handcrafted sarees and handloom textiles, woven by master artisans and delivered to your doorstep.
-            </p>
-          </div>
 
-          <div className="store-footer-col-shop">
-            <h4>Shop</h4>
-            <Link to="/shop">All Products</Link>
-            {categories.map((cat) => (
-              <Link key={cat.id} to={`/category/${cat.slug}`}>{cat.name}</Link>
-            ))}
-          </div>
+            <div className="store-footer-col-shop">
+              <h4>Shop</h4>
+              <Link to="/shop">All Products</Link>
+              {categories.map((cat) => (
+                <Link key={cat.id} to={`/category/${cat.slug}`}>{cat.name}</Link>
+              ))}
+            </div>
 
-          <div className="store-footer-col-account">
-            <h4>Account</h4>
-            <Link to="/account/orders">Track Order</Link>
-            <Link to="/account">My Account</Link>
-            <Link to="/cart">My Cart</Link>
-          </div>
+            <div className="store-footer-col-account">
+              <h4>Account</h4>
+              <Link to="/account/orders">Track Order</Link>
+              <Link to="/account">My Account</Link>
+              <Link to="/cart">My Cart</Link>
+            </div>
 
-          <div>
-            <h4>Visit Our Store</h4>
-            <p className="store-footer-muted">
-              #10-23, Opp. Brahmam Gari Temple, Hussain Katta<br />
-              Old Mangalagiri, Guntur Dist<br />
-              Andhra Pradesh – 522 503
-            </p>
-            <a className="store-footer-link" href="tel:+917382968566">Call Store: +91 73829 68566</a>
-            <p className="store-footer-muted">Mon–Sun, 9:30 AM–8:30 PM IST</p>
-            <a
-              className="store-footer-link"
-              href="https://maps.app.goo.gl/qK54PztChaCdGzMz6"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Get Directions
-            </a>
+            <div>
+              <h4>Visit Our Store</h4>
+              <p className="store-footer-muted">
+                #10-23, Opp. Brahmam Gari Temple, Hussain Katta<br />
+                Old Mangalagiri, Guntur Dist<br />
+                Andhra Pradesh – 522 503
+              </p>
+              <a className="store-footer-link" href="tel:+917382968566">Call Store: +91 73829 68566</a>
+              <p className="store-footer-muted">Mon–Sun, 9:30 AM–8:30 PM IST</p>
+              <a
+                className="store-footer-link"
+                href="https://maps.app.goo.gl/qK54PztChaCdGzMz6"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get Directions
+              </a>
+            </div>
           </div>
-        </div>
+        )}
         <div className="store-footer-bottom">
           © {new Date().getFullYear()} Nandam Handlooms. Authenticity guaranteed.
         </div>

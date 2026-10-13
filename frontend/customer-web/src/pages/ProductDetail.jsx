@@ -5,34 +5,25 @@ import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { formatPrice, discountPercent } from '../utils/format';
 import WhatsAppShareButton from '../components/WhatsAppShareButton';
+import ProductShareButton from '../components/ProductShareButton';
+import ProductCard from '../components/ProductCard';
 import { updateProductMeta, resetProductMeta } from '../utils/meta';
 import './ProductDetail.css';
 
-const ATTRIBUTE_LABELS = [
-  ['technique', 'Work / Technique'],
-  ['borderStyle', 'Border Style'],
-  ['purity', 'Purity / Grade'],
-  ['zariTier', 'Zari Tier'],
-  ['blouseType', 'Blouse Type'],
-  ['pattern', 'Pattern'],
-  ['color', 'Color'],
-  ['fabric', 'Fabric'],
-];
 
 export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { addItem } = useCart();
+  const { addItem, isInCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [activeImage, setActiveImage] = useState(0);
   const [notFound, setNotFound] = useState(false);
-  const [added, setAdded] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState([]);
 
   useEffect(() => {
     setProduct(null);
     setActiveImage(0);
-    setAdded(false);
     api
       .getProductBySlug(slug)
       .then(setProduct)
@@ -48,6 +39,16 @@ export default function ProductDetail() {
     };
   }, [product, activeImage]);
 
+  useEffect(() => {
+    if (product?.category?.slug) {
+      api.getProducts({ category: product.category.slug, pageSize: 5 })
+        .then((res) => {
+          setRelatedProducts((res.items || []).filter((p) => p.id !== product.id).slice(0, 4));
+        })
+        .catch(() => setRelatedProducts([]));
+    }
+  }, [product]);
+
   if (notFound) {
     return (
       <div className="container state-block">
@@ -62,6 +63,8 @@ export default function ProductDetail() {
     return <p className="container state-block">Loading…</p>;
   }
 
+  const inCart = isInCart(product.id);
+
   // Price/MRP/description are subcategory-level — shared by every product in it.
   const onlinePrice = product.subcategory.onlinePrice;
   const mrp = product.subcategory.mrp;
@@ -72,47 +75,36 @@ export default function ProductDetail() {
   // page at all means it is available — the not-found branch above is what
   // an old link or a stale tab now lands on.
 
-  const isAvailable = (product.stock === undefined || product.stock > 0) && product.isActive !== false;
+  const isAvailable =
+    (product.availableCount !== undefined
+      ? product.availableCount > 0
+      : product.stock === undefined || product.stock > 0) && product.isActive !== false;
 
   const handleAddToCart = () => {
     if (!isAvailable) return;
+    if (inCart) {
+      navigate('/cart');
+      return;
+    }
     addItem(product);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
   };
 
   const handleBuyNow = () => {
     if (!isAvailable) return;
-    addItem(product);
+    if (!inCart) {
+      addItem(product);
+    }
     navigate('/checkout');
   };
 
   return (
     <div className="container product-detail">
-      <div className="breadcrumb">
-        <Link to="/">Home</Link> <span>/</span>{' '}
-        <Link to={`/category/${product.category.slug}`}>{product.category.name}</Link> <span>/</span>{' '}
-        <span>{product.name}</span>
-      </div>
-
       <div className="product-detail-grid">
         <div className="product-gallery">
           <div className="product-gallery-main">
             <img src={product.images[activeImage]?.url} alt={product.name} />
+            <ProductShareButton product={product} activeImageIndex={activeImage} />
           </div>
-          {product.images.length > 1 && (
-            <div className="product-gallery-thumbs">
-              {product.images.map((img, i) => (
-                <button
-                  key={img.id}
-                  className={`product-gallery-thumb ${i === activeImage ? 'active' : ''}`}
-                  onClick={() => setActiveImage(i)}
-                >
-                  <img src={img.url} alt="" />
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         <div className="product-info">
@@ -124,40 +116,69 @@ export default function ProductDetail() {
             {discount > 0 && (
               <>
                 <span className="price-mrp">{formatPrice(mrp)}</span>
-                <span className="price-discount">{discount}% off</span>
+                <span className="pdp-savings-badge">
+                  Save {formatPrice(mrp - onlinePrice)} ({discount}% OFF)
+                </span>
               </>
             )}
           </div>
 
-          {isAvailable ? (
-            <span className="badge badge-success">In Stock</span>
-          ) : (
-            <span className="badge badge-danger">Currently Unavailable / Sold Out</span>
-          )}
+          <div className="pdp-status-row">
+            {isAvailable ? (
+              <span className="badge badge-success">
+                <span className="status-dot green" /> In Stock &amp; Ready to Ship
+              </span>
+            ) : (
+              <span className="badge badge-danger">
+                <span className="status-dot red" /> Currently Sold Out
+              </span>
+            )}
+          </div>
 
           <p className="product-description">{product.subcategory.description}</p>
 
-          <table className="product-attributes">
-            <tbody>
-              {ATTRIBUTE_LABELS.filter(([key]) => product[key]).map(([key, label]) => (
-                <tr key={key}>
-                  <td>{label}</td>
-                  <td>{product[key]}</td>
-                </tr>
-              ))}
-              {product.occasion?.length > 0 && (
-                <tr>
-                  <td>Occasion</td>
-                  <td>{product.occasion.join(', ')}</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+          {/* Genuine Trust Assurance Card */}
+          <div className="pdp-trust-box">
+            <div className="pdp-trust-item">
+              <span className="pdp-trust-icon">🪡</span>
+              <div className="pdp-trust-text">
+                <strong>100% Authentic Handloom</strong>
+                <p>Individually handwoven on pitlooms by Mangalagiri master weavers</p>
+              </div>
+            </div>
+            <div className="pdp-trust-item">
+              <span className="pdp-trust-icon">📦</span>
+              <div className="pdp-trust-text">
+                <strong>Insured Express Delivery</strong>
+                <p>Carefully inspected, securely packaged, and shipped pan-India</p>
+              </div>
+            </div>
+            <div className="pdp-trust-item">
+              <span className="pdp-trust-icon">🏷️</span>
+              <div className="pdp-trust-text">
+                <strong>Direct Weaver Pricing</strong>
+                <p>Certified pure silk and cotton with zero middleman markup</p>
+              </div>
+            </div>
+          </div>
 
           {isAvailable ? (
             <div className="product-actions">
-              <button className="btn btn-outline btn-block" onClick={handleAddToCart}>
-                {added ? <><CheckCircle2 size={17} /> Added to Cart</> : <><ShoppingBag size={17} /> Add to Cart</>}
+              <button
+                type="button"
+                className={`btn btn-block ${inCart ? 'btn-in-cart' : 'btn-outline'}`}
+                onClick={handleAddToCart}
+                aria-label={inCart ? 'Already in Cart' : 'Add to Cart'}
+              >
+                {inCart ? (
+                  <>
+                    <CheckCircle2 size={17} /> Already in Cart
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag size={17} /> Add to Cart
+                  </>
+                )}
               </button>
               <button className="btn btn-primary btn-block" onClick={handleBuyNow}>
                 <Zap size={17} /> Buy Now
@@ -188,6 +209,27 @@ export default function ProductDetail() {
           )}
         </div>
       </div>
+
+      {/* Related Collection Recommendations */}
+      {relatedProducts.length > 0 && (
+        <section className="pdp-related-section">
+          <div className="section-header">
+            <div>
+              <h2 className="section-title">You May Also Love</h2>
+              <p className="section-subtitle">More handcrafted pieces from the same collection</p>
+            </div>
+            <Link to={`/category/${product.category.slug}`} className="section-link">
+              View All in {product.category.name}
+            </Link>
+          </div>
+          <div className="product-grid">
+            {relatedProducts.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
+

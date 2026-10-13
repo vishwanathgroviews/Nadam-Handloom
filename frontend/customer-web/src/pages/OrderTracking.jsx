@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  Truck, Package, CheckCircle2, Clock, Calendar, ExternalLink,
-  ShieldCheck, AlertCircle, ArrowLeft, ChevronRight, MapPin
+  Truck, CheckCircle2, Clock, Calendar, ExternalLink,
+  ShieldCheck, AlertCircle, ArrowLeft, ChevronRight
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';

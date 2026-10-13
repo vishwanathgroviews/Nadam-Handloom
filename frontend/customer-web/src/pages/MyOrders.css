@@ -84,7 +84,7 @@
 }
 
 .order-card:hover {
-  border-color: rgba(122, 31, 43, 0.25);
+  border-color: rgba(36, 91, 87, 0.25);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
@@ -95,7 +95,7 @@
   flex-wrap: wrap;
   gap: 12px;
   padding: 16px 20px;
-  background: #faf7f5;
+  background: var(--bg-ivory);
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -236,7 +236,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: #faf7f5;
+  background: var(--bg-ivory);
   border-top: 1px solid var(--border-color);
   flex-wrap: wrap;
   gap: 12px;

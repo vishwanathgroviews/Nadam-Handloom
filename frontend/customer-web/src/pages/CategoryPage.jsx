@@ -31,34 +31,56 @@ export default function CategoryPage() {
 
   return (
     <div className="container category-page">
-      <div className="breadcrumb">
-        <Link to="/">Home</Link> <span>/</span> <span>{category?.name || 'Category'}</span>
-      </div>
-
       <div className="category-page-header">
         <div>
           <h1 className="section-title">{category?.name || 'Category'}</h1>
           {category?.description && <p className="section-subtitle">{category.description}</p>}
+          {!category?.description && (
+            <p className="section-subtitle">Select a weave style below to explore our authentic handloom collections</p>
+          )}
         </div>
       </div>
 
       {loading ? (
-        <p className="state-block">Loading…</p>
-      ) : error ? (
-        <p className="state-block">{error}</p>
-      ) : subcategories.length === 0 ? (
-        <p className="state-block">No subcategories available yet.</p>
-      ) : (
-        <motion.div
-          className="category-grid"
-          variants={staggerContainer()}
-          initial="hidden"
-          animate="visible"
-        >
-          {subcategories.map((sub) => (
-            <SubcategoryCard key={sub.id} categorySlug={slug} subcategory={sub} />
+        <div className="category-grid">
+          {[1, 2, 3, 4].map((n) => (
+            <div key={n} className="skeleton-card" style={{ aspectRatio: '3 / 4', height: 'auto' }}>
+              <div className="skeleton-card-img" style={{ height: '100%' }} />
+            </div>
           ))}
-        </motion.div>
+        </div>
+      ) : error ? (
+        <div className="state-block">
+          <p className="alert alert-error">{error}</p>
+          <Link to="/shop" className="btn btn-outline" style={{ marginTop: '14px' }}>
+            Browse All Products
+          </Link>
+        </div>
+      ) : subcategories.length === 0 ? (
+        <div className="state-block category-empty-state">
+          <div className="category-empty-icon">🪡</div>
+          <h3>No collections available yet</h3>
+          <p>Our weavers are currently crafting new designs for this category.</p>
+          <Link to="/shop" className="btn btn-outline" style={{ marginTop: '16px' }}>
+            Browse All Handlooms
+          </Link>
+        </div>
+      ) : (
+        <>
+          <p className="category-result-count">
+            {subcategories.length} handcrafted collection{subcategories.length !== 1 ? 's' : ''} available
+          </p>
+          <motion.div
+            className="category-grid"
+            variants={staggerContainer()}
+            initial="hidden"
+            animate="visible"
+          >
+            {subcategories.map((sub) => (
+              <SubcategoryCard key={sub.id} categorySlug={slug} subcategory={sub} />
+            ))}
+          </motion.div>
+        </>
       )}
     </div>
   );

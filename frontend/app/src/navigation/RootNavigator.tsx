@@ -21,6 +21,7 @@ import CategoryFormScreen from '../screens/CategoryFormScreen';
 import SubcategoryListScreen from '../screens/SubcategoryListScreen';
 import SubcategoryFormScreen from '../screens/SubcategoryFormScreen';
 import SubcategoryCatalogScreen from '../screens/SubcategoryCatalogScreen';
+import CatalogPreviewScreen from '../screens/CatalogPreviewScreen';
 import ProductListScreen from '../screens/ProductListScreen';
 import ProductFormScreen from '../screens/ProductFormScreen';
 import ScannerScreen from '../screens/ScannerScreen';
@@ -56,6 +57,7 @@ export type AppStackParamList = {
   SubcategoryList: { categoryId: string; categoryName?: string };
   SubcategoryForm: { categoryId: string; subcategoryId?: string };
   SubcategoryCatalog: { subcategoryId: string; subcategoryName?: string };
+  CatalogPreview: { subcategoryId: string; subcategoryName?: string };
   ProductForm: { productId?: string; initialBarcode?: string };
   StaffList: undefined;
   StaffInvite: undefined;
@@ -144,6 +146,7 @@ export default function RootNavigator() {
           <AppStack.Screen name="SubcategoryList" component={SubcategoryListScreen} />
           <AppStack.Screen name="SubcategoryForm" component={SubcategoryFormScreen} />
           <AppStack.Screen name="SubcategoryCatalog" component={SubcategoryCatalogScreen} />
+          <AppStack.Screen name="CatalogPreview" component={CatalogPreviewScreen} />
           <AppStack.Screen name="ProductForm" component={ProductFormScreen} />
           <AppStack.Screen name="StaffList" component={StaffListScreen} />
           <AppStack.Screen name="StaffInvite" component={StaffInviteScreen} />

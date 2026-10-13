@@ -10,6 +10,7 @@ router.use(authenticate);
 router.use(requireRoles('ADMIN', 'STAFF'));
 
 router.get('/subcategories/:subcategoryId/catalog-pdf', controller.getStatus);
+router.get('/subcategories/:subcategoryId/catalog-pdf/preview', controller.getPreviewProducts);
 
 // Fetches every active product's photo and composes a PDF per call — real
 // CPU + network cost, worth bounding even for trusted staff accounts.

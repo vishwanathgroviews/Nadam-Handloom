@@ -14,8 +14,32 @@ export interface CatalogPdfResult {
   productCount?: number;
 }
 
+export interface CatalogPreviewProduct {
+  id: string;
+  name: string;
+  sku: string;
+  imageUrl: string;
+  price: string;
+  mrp: string | null;
+  catalogId: string | null;
+  availableCount: number;
+}
+
+export interface CatalogPreviewData {
+  subcategory: {
+    id: string;
+    name: string;
+    storePrice: string;
+    onlinePrice: string;
+  };
+  products: CatalogPreviewProduct[];
+}
+
 export const getCatalogPdfStatus = (token: string, subcategoryId: string) =>
   apiRequest<{ data: CatalogPdfStatus | null }>(`/admin/subcategories/${subcategoryId}/catalog-pdf`, { token });
+
+export const getCatalogPreviewProducts = (token: string, subcategoryId: string) =>
+  apiRequest<{ data: CatalogPreviewData }>(`/admin/subcategories/${subcategoryId}/catalog-pdf/preview`, { token });
 
 /**
  * The response is a PDF, not JSON, so this can't go through apiRequest — but
@@ -31,20 +55,31 @@ export const getCatalogPdfStatus = (token: string, subcategoryId: string) =>
  */
 const CATALOG_TIMEOUT_MS = 90000;
 
-const requestCatalogPdf = async (token: string, subcategoryId: string): Promise<Response> =>
+const requestCatalogPdf = async (token: string, subcategoryId: string, productIds?: string[]): Promise<Response> =>
   fetchWithTimeout(
     `${API_BASE_URL}/admin/subcategories/${subcategoryId}/catalog-pdf`,
-    { method: 'POST', headers: { Authorization: `Bearer ${token}` } },
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(productIds ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: productIds ? JSON.stringify({ productIds }) : undefined,
+    },
     CATALOG_TIMEOUT_MS
   );
 
-export const generateCatalogPdf = async (token: string, subcategoryId: string): Promise<CatalogPdfResult> => {
-  let response = await requestCatalogPdf(token, subcategoryId);
+export const generateCatalogPdf = async (
+  token: string,
+  subcategoryId: string,
+  productIds?: string[]
+): Promise<CatalogPdfResult> => {
+  let response = await requestCatalogPdf(token, subcategoryId, productIds);
 
   // Same one-shot refresh-and-retry apiRequest does for JSON calls.
   if (response.status === 401) {
     const newToken = await refreshAccessToken();
-    response = await requestCatalogPdf(newToken, subcategoryId);
+    response = await requestCatalogPdf(newToken, subcategoryId, productIds);
   }
 
   if (!response.ok) {

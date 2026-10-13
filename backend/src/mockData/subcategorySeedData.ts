@@ -169,7 +169,11 @@ export const SUBCATEGORIES_BY_CATEGORY_SLUG: Record<string, string[]> = {
     '350k Butta Lehanga Scallop Pen Kalamkari Voni',
     'Gap Border Applique Work Lehanga Sets',
   ],
-  // Fabrics deliberately has no subcategories yet — admin adds them as
-  // stock arrives, same as the other categories did before Categories.md.
-  fabrics: [],
+  fabrics: [
+    'Pure Pattu Silk Yardage',
+    'Mangalagiri Cotton Yardage',
+    'Zari Border Pattu Fabric',
+    'Handloom Cotton Checks Fabric',
+    'Kalamkari Hand Painted Fabric',
+  ],
 };

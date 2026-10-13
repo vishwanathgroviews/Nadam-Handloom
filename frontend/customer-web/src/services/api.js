@@ -232,6 +232,12 @@ export const api = {
   verifyPayment: async (orderId, payload) =>
     (await authedRequest(`/orders/${orderId}/verify-payment`, { method: 'POST', body: payload })).data,
 
+  cancelOrder: async (orderId, reason = 'cancelled') =>
+    (await authedRequest(`/orders/${orderId}/cancel`, { method: 'POST', body: { reason } })).data,
+
+  retryPayment: async (orderId) =>
+    (await authedRequest(`/orders/${orderId}/retry-payment`, { method: 'POST' })).data,
+
   getOrders: async ({ page = 1, pageSize = 10 } = {}) => {
     const res = await authedRequest(`/orders?page=${page}&pageSize=${pageSize}`);
     return res.data;

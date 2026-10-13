@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import HeroCarousel from '../components/HeroCarousel';
-import TraditionalBorder from '../components/TraditionalBorder';
 import CategoryCard from '../components/CategoryCard';
 import ProductCard from '../components/ProductCard';
 import StoreLocation from '../components/StoreLocation';
@@ -75,11 +74,15 @@ export default function Home() {
   useEffect(() => {
     Promise.all([
       api.getCategories(),
-      api.getProducts({ featured: true, sort: 'newest', pageSize: 4 }),
+      api.getProducts({ featured: true, sort: 'newest', pageSize: 4 })
+        .then(async (products) => {
+          if (products?.items && products.items.length > 0) return products;
+          return api.getProducts({ sort: 'newest', pageSize: 4 });
+        }),
     ])
       .then(([cats, products]) => {
         setCategories(cats);
-        setFeatured(products.items.slice(0, 4));
+        setFeatured(products?.items?.slice(0, 4) || []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -88,7 +91,40 @@ export default function Home() {
   return (
     <div className="home-page">
       <HeroCarousel slides={HERO_SLIDES} />
-      <TraditionalBorder />
+
+      {/* Authentic Heritage Highlight Strip */}
+      <div className="home-heritage-bar">
+        <div className="container home-heritage-inner">
+          <div className="home-heritage-item">
+            <span className="home-heritage-icon">🪡</span>
+            <div className="home-heritage-text">
+              <span className="home-heritage-title">Handwoven Pitloom Weaves</span>
+              <span className="home-heritage-sub">Authentic Mangalagiri Artistry</span>
+            </div>
+          </div>
+          <div className="home-heritage-item">
+            <span className="home-heritage-icon">✨</span>
+            <div className="home-heritage-text">
+              <span className="home-heritage-title">100% Certified Pure Silk</span>
+              <span className="home-heritage-sub">Tested Zari &amp; Natural Dyes</span>
+            </div>
+          </div>
+          <div className="home-heritage-item">
+            <span className="home-heritage-icon">🏛️</span>
+            <div className="home-heritage-text">
+              <span className="home-heritage-title">Direct from Master Weavers</span>
+              <span className="home-heritage-sub">Fair Artisan Prices • No Middlemen</span>
+            </div>
+          </div>
+          <div className="home-heritage-item">
+            <span className="home-heritage-icon">📦</span>
+            <div className="home-heritage-text">
+              <span className="home-heritage-title">Pan-India Express Delivery</span>
+              <span className="home-heritage-sub">Insured &amp; Safely Dispatched</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <section className="section container">
         <motion.div
@@ -144,7 +180,18 @@ export default function Home() {
           </Link>
         </motion.div>
         {loading ? (
-          <p className="state-block">Loading products…</p>
+          <div className="product-grid">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="skeleton-card">
+                <div className="skeleton-card-img" />
+                <div className="skeleton-card-body">
+                  <div className="skeleton-line short" />
+                  <div className="skeleton-line full" />
+                  <div className="skeleton-line medium" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : featured.length === 0 ? (
           <p className="state-block">New arrivals coming soon.</p>
         ) : (

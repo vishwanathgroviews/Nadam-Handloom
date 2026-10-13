@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PackageSearch, Truck, ExternalLink, Calendar, CreditCard, ChevronRight, AlertCircle } from 'lucide-react';
+import { PackageSearch, Truck, Calendar, CreditCard, ChevronRight, AlertCircle } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { formatPrice } from '../utils/format';
@@ -167,8 +167,13 @@ export default function MyOrders() {
                     <span className="order-total-value">{formatPrice(order.total)}</span>
                   </div>
                   <div className="order-actions-group">
+                    {['pending_payment', 'payment_failed', 'cancelled'].includes(order.status) && (
+                      <Link to={`/account/orders/${order.id}`} className="btn btn-primary btn-sm">
+                        Retry Payment
+                      </Link>
+                    )}
                     <Link to={`/account/orders/${order.id}`} className="btn btn-outline btn-sm">
-                      Details & Invoice
+                      Details {isPaid ? '& Invoice' : ''}
                     </Link>
                     {isEligibleForTracking && (
                       <Link to={`/account/tracking?orderId=${order.id}`} className="btn btn-primary btn-sm">

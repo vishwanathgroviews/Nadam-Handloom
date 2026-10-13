@@ -1,3 +1,4 @@
+import { formatPrice } from './format';
 import { PRODUCTION_SITE_URL, getShortProductDescription } from './whatsapp';
 
 export const DEFAULT_PAGE_TITLE = 'Nandam Handlooms — Handwoven Sarees Online';
@@ -49,10 +50,22 @@ export function getProductMeta(product, options = {}) {
     : null;
   const imageUrl = resolveProductImageUrl(imageObj || product.imageUrl, siteUrl);
 
-  const title = name;
+  const onlinePrice = product.subcategory?.onlinePrice ?? product.onlinePrice ?? product.price;
+  const mrp = product.subcategory?.mrp ?? product.mrp;
+  let priceSnippet = '';
+  if (onlinePrice) {
+    const formattedOnline = formatPrice(onlinePrice);
+    if (mrp && Number(mrp) > Number(onlinePrice)) {
+      priceSnippet = ` | Special Price: ${formattedOnline} (MRP: ${formatPrice(mrp)})`;
+    } else {
+      priceSnippet = ` | Price: ${formattedOnline}`;
+    }
+  }
+  const baseDesc =
+    getShortProductDescription(product, 100) || `Authentic handwoven saree from Nandam Handlooms.`;
+  const description = `${baseDesc}${priceSnippet}`.trim();
+  const title = `${name} | Nandam Handlooms`;
   const documentTitle = `${name} | Nadam Handloom`;
-  const description =
-    getShortProductDescription(product, 80) || `View ${name} at Nadam Handloom.`;
 
   return {
     title,

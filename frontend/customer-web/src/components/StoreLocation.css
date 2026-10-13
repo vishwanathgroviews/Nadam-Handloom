@@ -109,9 +109,12 @@
   .store-location-card {
     grid-template-columns: 1fr;
   }
+}
 
+@media (max-width: 768px) {
+  /* Remove 'View on Google Maps' card in mobile-web only */
   .store-location-map-preview {
-    padding: 28px;
+    display: none !important;
   }
 }
 

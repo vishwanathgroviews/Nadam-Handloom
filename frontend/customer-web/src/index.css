@@ -1,24 +1,58 @@
 :root {
-  --primary: #7A1F2B;      /* Deep Maroon */
-  --primary-hover: #5c141e;
-  --secondary: #C99A3E;    /* Turmeric Gold */
-  --secondary-hover: #a87e2f;
-  --bg-ivory: #F7F1E6;     /* Soft warm Ivory background */
-  --text-dark: #2B2523;
-  --text-muted: #6B615E;
-  --card-bg: rgba(255, 255, 255, 0.95);
-  --border-color: #E6DFD5;
-  --success: #2E7D32;
-  --success-bg: #E8F5E9;
-  --danger: #C0392B;
-  --danger-bg: #FCEBEA;
-  --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  --radius-lg: 20px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
-  --shadow-premium: 0 20px 40px rgba(122, 31, 43, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
-  --shadow-card: 0 6px 18px rgba(43, 37, 35, 0.08);
+  /* Brand Luxury Palette — Cool Ivory, Deep Teal & Champagne Gold */
+  --primary: #245B57;          /* Deep Teal */
+  --primary-hover: #194743;    /* Darker Teal */
+  --primary-light: rgba(36, 91, 87, 0.08);
+  --primary-glow: rgba(36, 91, 87, 0.22);
+
+  --secondary: #C5A66B;        /* Champagne Gold */
+  --secondary-hover: #B09054;
+  --secondary-light: rgba(197, 166, 107, 0.14);
+  --secondary-glow: rgba(197, 166, 107, 0.28);
+  --accent-gold: #C5A66B;
+
+  /* Surfaces & Backgrounds */
+  --bg-ivory: #F7F8F5;         /* Cool Ivory */
+  --bg-sage: #DCE8DF;          /* Soft Sage */
+  --bg-cream: #DCE8DF;         /* Secondary Background */
+  --card-bg: #FFFFFF;          /* White Surfaces */
+  --card-elevated: #FFFFFF;
+
+  /* Typography Colors */
+  --text-dark: #26332F;        /* Charcoal Green */
+  --text-body: #26332F;
+  --text-muted: #68736D;       /* Muted Grey-Green */
+  --text-light: #8E9993;
+
+  /* Borders & Dividers */
+  --border-color: #E2E7E1;     /* Subtle Borders */
+  --border-gold: rgba(197, 166, 107, 0.35);
+  --border-subtle: #EDF1EC;
+
+  /* Status & Sale Colors */
+  --sale: #1B7A43;
+  --sale-bg: #E8F5EB;
+  --success: #1E7E44;
+  --success-bg: #E8F5EB;
+  --danger: #B3261E;
+  --danger-bg: #FDF0ED;
+
+  /* Shadows & Elevation */
+  --shadow-sm: 0 2px 8px rgba(38, 51, 47, 0.04);
+  --shadow-card: 0 4px 16px rgba(38, 51, 47, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --shadow-hover: 0 14px 30px rgba(36, 91, 87, 0.10), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-premium: 0 20px 48px rgba(36, 91, 87, 0.14), 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  /* Transitions & Radii */
+  --transition-smooth: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --transition-quick: all 0.2s ease-in-out;
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --radius-sm: 6px;
+  --radius-pill: 9999px;
+
   --header-height: 76px;
+  --announcement-height: 38px;
 }
 
 * {
@@ -29,6 +63,7 @@
 
 html {
   overflow-x: clip;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -36,11 +71,12 @@ body {
   padding: 0;
   min-height: 100vh;
   width: 100%;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-ivory);
-  color: var(--text-dark);
-  /* overflow-x: clip prevents horizontal scrolling without breaking position: sticky */
+  color: var(--text-body);
   overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -50,10 +86,39 @@ body {
 
 a {
   color: inherit;
+  text-decoration: none;
 }
 
 img {
   max-width: 100%;
   display: block;
 }
+
+/* Accessibility Focus Ring */
+:focus-visible {
+  outline: 2px solid var(--secondary);
+  outline-offset: 2px;
+}
+
+/* Shimmer Keyframes for Skeleton Loaders */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(226, 231, 225, 0.45) 25%,
+    rgba(255, 255, 255, 0.75) 50%,
+    rgba(226, 231, 225, 0.45) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite ease-in-out;
+}
+
 

@@ -272,6 +272,140 @@ export function buildWhatsAppProductMessage(product, options = {}) {
 }
 
 /**
+ * Builds the customer-facing WhatsApp share message according to the exact template:
+ *
+ * Beautiful saree from Nandam Handlooms!
+ * Product: [Actual Product Name]
+ * Price: ₹[Actual Price]
+ * Offer Price: ₹[Actual Offer Price, if available]
+ * View this product:
+ * https://nandamhandlooms.com/[actual-product-route]
+ */
+export function buildProductCustomerShareMessage(product, options = {}) {
+  if (!product || typeof product !== 'object') return '';
+
+  const name = (product.name || product.title || '').trim();
+  const rawOnlinePrice = product.subcategory?.onlinePrice ?? product.onlinePrice ?? product.price;
+  const rawMrp = product.subcategory?.mrp ?? product.mrp;
+
+  const onlinePrice =
+    rawOnlinePrice !== undefined && rawOnlinePrice !== null && rawOnlinePrice !== ''
+      ? Number(rawOnlinePrice)
+      : null;
+  const mrp =
+    rawMrp !== undefined && rawMrp !== null && rawMrp !== ''
+      ? Number(rawMrp)
+      : null;
+
+  const hasOffer = mrp !== null && onlinePrice !== null && mrp > onlinePrice;
+
+  const formatWithRupee = (val) => {
+    const formatted = formatPrice(val);
+    return formatted.startsWith('₹') ? formatted : `₹${formatted}`;
+  };
+
+  const productUrl = getProductPageUrl(product.slug, options);
+
+  const lines = [
+    'Beautiful saree from Nandam Handlooms!',
+    `Product: ${name}`,
+  ];
+
+  if (hasOffer) {
+    lines.push(`Price: ${formatWithRupee(mrp)}`);
+    lines.push(`Offer Price: ${formatWithRupee(onlinePrice)}`);
+  } else if (onlinePrice !== null) {
+    lines.push(`Price: ${formatWithRupee(onlinePrice)}`);
+  } else if (mrp !== null) {
+    lines.push(`Price: ${formatWithRupee(mrp)}`);
+  }
+
+  lines.push('View this product:');
+  lines.push(productUrl);
+
+  return lines.join('\n');
+}
+
+/**
+ * Generates universal WhatsApp share URL (allowing recipient selection on WhatsApp)
+ */
+export function getCustomerWhatsAppShareUrl(product, options = {}) {
+  const message = options.message || buildProductCustomerShareMessage(product, options);
+  if (!message) return '';
+  return `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+}
+
+/**
+ * Shares the actual product image and dynamic message to WhatsApp.
+ * Uses Web Share API Level 2 (files sharing) when available so the actual image file is attached.
+ * Gracefully falls back to universal WhatsApp link sharing if file sharing is unsupported or fails.
+ */
+export async function shareProductOnWhatsApp(product, options = {}) {
+  if (!product) return { success: false, error: 'No product provided' };
+
+  const message = buildProductCustomerShareMessage(product, options);
+  const activeIdx = options.activeImageIndex ?? 0;
+  const rawImage =
+    (Array.isArray(product.images) && product.images[activeIdx]?.url) ||
+    product.images?.[0]?.url ||
+    product.image ||
+    product.imageUrl;
+
+  const title = product.name || 'Nandam Handlooms';
+
+  let imageFile = null;
+  if (rawImage) {
+    try {
+      imageFile = await fetchMediaAsFile(
+        rawImage,
+        `${product.slug || 'product'}.jpg`,
+        options
+      );
+    } catch {
+      imageFile = null;
+    }
+  }
+
+  // Attempt direct image file attachment via Web Share API
+  if (imageFile && canShareFiles([imageFile])) {
+    try {
+      const shareData = {
+        title,
+        text: message,
+        files: [imageFile],
+      };
+
+      if (typeof navigator.canShare === 'function' && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        return { success: true, method: 'web-share-file-and-text', imageAttached: true };
+      }
+
+      await navigator.share(shareData);
+      return { success: true, method: 'web-share-file-and-text', imageAttached: true };
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        // User cancelled native share sheet
+        return { success: false, cancelled: true };
+      }
+      console.warn('Native file share failed, falling back to WhatsApp link sharing:', err);
+    }
+  }
+
+  // Universal WhatsApp Link Sharing Fallback (no recipient hardcoded -> allows selecting any contact/group)
+  const fallbackUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+  if (typeof window !== 'undefined') {
+    window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+  }
+
+  return {
+    success: true,
+    method: 'whatsapp-link',
+    imageAttached: false,
+    url: fallbackUrl,
+  };
+}
+
+/**
  * Builds the complete click-to-chat WhatsApp share URL directed to the configured owner recipient.
  * Format: https://wa.me/916301151166?text=<ENCODED_MESSAGE>
  */

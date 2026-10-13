@@ -233,4 +233,96 @@ describe('subcategory catalog PDF', () => {
       .set('Authorization', `Bearer ${staffToken}`);
     expect(res.status).toBe(200);
   });
+
+  it('fetches eligible catalog products for preview', async () => {
+    const staffToken = await createToken('STAFF', '9100000010');
+    const category = seedCategory();
+    const subcategory = seedSubcategory(category.id, { storePrice: '1499.00' });
+    const p1 = seedProductWithImage(category.id, subcategory.id, { name: 'Pattu Saree 1', stock: 3 });
+    const p2 = seedProductWithImage(category.id, subcategory.id, { name: 'Pattu Saree 2', stock: 0 });
+    // p2 has an in-stock piece
+    fake.db.piece.push({ id: randomUUID(), productId: p2.id, barcode: 'NANDAM5001', status: 'in_stock', createdAt: new Date(), updatedAt: new Date() });
+    // p3 is out of stock and has no pieces
+    seedProductWithImage(category.id, subcategory.id, { name: 'Out of stock Saree', stock: 0 });
+
+    const res = await request(app)
+      .get(`/api/v1/admin/subcategories/${subcategory.id}/catalog-pdf/preview`)
+      .set('Authorization', `Bearer ${staffToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.subcategory.name).toBe(subcategory.name);
+    expect(res.body.data.subcategory.storePrice).toBe('1499.00');
+    expect(res.body.data.products).toHaveLength(2);
+    expect(res.body.data.products[0].id).toBe(p1.id);
+    expect(res.body.data.products[0].name).toBe('Pattu Saree 1');
+    expect(res.body.data.products[0].price).toBe('1499.00');
+    expect(res.body.data.products[1].id).toBe(p2.id);
+    expect(res.body.data.products[1].catalogId).toBe('5001');
+  });
+
+  it('generates a PDF containing only the selected product IDs and excludes unselected ones', async () => {
+    const staffToken = await createToken('STAFF', '9100000011');
+    const category = seedCategory();
+    const subcategory = seedSubcategory(category.id);
+    const p1 = seedProductWithImage(category.id, subcategory.id, { name: 'Saree 1', stock: 2 });
+    const p2 = seedProductWithImage(category.id, subcategory.id, { name: 'Saree 2', stock: 2 });
+    const p3 = seedProductWithImage(category.id, subcategory.id, { name: 'Saree 3', stock: 2 });
+
+    // Generate with only p1 and p3 selected
+    const res = await request(app)
+      .post(`/api/v1/admin/subcategories/${subcategory.id}/catalog-pdf`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ productIds: [p1.id, p3.id] });
+
+    expect(res.status).toBe(200);
+    expect(res.headers['x-product-count']).toBe('2');
+  });
+
+  it('rejects generation if a selected product ID does not belong to the subcategory', async () => {
+    const staffToken = await createToken('STAFF', '9100000012');
+    const category = seedCategory();
+    const subcategory1 = seedSubcategory(category.id);
+    const subcategory2 = seedSubcategory(category.id);
+    const p1 = seedProductWithImage(category.id, subcategory1.id);
+    const otherSubcategoryProduct = seedProductWithImage(category.id, subcategory2.id);
+
+    const res = await request(app)
+      .post(`/api/v1/admin/subcategories/${subcategory1.id}/catalog-pdf`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ productIds: [p1.id, otherSubcategoryProduct.id] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toContain('invalid or do not belong');
+  });
+
+  it('rejects generation if selectedProductIds is an empty array', async () => {
+    const staffToken = await createToken('STAFF', '9100000013');
+    const category = seedCategory();
+    const subcategory = seedSubcategory(category.id);
+    seedProductWithImage(category.id, subcategory.id);
+
+    const res = await request(app)
+      .post(`/api/v1/admin/subcategories/${subcategory.id}/catalog-pdf`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ productIds: [] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toContain('At least one product must be selected');
+  });
+
+  it('rejects generation if a selected product is out of stock', async () => {
+    const staffToken = await createToken('STAFF', '9100000014');
+    const category = seedCategory();
+    const subcategory = seedSubcategory(category.id);
+    const pOut = seedProductWithImage(category.id, subcategory.id, { stock: 0 });
+
+    const res = await request(app)
+      .post(`/api/v1/admin/subcategories/${subcategory.id}/catalog-pdf`)
+      .set('Authorization', `Bearer ${staffToken}`)
+      .send({ productIds: [pOut.id] });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toContain('out of stock');
+  });
 });

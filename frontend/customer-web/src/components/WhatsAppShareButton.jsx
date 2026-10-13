@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   openWhatsAppShare,
   shareToWhatsApp,
+  shareProductOnWhatsApp,
   canShareFiles,
   detectMediaType,
 } from '../utils/whatsapp';
@@ -44,9 +45,9 @@ export default function WhatsAppShareButton({
   mediaType,
   caption,
   className = '',
-  label = 'Share on WhatsApp',
-  title = 'Share this product on WhatsApp',
-  ariaLabel = 'Share this product on WhatsApp',
+  label = 'Contact Us',
+  title = 'Contact Us',
+  ariaLabel = 'Contact Us on WhatsApp',
   options = {},
 }) {
   const [isSharing, setIsSharing] = useState(false);
@@ -65,6 +66,19 @@ export default function WhatsAppShareButton({
       caption,
       ...options,
     };
+
+    // If targetItem is a product, use the customer-facing product share pipeline
+    if (targetItem.slug) {
+      setIsSharing(true);
+      try {
+        await shareProductOnWhatsApp(targetItem, shareOptions);
+      } catch (err) {
+        console.error('WhatsApp product share error:', err);
+      } finally {
+        setIsSharing(false);
+      }
+      return;
+    }
 
     // If Web Share API with files is not available (e.g. desktop browsers, jsdom),
     // immediately execute the synchronous click-to-chat fallback to prevent popup blockers

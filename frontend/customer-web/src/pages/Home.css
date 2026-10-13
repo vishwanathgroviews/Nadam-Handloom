@@ -57,10 +57,10 @@
   background:
     repeating-linear-gradient(
       45deg,
-      rgba(122, 31, 43, 0.05) 0 12px,
-      rgba(122, 31, 43, 0.09) 12px 24px
+      rgba(36, 91, 87, 0.05) 0 12px,
+      rgba(36, 91, 87, 0.09) 12px 24px
     ),
-    var(--color-surface, #faf6f1);
+    var(--bg-ivory, #F7F8F5);
 }
 
 .antigravity-card-overlay,
@@ -100,41 +100,89 @@
   }
 }
 
+/* Home Heritage Highlights Bar */
+.home-heritage-bar {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  padding: 24px 0;
+  box-shadow: 0 4px 16px rgba(36, 91, 87, 0.04);
+}
+
+.home-heritage-inner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.home-heritage-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.home-heritage-icon {
+  font-size: 1.85rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.home-heritage-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home-heritage-title {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--primary);
+  letter-spacing: 0.1px;
+}
+
+.home-heritage-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
 .craft-story {
-  background: var(--card-bg);
-  padding: 60px 0;
+  background: #ffffff;
+  padding: 72px 0;
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
+  position: relative;
 }
 
 .craft-story-inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 48px;
+  gap: 56px;
   align-items: center;
 }
 
 .craft-story-text {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
   align-items: flex-start;
 }
 
 .craft-eyebrow {
-  color: var(--primary);
+  color: var(--secondary);
+  font-weight: 700;
+  letter-spacing: 2px;
 }
 
 .craft-story-text p {
   color: var(--text-muted);
-  line-height: 1.7;
-  font-size: 0.98rem;
+  line-height: 1.8;
+  font-size: 1.02rem;
 }
 
 .craft-story-collage {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
 }
 
 .craft-story-collage img {
@@ -143,7 +191,29 @@
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-card);
+}
+
+@media (max-width: 900px) {
+  .home-heritage-inner {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Remove heritage highlights bar only in mobile web */
+  .home-heritage-bar {
+    display: none !important;
+  }
+}
+
+@media (max-width: 540px) {
+  .home-heritage-inner {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
 }
 
 @media (max-width: 800px) {

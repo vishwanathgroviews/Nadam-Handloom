@@ -206,14 +206,164 @@ export const finalizeCapturedPayment = async (
   });
 };
 
-/** Ignores anything that isn't a captured payment for an order we recognize — Razorpay retries webhooks, and we'd rather no-op than 500 and get retried forever. */
+export const cancelOrderPayment = async (
+  authAccountId: string,
+  orderId: string,
+  reason?: string
+) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { payment: true },
+  });
+  if (!order || order.authAccountId !== authAccountId) {
+    throw new NotFoundError('Order not found');
+  }
+
+  // If already finalized (paid / processing / shipped / delivered), NEVER cancel or release stock!
+  // This protects against race conditions where the gateway webhook or verification already captured the payment.
+  const paidStatuses = ['paid', 'processing', 'shipped', 'delivered'];
+  if (paidStatuses.includes(order.status) || order.payment?.status === 'paid') {
+    return {
+      orderId,
+      status: order.status,
+      message: 'Order has already been confirmed as paid.',
+    };
+  }
+
+  const newStatus = reason === 'failed' ? 'payment_failed' : 'cancelled';
+
+  await prisma.$transaction(async (tx) => {
+    // Atomic check: Ensure payment wasn't marked paid in a race
+    const currentPayment = await tx.payment.findUnique({ where: { orderId } });
+    if (currentPayment?.status === 'paid') return;
+
+    if (currentPayment && currentPayment.status !== 'failed') {
+      await tx.payment.update({
+        where: { orderId },
+        data: { status: 'failed' },
+      });
+    }
+
+    await tx.order.update({
+      where: { id: orderId },
+      data: { status: newStatus },
+    });
+
+    // Release any temporary reservations held for this order immediately
+    await releaseReservationsForOrder(tx, orderId);
+  });
+
+  return {
+    orderId,
+    status: newStatus,
+    message: reason === 'failed' ? 'Payment failed.' : 'Payment cancelled.',
+  };
+};
+
+export const retryOrderPayment = async (authAccountId: string, orderId: string) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      items: true,
+      payment: true,
+      reservations: true,
+    },
+  });
+
+  if (!order || order.authAccountId !== authAccountId) {
+    throw new NotFoundError('Order not found');
+  }
+
+  const paidStatuses = ['paid', 'processing', 'shipped', 'delivered'];
+  if (paidStatuses.includes(order.status) || order.payment?.status === 'paid') {
+    throw new BadRequestError('This order has already been paid');
+  }
+
+  if (!paymentProvider.isConfigured()) {
+    throw new AppError(
+      'Online payments are not configured yet. Please contact support.',
+      503,
+      'PAYMENT_NOT_CONFIGURED'
+    );
+  }
+
+  // Check if active reservations are still held for this order
+  const now = new Date();
+  const hasActiveValidReservation = order.reservations.some(
+    (r) => r.status === 'active' && r.expiresAt > now
+  );
+
+  await prisma.$transaction(async (tx) => {
+    if (!hasActiveValidReservation) {
+      // Release any inactive or expired reservations
+      await releaseReservationsForOrder(tx, order.id);
+      // Re-reserve items for this order. Throws AppError('OUT_OF_STOCK', 409) if unavailable.
+      await reserveItemsForOrder(
+        tx,
+        order.id,
+        order.items.map((i) => ({ productId: i.productId, quantity: i.quantity }))
+      );
+    }
+
+    await tx.order.update({
+      where: { id: order.id },
+      data: { status: 'pending_payment' },
+    });
+  });
+
+  // Create a fresh Razorpay order for this retry attempt
+  let razorpayOrder;
+  try {
+    razorpayOrder = await paymentProvider.createOrder({
+      amount: Number(order.total),
+      currency: 'INR',
+      receipt: order.orderNumber,
+    });
+
+    // Upsert or update the Payment record with the new razorpayOrderId
+    await prisma.payment.upsert({
+      where: { orderId: order.id },
+      create: {
+        orderId: order.id,
+        razorpayOrderId: razorpayOrder.providerOrderId,
+        amount: order.total,
+        status: 'created',
+      },
+      update: {
+        razorpayOrderId: razorpayOrder.providerOrderId,
+        status: 'created',
+        razorpayPaymentId: null,
+        razorpaySignature: null,
+      },
+    });
+  } catch (error) {
+    // If Razorpay order creation fails, release the reservations so stock isn't locked
+    await prisma.$transaction(async (tx) => {
+      await releaseReservationsForOrder(tx, order.id);
+      await tx.order.update({ where: { id: order.id }, data: { status: 'payment_failed' } });
+    });
+    throw error;
+  }
+
+  return {
+    orderId: order.id,
+    orderNumber: order.orderNumber,
+    amount: Number(order.total),
+    currency: 'INR',
+    razorpayOrderId: razorpayOrder.providerOrderId,
+    razorpayKeyId: env.RAZORPAY_KEY_ID ?? null,
+  };
+};
+
+/** Handles both captured and failed payment webhook events idempotently. */
 export const handleRazorpayWebhookEvent = async (payload: any): Promise<void> => {
-  if (payload?.event !== 'payment.captured') return;
+  const event = payload?.event;
+  if (event !== 'payment.captured' && event !== 'payment.failed') return;
 
   const paymentEntity = payload?.payload?.payment?.entity;
   const razorpayOrderId = paymentEntity?.order_id;
   const razorpayPaymentId = paymentEntity?.id;
-  if (!razorpayOrderId || !razorpayPaymentId) return;
+  if (!razorpayOrderId) return;
 
   const payment = await prisma.payment.findUnique({ where: { razorpayOrderId } });
   if (!payment) {
@@ -221,7 +371,24 @@ export const handleRazorpayWebhookEvent = async (payload: any): Promise<void> =>
     return;
   }
 
-  await finalizeCapturedPayment(payment.orderId, razorpayPaymentId, null);
+  if (event === 'payment.captured' && razorpayPaymentId) {
+    await finalizeCapturedPayment(payment.orderId, razorpayPaymentId, null);
+  } else if (event === 'payment.failed') {
+    const order = await prisma.order.findUnique({ where: { id: payment.orderId } });
+    if (order && !['paid', 'processing', 'shipped', 'delivered'].includes(order.status)) {
+      await prisma.$transaction(async (tx) => {
+        await tx.payment.updateMany({
+          where: { orderId: payment.orderId, status: { not: 'paid' } },
+          data: { status: 'failed' },
+        });
+        await tx.order.update({
+          where: { id: payment.orderId },
+          data: { status: 'payment_failed' },
+        });
+        await releaseReservationsForOrder(tx, payment.orderId);
+      });
+    }
+  }
 };
 
 export const listOrders = async (authAccountId: string, page: number, pageSize: number) => {

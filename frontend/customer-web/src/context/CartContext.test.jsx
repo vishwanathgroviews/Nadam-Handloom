@@ -116,4 +116,51 @@ describe('CartContext', () => {
     const { result } = renderHook(() => useCart(), { wrapper });
     expect(result.current.items).toHaveLength(0);
   });
+
+  it('isInCart returns true when item is in cart and false after removal', () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    expect(result.current.isInCart('prod-a')).toBe(false);
+
+    act(() => result.current.addItem(PRODUCT_A));
+    expect(result.current.isInCart('prod-a')).toBe(true);
+    expect(result.current.isInCart('prod-b')).toBe(false);
+
+    act(() => result.current.removeItem('prod-a'));
+    expect(result.current.isInCart('prod-a')).toBe(false);
+  });
+
+  it('shows success toast when product is added to cart successfully', () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    expect(result.current.toast).toBeNull();
+
+    act(() => result.current.addItem(PRODUCT_A));
+    expect(result.current.toast).not.toBeNull();
+    expect(result.current.toast.message).toBe('Product added to cart successfully!');
+    expect(result.current.toast.type).toBe('success');
+
+    act(() => result.current.dismissToast());
+    expect(result.current.toast).toBeNull();
+  });
+
+  it('rejects adding an out of stock product and shows error toast', () => {
+    const OUT_OF_STOCK_PRODUCT = {
+      id: 'prod-oos',
+      slug: 'saree-oos',
+      name: 'Sold Out Saree',
+      availableCount: 0,
+      subcategory: { onlinePrice: 3000 },
+    };
+
+    const { result } = renderHook(() => useCart(), { wrapper });
+    let added = false;
+    act(() => {
+      added = result.current.addItem(OUT_OF_STOCK_PRODUCT);
+    });
+
+    expect(added).toBe(false);
+    expect(result.current.items).toHaveLength(0);
+    expect(result.current.toast).not.toBeNull();
+    expect(result.current.toast.type).toBe('error');
+  });
 });
+

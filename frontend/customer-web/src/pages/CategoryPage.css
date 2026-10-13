@@ -24,19 +24,92 @@
 }
 
 .category-sort {
-  padding: 9px 14px;
+  padding: 10px 18px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
-  background: #fff;
+  background: #ffffff;
   font-family: 'Outfit', sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.86rem;
+  font-weight: 500;
   color: var(--text-dark);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-quick);
+}
+
+.category-sort:focus {
+  border-color: var(--secondary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(197, 166, 107, 0.2);
+}
+
+/* Category Quick Filter Pills Bar */
+.category-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.category-filter-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.category-pill {
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-body);
+  white-space: nowrap;
+  transition: var(--transition-quick);
+  flex-shrink: 0;
+}
+
+.category-pill:hover {
+  border-color: var(--secondary);
+  color: var(--primary);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.category-pill.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(36, 91, 87, 0.22);
+}
+
+.category-empty-state {
+  padding: 70px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin: 20px 0;
+  text-align: center;
+}
+
+.category-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 14px;
+  line-height: 1;
 }
 
 .category-result-count {
   color: var(--text-muted);
-  font-size: 0.85rem;
-  margin-bottom: 16px;
+  font-size: 0.88rem;
+  margin-bottom: 18px;
+  font-weight: 500;
 }
 
 .category-pagination {
@@ -79,7 +152,7 @@
 .category-page-num:hover:not(.active) {
   border-color: var(--primary);
   color: var(--primary);
-  background: rgba(122, 31, 43, 0.04);
+  background: rgba(36, 91, 87, 0.05);
 }
 
 .category-page-num.active {
@@ -87,7 +160,7 @@
   color: #ffffff;
   border-color: var(--primary);
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(122, 31, 43, 0.22);
+  box-shadow: 0 2px 6px rgba(36, 91, 87, 0.22);
 }
 
 .category-pagination-ellipsis {

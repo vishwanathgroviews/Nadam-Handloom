@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AppStackParamList } from '../navigation/RootNavigator';
 import { useAuth } from '../context/AuthContext';
-import { getCatalogPdfStatus, generateCatalogPdf, CatalogPdfStatus } from '../api/catalogPdf';
+import { getCatalogPdfStatus, CatalogPdfStatus } from '../api/catalogPdf';
 import { savePdfBytes } from '../utils/pdf';
 import { cleanMobile } from '../utils/invoiceShare';
 import { catalogCaption, catalogFilename } from '../utils/catalogShare';
@@ -19,7 +20,7 @@ import { colors, radius, spacing, typography } from '../utils/theme';
 
 type Props = NativeStackScreenProps<AppStackParamList, 'SubcategoryCatalog'>;
 
-export default function SubcategoryCatalogScreen({ route }: Props) {
+export default function SubcategoryCatalogScreen({ route, navigation }: Props) {
   const { subcategoryId, subcategoryName } = route.params;
   const { accessToken } = useAuth();
   const isOnline = useIsOnline();
@@ -27,7 +28,6 @@ export default function SubcategoryCatalogScreen({ route }: Props) {
 
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<CatalogPdfStatus | null>(null);
-  const [generating, setGenerating] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [error, setError] = useState('');
   const [mobile, setMobile] = useState('');
@@ -36,7 +36,6 @@ export default function SubcategoryCatalogScreen({ route }: Props) {
   // generation it belongs to so a catalog regenerated since (here or on
   // another phone) is fetched again rather than sending the stale file.
   const [localPdf, setLocalPdf] = useState<{ uri: string; generatedAt: string } | null>(null);
-  const [lastProductCount, setLastProductCount] = useState<number | null>(null);
 
   const loadStatus = useCallback(async (): Promise<CatalogPdfStatus | null> => {
     if (!accessToken) return null;
@@ -53,31 +52,15 @@ export default function SubcategoryCatalogScreen({ route }: Props) {
     }
   }, [accessToken, subcategoryId]);
 
-  useEffect(() => {
-    loadStatus();
-  }, [loadStatus]);
+  useFocusEffect(
+    useCallback(() => {
+      loadStatus();
+    }, [loadStatus])
+  );
 
-  // Generating only makes the PDF. Sending it is the Share button's job, so
-  // staff can type the customer's number first and are never dropped into a
-  // share menu they did not ask for.
-  const handleGenerate = useCallback(async () => {
-    if (!accessToken) return;
-    if (!isOnline) return setError('You are offline — generating the catalog needs a live connection.');
-
-    setGenerating(true);
-    setError('');
-    try {
-      const result = await generateCatalogPdf(accessToken, subcategoryId);
-      const uri = savePdfBytes(result.bytes, catalogFilename(subcategoryName ?? ''));
-      setLastProductCount(result.productCount ?? null);
-      const fresh = await loadStatus();
-      setLocalPdf(fresh ? { uri, generatedAt: fresh.generatedAt } : null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to generate the catalog PDF');
-    } finally {
-      setGenerating(false);
-    }
-  }, [accessToken, isOnline, subcategoryId, subcategoryName, loadStatus]);
+  const handleOpenPreview = useCallback(() => {
+    navigation.navigate('CatalogPreview', { subcategoryId, subcategoryName });
+  }, [navigation, subcategoryId, subcategoryName]);
 
   // Sends the catalog that already exists, without making a new one. On
   // Android it opens the customer's WhatsApp chat with the PDF attached; the
@@ -151,13 +134,8 @@ export default function SubcategoryCatalogScreen({ route }: Props) {
             <Text style={styles.errorText}>{error}</Text>
           </View>
         ) : null}
-        {localPdf && lastProductCount != null && (
-          <Text style={styles.helper}>Just generated: {lastProductCount} product photo(s).</Text>
-        )}
 
-        {generating ? (
-          <ActivityIndicator style={{ marginTop: 20 }} color={colors.primary} />
-        ) : loading ? null : status ? (
+        {loading ? null : status ? (
           <View style={styles.actionColumn}>
             {directChat ? (
               <>
@@ -188,8 +166,8 @@ export default function SubcategoryCatalogScreen({ route }: Props) {
                 : "Choose WhatsApp in the menu, then the customer's chat."}
             </Text>
             <Button
-              title="Generate New"
-              onPress={handleGenerate}
+              title="Generate New PDF"
+              onPress={handleOpenPreview}
               variant="secondary"
               disabled={!isOnline || sharing}
               style={styles.secondActionButton}
@@ -197,7 +175,7 @@ export default function SubcategoryCatalogScreen({ route }: Props) {
           </View>
         ) : (
           <View style={styles.actionColumn}>
-            <Button title="Generate Catalog" onPress={handleGenerate} disabled={!isOnline} />
+            <Button title="Generate PDF" onPress={handleOpenPreview} disabled={!isOnline} />
           </View>
         )}
       </ScrollView>

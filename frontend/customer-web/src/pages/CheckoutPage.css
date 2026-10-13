@@ -70,19 +70,25 @@
 .address-option {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 14px;
+  gap: 14px;
+  padding: 16px;
   border: 1.5px solid var(--border-color);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  background: #ffffff;
   cursor: pointer;
   transition: var(--transition-smooth);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   position: relative;
+}
+
+.address-option:hover {
+  border-color: rgba(197, 166, 107, 0.6);
 }
 
 .address-option.selected {
   border-color: var(--primary);
-  background: rgba(122, 31, 43, 0.04);
+  background: rgba(220, 232, 223, 0.35);
+  box-shadow: 0 0 0 1px var(--primary);
 }
 
 .address-option input {
@@ -137,7 +143,7 @@
 .checkout-item-stock {
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--color-error, #a33127);
+  color: var(--danger);
 }
 
 .checkout-item-remove {
@@ -156,8 +162,8 @@
 
 .checkout-item-remove:hover,
 .checkout-item-remove:focus-visible {
-  background: rgba(163, 49, 39, 0.08);
-  color: var(--color-error, #a33127);
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .checkout-item-count {
@@ -172,8 +178,8 @@
   margin-bottom: 14px;
   padding: 12px 14px;
   border-radius: var(--radius-sm);
-  background: rgba(163, 49, 39, 0.08);
-  color: var(--color-error, #a33127);
+  background: var(--danger-bg);
+  color: var(--danger);
   font-size: 0.86rem;
 }
 

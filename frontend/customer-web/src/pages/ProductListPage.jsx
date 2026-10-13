@@ -147,6 +147,12 @@ export default function ProductListPage() {
     setPage(1);
   };
 
+  const [allCategories, setAllCategories] = useState([]);
+
+  useEffect(() => {
+    api.getCategories().then(setAllCategories).catch(() => setAllCategories([]));
+  }, []);
+
   const clearSearch = () => {
     searchParams.delete('q');
     setSearchParams(searchParams);
@@ -154,24 +160,15 @@ export default function ProductListPage() {
 
   return (
     <div ref={listingTopRef} className="container category-page">
-      <div className="breadcrumb">
-        <Link to="/">Home</Link> <span>/</span>
-        {meta?.category && (
-          <>
-            {' '}
-            <Link to={`/category/${slug}`}>{meta.category.name}</Link> <span>/</span>
-          </>
-        )}
-        {' '}
-        <span>{pageTitle}</span>
-      </div>
-
       <div className="category-page-header">
         <div>
           <h1 className="section-title">{pageTitle}</h1>
           {meta?.subcategory?.description && <p className="section-subtitle">{meta.subcategory.description}</p>}
           {!meta?.subcategory?.description && isFeatured && (
             <p className="section-subtitle">Our most popular and loved handwoven sarees</p>
+          )}
+          {!meta?.subcategory?.description && !isFeatured && !q && (
+            <p className="section-subtitle">Exquisite handwoven sarees &amp; authentic textiles directly from master artisans</p>
           )}
           {q && (
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
@@ -184,7 +181,7 @@ export default function ProductListPage() {
 
         <div className="category-page-controls">
           <select className="category-sort" value={sort} onChange={handleSortChange} aria-label="Sort products">
-            <option value="newest">Newest</option>
+            <option value="newest">Newest First</option>
             <option value="price_asc">Price: Low to High</option>
             <option value="price_desc">Price: High to Low</option>
             <option value="featured">Best Sellers</option>
@@ -192,16 +189,58 @@ export default function ProductListPage() {
         </div>
       </div>
 
-      {loading && products.length === 0 ? (
-        <p className="state-block">Loading products…</p>
+      {/* Quick Category Filter Pills */}
+      {allCategories.length > 0 && (
+        <div className="category-filter-pills" role="navigation" aria-label="Quick categories">
+          <Link
+            to="/shop"
+            className={`category-pill ${!slug && !isFeatured ? 'active' : ''}`}
+          >
+            All Handlooms
+          </Link>
+          <Link
+            to="/shop?featured=true"
+            className={`category-pill ${isFeatured ? 'active' : ''}`}
+          >
+            Best Sellers ⭐
+          </Link>
+          {allCategories.map((cat) => (
+            <Link
+              key={cat.id}
+              to={`/category/${cat.slug}`}
+              className={`category-pill ${slug === cat.slug ? 'active' : ''}`}
+            >
+              {cat.name}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="product-grid">
+          {Array.from({ length: pageSize > 12 ? 8 : 4 }).map((_, idx) => (
+            <div key={idx} className="skeleton-card">
+              <div className="skeleton-card-img" />
+              <div className="skeleton-card-body">
+                <div className="skeleton-line short" />
+                <div className="skeleton-line full" />
+                <div className="skeleton-line medium" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : products.length === 0 ? (
-        <div className="state-block">
-          <h3>No products found</h3>
-          <p>Try a different search or check back soon.</p>
+        <div className="state-block category-empty-state">
+          <div className="category-empty-icon">🪡</div>
+          <h3>No handloom pieces found</h3>
+          <p>We update our handwoven collections regularly. Try clearing your search or browsing our other categories.</p>
+          <Link to="/shop" className="btn btn-outline" style={{ marginTop: '16px' }}>
+            Browse All Handlooms
+          </Link>
         </div>
       ) : (
         <>
-          <p className="category-result-count">{total} product{total !== 1 ? 's' : ''}</p>
+          <p className="category-result-count">Showing {total} authentic handloom piece{total !== 1 ? 's' : ''}</p>
           <div className="product-grid">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />

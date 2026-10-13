@@ -248,6 +248,106 @@ function initMockStore() {
   } catch (err) {
     console.warn('Failed to load products-raw.json for mock store:', err);
   }
+
+  // Pool of realistic saree/material images from loaded products
+  const poolImages = loadedProducts
+    .flatMap((p) => p.images)
+    .filter((img) => img?.url && img.url.startsWith('http'));
+
+  // Generate mock products for every other category and subcategory
+  const otherCategories = MOCK_CATEGORIES.filter((c) => c.slug !== 'handloom-pattu-saree');
+  const colorNames = [
+    'Crimson Red & Gold',
+    'Royal Blue & Silver',
+    'Emerald Green',
+    'Mustard Yellow & Maroon',
+    'Deep Magenta & Zari',
+    'Peacock Blue',
+    'Pastel Peach & Mint',
+    'Teal & Copper Zari',
+  ];
+
+  let extraProdIndex = loadedProducts.length + 1;
+
+  for (const cat of otherCategories) {
+    const subcats = loadedSubcategories.filter((s) => s.categoryId === cat.id && s.isActive);
+    const pricing = CATEGORY_DEFAULT_PRICING[cat.slug] || { onlinePrice: 2499, mrp: 3999 };
+
+    subcats.forEach((sub, sIdx) => {
+      // Generate 2 products for each subcategory
+      for (let v = 0; v < 2; v++) {
+        const color = colorNames[(sIdx * 2 + v) % colorNames.length] ?? 'Traditional Color';
+        const prodName = `${sub.name} — ${color}`;
+        const cleanSlug = prodName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+        const imgStart = (sIdx * 3 + v * 2) % Math.max(1, poolImages.length - 2);
+        const chosenImgs = poolImages.slice(imgStart, imgStart + 2).map((img, i) => ({
+          id: `img-${extraProdIndex}-${i}`,
+          url: img.url,
+          sortOrder: i,
+          altText: prodName,
+        }));
+
+        loadedProducts.push({
+          id: `prod-${cat.slug}-${sIdx + 1}-${v + 1}`,
+          slug: `${cleanSlug}-${extraProdIndex}`,
+          sku: `NH-${cat.slug.slice(0, 4).toUpperCase()}-${sIdx + 1}${v + 1}`,
+          name: prodName,
+          categoryId: cat.id,
+          subcategoryId: sub.id,
+          technique: 'Handloom Weave',
+          borderStyle: 'Traditional Zari Border',
+          purity: cat.slug.includes('pattu') ? 'Pure Silk' : 'Pure Cotton',
+          zariTier: 'Tested Zari',
+          blouseType: 'Running Blouse Included',
+          pattern: 'Traditional',
+          color: color.split('&')[0]?.trim() || color,
+          fabric: cat.name,
+          occasion: ['Festive', 'Traditional', 'Party'],
+          channelVisibility: 'both',
+          trackingMode: 'serialized',
+          stock: 3,
+          isFeatured: v === 0 && sIdx < 4,
+          isActive: true,
+          createdAt: new Date(Date.now() - extraProdIndex * 3600000).toISOString(),
+          updatedAt: new Date().toISOString(),
+          category: {
+            name: cat.name,
+            slug: cat.slug,
+            description: cat.description,
+          },
+          subcategory: {
+            id: sub.id,
+            name: sub.name,
+            description: sub.description,
+            onlinePrice: sub.onlinePrice || pricing.onlinePrice,
+            mrp: sub.mrp || pricing.mrp,
+            isActive: true,
+          },
+          images: chosenImgs.length > 0 ? chosenImgs : [{ id: `img-${extraProdIndex}-0`, url: cat.imageUrl, sortOrder: 0, altText: prodName }],
+          availableCount: 2,
+        });
+        extraProdIndex++;
+      }
+    });
+  }
+
+  // Ensure all subcategories have an imageUrl (fallback to matching product or category image)
+  for (const sub of loadedSubcategories) {
+    if (!sub.imageUrl) {
+      const prod = loadedProducts.find((p) => p.subcategoryId === sub.id && p.images?.length > 0);
+      if (prod && prod.images[0]) {
+        sub.imageUrl = prod.images[0].url;
+      } else {
+        const cat = MOCK_CATEGORIES.find((c) => c.id === sub.categoryId);
+        if (cat?.imageUrl) {
+          sub.imageUrl = cat.imageUrl;
+        }
+      }
+    }
+  }
 }
 
 export const isMockDb = (): boolean =>
@@ -378,14 +478,30 @@ export const mockGetProductBySlug = async (slug: string): Promise<MockProduct> =
 export const mockGetAvailabilityForProducts = async (productIds: string[]) => {
   initMockStore();
   const unique = [...new Set(productIds)];
-  return unique.map((id) => {
-    const p = loadedProducts.find((prod) => prod.id === id);
-    if (!p) return { productId: id, name: null, availableCount: 0, isPurchasable: false };
-    return {
-      productId: id,
-      name: p.name,
-      availableCount: p.availableCount || 1,
-      isPurchasable: true,
-    };
-  });
+  const { prisma } = await import('../../config/prisma');
+  return Promise.all(
+    unique.map(async (id) => {
+      const p = loadedProducts.find((prod) => prod.id === id);
+      if (!p) return { productId: id, name: null, availableCount: 0, isPurchasable: false };
+
+      let availableCount = p.availableCount !== undefined ? p.availableCount : (p.stock > 0 ? p.stock : 1);
+      try {
+        const reservations = await prisma.reservation.findMany({
+          where: { productId: id, status: 'active' },
+          select: { quantity: true },
+        });
+        const reservedQty = reservations.reduce((sum, r) => sum + (r.quantity || 1), 0);
+        availableCount = Math.max(0, availableCount - reservedQty);
+      } catch {
+        // fallback to base availableCount if table is not accessible
+      }
+
+      return {
+        productId: id,
+        name: p.name,
+        availableCount,
+        isPurchasable: availableCount > 0,
+      };
+    })
+  );
 };
