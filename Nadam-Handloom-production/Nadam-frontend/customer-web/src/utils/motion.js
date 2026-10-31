@@ -21,29 +21,52 @@ if (typeof window !== 'undefined') {
 
 // Adds "in" to .reveal, .wipe and .lines elements inside `ref` as they come into view.
 // deps: re-scan when the content changes (e.g. data arrived).
+// It also watches the content itself (31 Oct 2026), so nothing is left invisible:
+// - elements added later are picked up even when deps don't change (a refreshed list with
+//   new sarees on top still has 24 cards);
+// - an element that came in stays in when React rewrites its class (a card's "added" after
+//   Add to bag replaced the whole class, "in" included, and the card vanished).
+const REVEAL = '.reveal, .wipe, .lines';
+
 export function useReveal(ref, deps = []) {
   useEffect(() => {
     const root = ref.current;
     if (!root) return undefined;
-    const items = [...root.querySelectorAll('.reveal:not(.in), .wipe:not(.in), .lines:not(.in)')];
-    if (prefersReducedMotion() || !('IntersectionObserver' in window)) {
-      items.forEach((el) => el.classList.add('in'));
-      return undefined;
-    }
-    const io = new IntersectionObserver((entries) => {
+    const instant = prefersReducedMotion() || !('IntersectionObserver' in window);
+    const shown = new WeakSet();
+    const show = (el) => { shown.add(el); el.classList.add('in'); };
+    const io = instant ? null : new IntersectionObserver((entries) => {
       for (const e of entries) {
-        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+        if (e.isIntersecting) { show(e.target); io.unobserve(e.target); }
       }
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
-    // A clipped (wiped) element never reports as visible: watch its parent instead.
     const subs = [];
-    items.forEach((el) => {
+    const watch = (el) => {
+      if (el.classList.contains('in')) { shown.add(el); return; }
+      if (instant) { show(el); return; }
       if (!el.classList.contains('wipe')) { io.observe(el); return; }
-      const sub = new IntersectionObserver(([e]) => { if (e.isIntersecting) { el.classList.add('in'); sub.disconnect(); } }, { threshold: 0.08 });
+      // A clipped (wiped) element never reports as visible: watch its parent instead.
+      const sub = new IntersectionObserver(([e]) => { if (e.isIntersecting) { show(el); sub.disconnect(); } }, { threshold: 0.08 });
       sub.observe(el.parentElement);
       subs.push(sub);
+    };
+    root.querySelectorAll(REVEAL).forEach(watch);
+    // Runs before the next paint, so a class rewrite never shows as a flicker.
+    const mo = new MutationObserver((records) => {
+      for (const r of records) {
+        if (r.type === 'attributes') {
+          if (shown.has(r.target) && !r.target.classList.contains('in')) r.target.classList.add('in');
+          continue;
+        }
+        r.addedNodes.forEach((n) => {
+          if (n.nodeType !== 1) return;
+          if (n.matches(REVEAL)) watch(n);
+          n.querySelectorAll(REVEAL).forEach(watch);
+        });
+      }
     });
-    return () => { io.disconnect(); subs.forEach((s) => s.disconnect()); };
+    mo.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    return () => { mo.disconnect(); io?.disconnect(); subs.forEach((s) => s.disconnect()); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 }
