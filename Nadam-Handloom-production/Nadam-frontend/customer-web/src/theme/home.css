@@ -1,0 +1,49 @@
+/* Home in the client's design (26 Oct 2026, web-10 mock-up): the categories as cards (27 Oct,
+   web-11 mock-up), the crafts as round photos, the latest collections, every saree, and the
+   new-arrival alerts above the footer. */
+
+/* ---------- The categories as cards: 3 in a row (2 on phones), the saree card's photo and gaps ---------- */
+.cat-sec { padding-top: clamp(18px, 2.6vw, 30px); }
+.ccards { --cols: 3; display: grid; grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); gap: clamp(18px, 2vw, 28px) clamp(12px, 1.4vw, 20px); list-style: none; margin: 0; padding: 0; }
+@media (max-width: 640px) { .ccards { --cols: 2; gap: 18px 10px; } }
+.ccard { display: grid; gap: .55rem; align-content: start; min-width: 0; }
+.ccard .ph { position: relative; display: block; aspect-ratio: 3 / 4; overflow: hidden; border-radius: var(--r-card); background: var(--mat); }
+.ccard .ph > img, .ccard .ph > .pic { width: 100%; height: 100%; object-fit: cover; transition: transform .8s var(--ease); }
+.ccard:hover .ph > img, .ccard:hover .ph > .pic { transform: scale(1.04); }
+.ccard .nm { font-size: clamp(.95rem, 1.2vw, 1.08rem); font-weight: 600; line-height: 1.32; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color var(--dur); }
+.ccard:hover .nm { color: var(--accent); }
+.ccard:focus-visible { outline: none; }
+.ccard:focus-visible .ph { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* ---------- The crafts, under the cards: a smaller row of round photos ---------- */
+.cat-strip { display: flex; gap: clamp(10px, 1.8vw, 26px); overflow-x: auto; scrollbar-width: none; padding: 18px var(--gutter-r) 6px var(--gutter); margin: 0 calc(-1 * var(--gutter-r)) 0 calc(-1 * var(--gutter)); scroll-padding-inline: var(--gutter); }
+.cat-strip::-webkit-scrollbar { display: none; }
+.cs { flex: 0 0 auto; width: 82px; display: grid; justify-items: center; align-content: start; gap: .45rem; text-align: center; font-size: .78rem; font-weight: 650; line-height: 1.25; }
+.cs .ph { width: 58px; height: 58px; border-radius: 50%; overflow: hidden; border: 2px solid var(--line); background: var(--surface-2); transition: border-color var(--dur), transform var(--dur); }
+.cs .ph > img { width: 100%; height: 100%; object-fit: cover; }
+.cs:hover .ph, .cs[aria-current="true"] .ph { border-color: var(--accent); transform: translateY(-2px); }
+.cs small { display: block; color: var(--muted); font-weight: 600; font-size: .72rem; margin-top: .15rem; }
+.craft-strip { padding-top: 14px; align-items: center; }
+.craft-strip .cs-h { flex: none; align-self: center; font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-right: .4rem; }
+@media (max-width: 700px) { .cs { width: 70px; font-size: .72rem; } .cs .ph { width: 52px; height: 52px; } }
+
+/* ---------- Latest collections ---------- */
+.latest { padding-top: clamp(20px, 3vw, 32px); }
+.block-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; margin-bottom: 16px; }
+.block-head h2 { font-family: var(--f-body); font-weight: 650; letter-spacing: -.01em; font-size: clamp(1.25rem, 2vw, 1.6rem); }
+.block-head p { margin-top: .25rem; }
+.block-head .side { display: flex; align-items: center; gap: 1rem; }
+.block-head .more { font-weight: 700; font-size: .86rem; color: var(--accent); display: inline-flex; gap: .3rem; align-items: center; white-space: nowrap; }
+.block-head .more:hover { text-decoration: underline; }
+@media (max-width: 640px) { .block-head { align-items: flex-start; flex-direction: column; gap: .4rem; } }
+.latest .rail-bar { margin-top: .8rem; background: var(--line); }
+.latest .rail-bar i { background: var(--muted); }
+@media (min-width: 1001px) { .latest .rail-bar { display: none; } }
+
+/* ---------- New-arrival alerts, above the footer ---------- */
+.lux-news { margin-top: clamp(36px, 5vw, 64px); padding: clamp(22px, 3vw, 32px); border-radius: var(--r-lg); background: var(--surface-2); }
+.lux-news .wrap { display: grid; justify-items: center; text-align: center; gap: .7rem; padding: 0; }
+.lux-news h2 { font-size: clamp(1.3rem, 2.2vw, 1.8rem); }
+.lux-news p { max-width: 60ch; }
+.lux-news .state { display: inline-flex; gap: .5rem; align-items: center; flex-wrap: wrap; justify-content: center; font-weight: 600; }
+.lux-news .state .ico { color: var(--ok); }

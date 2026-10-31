@@ -1,0 +1,944 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AuthAccount {
+  id                  String    @id @default(uuid())
+  email               String?   @unique
+  phone               String?   @unique
+  passwordHash        String?
+  mpinHash            String?
+  mpinSetAt           DateTime?
+  status              String    @default("active") // active, pending, locked, deleted
+  emailVerifiedAt     DateTime?
+  phoneVerifiedAt     DateTime?
+  securityStamp       String    @default(uuid())
+  failedLoginAttempts Int       @default(0)
+  lockCount           Int       @default(0) // v2: how many PIN locks in a row (15 -> 30 -> 60 min); reset on a successful sign-in
+  lockedUntil         DateTime?
+  mfaEnabled          Boolean   @default(false)
+  isCompromised       Boolean   @default(false)
+  passwordChangedAt   DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  deletedAt           DateTime?
+
+  userProfile         UserProfile?
+  adminProfile        AdminProfile?
+  roles               UserRole[]
+  sessions            Session[]
+  trustedDevices      TrustedDevice[]
+  deviceTokens        DeviceToken[]
+  authEvents          AuthEvent[]
+  otpCodes            OtpCode[]
+  passwordResetTokens PasswordResetToken[]
+  apiTokens           ApiToken[]
+  addresses           Address[]
+  orders              Order[]
+
+  // v2 website (W1: customer sign-in)
+  phoneCodes    PhoneCode[]
+  pushTokens    PushToken[]
+  notifications Notification[]
+
+  // v2 website (W5: the bag)
+  bagItems BagItem[]
+
+  // v2 admin app: payment notifications
+  staffPushTokens StaffPushToken[]
+}
+
+model UserProfile {
+  id            String    @id @default(uuid())
+  authAccountId String    @unique
+  firstName     String
+  lastName      String
+  displayName   String?
+  avatarUrl     String?
+  preferences   Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  // v2 website (W1: customer sign-in, docs/modules/web-01-sign-in.md section 7).
+  // All optional or defaulted, so the old backend keeps working unchanged.
+  city               String?
+  state              String?
+  pincode            String?
+  dateOfBirth        DateTime? @db.Date
+  anniversary        DateTime? @db.Date
+  language           String? // en | te | hi
+  avatarKey          String? // storage key of avatarUrl, so a replaced picture can be deleted
+  marketingOptIn     Boolean   @default(false) // offers and new arrivals: only with the customer's tick
+  marketingOptInAt   DateTime?
+  privacyAcceptedAt  DateTime? // saw why we ask and created the account (DPDP 2023)
+  profileCompletedAt DateTime? // finished "Complete your profile"
+  signupSource       String? // utm_source, or the site they came from
+  signupMedium       String? // utm_medium
+  signupCampaign     String? // utm_campaign
+  signupReferrer     String? // the referring site's host
+  signupDevice       String? // mobile | tablet | desktop
+  lastSeenAt         DateTime?
+  deleteRequestedAt  DateTime? // "Delete my account": details removed 7 days later unless kept
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+
+  @@index([deleteRequestedAt])
+}
+
+model AdminProfile {
+  id            String    @id @default(uuid())
+  authAccountId String    @unique
+  firstName     String
+  lastName      String
+  employeeId    String?
+  department    String?
+  jobTitle      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  // v2 (Module 2: Roles and team). All optional or defaulted so the old backend keeps working.
+  isMainOwner Boolean   @default(false) // exactly one owner; can't be removed or made Staff by anyone else
+  invitedAt   DateTime? // last invite (or invite again); "Invited 2 days ago"
+  invitedById String? // AuthAccount id of the owner who sent that invite
+  removedAt   DateTime? // when access was last removed; "Removed 10 Sep"
+  removedById String? // AuthAccount id of the owner who removed them
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique // ADMIN, STAFF, CUSTOMER
+  isSystem    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  name        String           @unique // e.g., orders:read
+  resource    String? // e.g., orders
+  action      String? // e.g., read
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  roles       RolePermission[]
+}
+
+model UserRole {
+  authAccountId String
+  roleId        String
+  assignedAt    DateTime @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+  role        Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([authAccountId, roleId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model Session {
+  id               String    @id @default(uuid())
+  authAccountId    String
+  refreshTokenHash String    @unique
+  platform         String? // web, ios, android
+  deviceName       String?
+  ipAddress        String?
+  userAgent        String?
+  isCompromised    Boolean   @default(false)
+  revokedAt        DateTime?
+  expiresAt        DateTime
+  createdAt        DateTime  @default(now())
+
+  // v2 (admin app). All nullable so the old backend keeps working unchanged.
+  trustedDeviceId String? // the trusted phone or tablet this sign-in belongs to
+  revokeReason    String? // rotated | logout | device_signed_out | others_signed_out | pin_reset | pin_changed_others | reuse_detected | access_removed
+  stampAtIssue    String? // AuthAccount.securityStamp when issued; a different stamp later means "signed out elsewhere"
+
+  // v2 website (W1): staff = admin app and old app sign-ins; customer = the new website.
+  // Each side only ever reads, renews or ends its own kind.
+  kind      String    @default("staff")
+  parentId  String? // the session this one replaced on renewal (website: lost-reply grace; admin: since 16 Oct 2026)
+  usedAt    DateTime? // admin app: first request made with this sign-in. A renewal never used means its reply was lost
+  startedAt DateTime? // website: when this browser signed in (kept across renewals)
+
+  authAccount   AuthAccount    @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+  trustedDevice TrustedDevice? @relation(fields: [trustedDeviceId], references: [id], onDelete: SetNull)
+
+  @@index([authAccountId, revokedAt])
+  @@index([trustedDeviceId])
+  @@index([parentId])
+}
+
+// Expo push tokens for the admin app — one row per device. Expo's push
+// service routes to APNs on iOS and FCM on Android from the same call, so
+// there's no separate Apple/Google credential plumbing here.
+model DeviceToken {
+  id            String      @id @default(uuid())
+  authAccountId String
+  authAccount   AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+  expoPushToken String      @unique
+  platform      String // ios | android
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([authAccountId])
+}
+
+model AuthEvent {
+  id            String   @id @default(uuid())
+  authAccountId String?
+  eventType     String // e.g., login, password_change
+  source        String   @default("staff_app") // customer_web | staff_app — which client the event originated from
+  ipAddress     String?
+  userAgent     String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  authAccount AuthAccount? @relation(fields: [authAccountId], references: [id], onDelete: SetNull)
+
+  @@index([authAccountId, createdAt])
+  @@index([createdAt])
+  @@index([eventType, createdAt])
+}
+
+model OtpCode {
+  id                String   @id @default(uuid())
+  authAccountId     String
+  purpose           String?  @default("verify") // login, verify_phone, 2fa
+  codeHash          String
+  attempts          Int      @default(0)
+  used              Boolean  @default(false)
+  expiresAt         DateTime
+  resendAvailableAt DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+
+  @@index([authAccountId, purpose, createdAt])
+}
+
+model PasswordResetToken {
+  id            String    @id @default(uuid())
+  authAccountId String
+  tokenHash     String    @unique
+  used          Boolean   @default(false)
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+}
+
+model ApiToken {
+  id            String    @id @default(uuid())
+  authAccountId String
+  name          String
+  tokenHash     String    @unique
+  scopes        Json?
+  active        Boolean   @default(true)
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  authAccount AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+}
+
+// Postgres-backed sliding-window rate limiter (no Redis dependency).
+model RateLimitHit {
+  id        String   @id @default(uuid())
+  bucketKey String // e.g. "login:ip:1.2.3.4" or "otp-verify:mobile:9876543210"
+  createdAt DateTime @default(now())
+
+  @@index([bucketKey, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Commerce: catalog, addresses, orders, payments, shipments
+// ─────────────────────────────────────────────────────────────────
+
+model Category {
+  id          String  @id @default(uuid())
+  name        String
+  slug        String  @unique
+  description String
+  imageUrl    String?
+  storageKey  String? // object storage key for imageUrl, set only when uploaded via the admin app (not seed-time relative paths)
+  sortOrder   Int     @default(0)
+  isActive    Boolean @default(true) // kept for query-safety; no longer exposed as an admin toggle — hide/unhide is a Subcategory-level action now
+  status      String  @default("active") // v2 (Module 3): active | inactive. "Delete" sets inactive; rows are never erased
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  products      Product[]
+  subcategories Subcategory[]
+
+  @@index([isActive, sortOrder])
+  @@index([status, sortOrder])
+}
+
+// The actual pricing/description/visibility unit — every itemized entry in
+// Categories.md (e.g. "300k Ikkath Border Check Saree" under Handloom Pattu
+// Saree) is a Subcategory row. A Category no longer carries price at all;
+// every product must belong to exactly one Subcategory, and that
+// subcategory's price/description/isActive is what customers see.
+model Subcategory {
+  id          String   @id @default(uuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  imageUrl    String?
+  storageKey  String? // object storage key for imageUrl, set only when uploaded via the admin app
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true) // false = hidden from the customer web
+  status      String   @default("active") // v2 (Module 3): active | inactive. "Delete" sets inactive (and isActive false); never erased
+
+  onlinePrice Decimal  @db.Decimal(10, 2) // shown on the customer web, charged via Razorpay
+  storePrice  Decimal  @db.Decimal(10, 2) // shown only in the admin app on scan
+  mrp         Decimal? @db.Decimal(10, 2) // optional strikethrough "original" price
+
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
+  products   Product[]
+  catalogPdf SubcategoryCatalogPdf?
+
+  // Names are unique per category among ACTIVE subcategories only (ignoring case and
+  // extra spaces), so a deleted name can be reused. That is a partial expression index
+  // made in migration 20261011180000_v2_catalog_status; Prisma can't describe it here.
+  @@index([categoryId, isActive, sortOrder])
+  @@index([categoryId, status, sortOrder])
+}
+
+model Product {
+  id            String      @id @default(uuid())
+  slug          String      @unique
+  sku           String      @unique
+  name          String
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id])
+  subcategoryId String
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])
+
+  // Filterable/display attributes (see product attribute taxonomy)
+  technique   String?
+  borderStyle String?
+  purity      String?
+  zariTier    String?
+  blouseType  String?
+  pattern     String?
+  color       String?
+  fabric      String?
+  occasion    String[] @default([])
+
+  // online_only | store_only | both | hidden
+  channelVisibility String @default("both")
+  // quantity | serialized — display-only now (see Piece model): every
+  // product can carry both legacy `stock` and individually-barcoded Piece
+  // rows at once, this just tells the staff app whether to show a flat
+  // count or an itemized per-piece list for a "serialized" listing.
+  trackingMode      String @default("quantity")
+
+  // Legacy pre-barcode-cutover backlog only — decrements as it sells,
+  // never replenished after cutover (new stock always arrives as scanned
+  // Piece rows via receivePieces). Real availability = stock + count of
+  // this product's `in_stock` Piece rows.
+  stock      Int     @default(0)
+  isFeatured Boolean @default(false)
+  isActive   Boolean @default(true)
+
+  // Set when staff delete a product that already has sales history. Such a
+  // product can't be removed outright — its order lines and invoices point at
+  // it — so it is archived instead: hidden from every list, lookup and sale,
+  // while past orders, invoices and analytics stay intact. A product with no
+  // sales history is deleted for real and never gets this.
+  deletedAt DateTime?
+
+  // v2 (Module 4): the id the phone makes for each new saree, so a retry after a
+  // slow network or a closed app never creates a second copy; and the batch it
+  // was added in. Both empty for products added by the old app.
+  clientRef String? @unique
+  batchId   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  images       ProductImage[]
+  orderItems   OrderItem[]
+  pieces       Piece[]
+  reservations Reservation[]
+  stockLedger  StockLedger[]
+  bagItems     BagItem[] // v2 website (W5): in signed-in customers' bags
+
+  @@index([categoryId, isActive])
+  @@index([isFeatured])
+  @@index([subcategoryId, isActive])
+  @@index([batchId])
+}
+
+// One row per individually-barcoded physical unit. Every physical item is
+// barcoded externally (by a dedicated device) and stuck on before it's
+// received into the app — staff scan that code in via receivePieces()
+// rather than the app inventing one. A product's real availability is
+// Product.stock (legacy, pre-barcode backlog — see comment there) plus
+// however many of its Piece rows are still `in_stock`.
+model Piece {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  barcode   String  @unique // scanned from the externally-printed tag
+
+  // in_stock | reserved | sold_online | sold_offline | damaged | returned
+  // v2 adds: retired (a damaged tag that was replaced; its number is never used
+  // again) and removed (an extra tag taken off, or the tag of a deleted saree;
+  // its barcode is renamed so the number is free again).
+  status String    @default("in_stock")
+  soldAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reservations Reservation[]
+  orderItems   OrderItem[]
+  stockLedger  StockLedger[]
+
+  @@index([productId, status])
+}
+
+// Holds stock during online checkout so two buyers can never win the same
+// unit — created inside the same row-locked transaction as the order, and
+// resolved (converted/released/expired) by payment webhook, checkout
+// failure, or the expiry sweep. Offline (in-store) sales never create a
+// reservation — they're synchronous and go straight to sold.
+model Reservation {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  pieceId   String? // set only for serialized-mode reservations
+  piece     Piece?   @relation(fields: [pieceId], references: [id])
+  quantity  Int      @default(1) // quantity mode: units held; serialized mode: always 1
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  expiresAt DateTime // ~15 minutes from creation
+
+  // active | converted | released | expired
+  status String @default("active")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId, status])
+  @@index([pieceId])
+  @@index([orderId])
+  @@index([status, expiresAt])
+}
+
+// Append-only audit trail of every stock movement — online sale, offline
+// sale, restock, correction, reserve, release. Never updated, only inserted.
+model StockLedger {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  pieceId   String?
+  piece     Piece?  @relation(fields: [pieceId], references: [id])
+  delta     Int // negative = stock leaving, positive = restock/correction
+
+  // online_sale | offline_sale | restock | correction | reserve | release
+  reason  String
+  channel String // online | store
+  actorId String? // AuthAccount id of who performed it; null = system (e.g. expiry sweep)
+  ref     String? // free-text reference, e.g. order number
+
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+}
+
+// One customer-shareable, photo-only PDF catalog per category — generating a
+// new one replaces the old (storage object deleted, row upserted), so
+// there's only ever a single live PDF per category at a time. Distinct from
+// PrintJob/LabelTemplate above, which render barcode sticker sheets, not a
+// product-photo catalog for sharing with customers.
+model SubcategoryCatalogPdf {
+  id            String      @id @default(uuid())
+  subcategoryId String      @unique
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+  storageKey    String
+  url           String
+  productCount  Int
+  generatedAt   DateTime    @default(now())
+  generatedBy   String
+}
+
+model ProductImage {
+  id         String  @id @default(uuid())
+  productId  String
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url        String
+  storageKey String? // object storage key, so a replace/delete can remove the underlying file too
+  altText    String?
+  sortOrder  Int     @default(0)
+
+  @@index([productId, sortOrder])
+}
+
+model Address {
+  id            String      @id @default(uuid())
+  authAccountId String
+  authAccount   AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+  fullName      String
+  phone         String
+  line1         String
+  line2         String?
+  city          String
+  state         String
+  pincode       String
+  country       String      @default("India")
+  isDefault     Boolean     @default(false)
+  label         String? // v2 website: home | office | other
+  landmark      String? // v2 website: "Near the bus stand"
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  orders Order[]
+
+  @@index([authAccountId])
+}
+
+model Order {
+  id            String       @id @default(uuid())
+  orderNumber   String       @unique
+  authAccountId String? // null for store-channel (offline, walk-in) sales
+  authAccount   AuthAccount? @relation(fields: [authAccountId], references: [id])
+  addressId     String?
+  address       Address?     @relation(fields: [addressId], references: [id], onDelete: SetNull)
+
+  // online | store — offline sales are recorded as lightweight store orders,
+  // no customer account, so both channels share one sales history.
+  channel String @default("online")
+
+  // active, pending_payment, paid, processing, shipped, delivered, cancelled, payment_failed
+  status          String  @default("pending_payment")
+  subtotal        Decimal @db.Decimal(10, 2)
+  // No shipping fee is ever charged — an order's total is exactly the sum of
+  // its line items, so there is no separate fee column to carry.
+  total           Decimal @db.Decimal(10, 2)
+  shippingAddress Json
+  // Staff choose per counter/WhatsApp sale whether the customer wants a GST
+  // invoice. false = the sale is recorded in full (order, lines, stock,
+  // analytics) but no Invoice row is ever generated for it, so it never
+  // appears in the invoice list or the sales-summary PDF. Online orders
+  // always get one.
+  invoiceRequired Boolean @default(true)
+
+  // v2 (Module 5): the phone's own id for the bill, so a repeated "Complete sale"
+  // returns the sale already made; cash | upi | card; and who cancelled a sale,
+  // when and why (owners, same day). All empty for orders from the old app.
+  clientRef     String?   @unique
+  paymentMethod String?
+  cancelledAt   DateTime?
+  cancelledById String?
+  cancelReason  String?
+
+  placedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items        OrderItem[]
+  payment      Payment?
+  shipment     Shipment?
+  reservations Reservation[]
+  attempts     PaymentAttempt[] // website W6
+  invoice      Invoice?
+
+  @@index([authAccountId, placedAt])
+  @@index([channel, placedAt])
+  @@index([status, placedAt])
+}
+
+model OrderItem {
+  id            String   @id @default(uuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+  pieceId       String? // exact physical piece sold, serialized mode only
+  piece         Piece?   @relation(fields: [pieceId], references: [id])
+  nameSnapshot  String
+  priceSnapshot Decimal  @db.Decimal(10, 2)
+  imageSnapshot String?
+  quantity      Int
+  // v2: the line's place on the bill (1, 2, 3…), so invoices list the sarees in the
+  // order they were scanned. Empty for the old app's lines.
+  lineNo        Int?
+  // v2 (Module 10): the store price this line was sold against (a bargain's starting
+  // price). Counter and WhatsApp lines; empty for online lines.
+  storePrice    Decimal? @db.Decimal(10, 2)
+
+  @@index([orderId])
+}
+
+model Payment {
+  id                String   @id @default(uuid())
+  orderId           String   @unique
+  order             Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider          String   @default("razorpay")
+  razorpayOrderId   String   @unique
+  razorpayPaymentId String?
+  razorpaySignature String?
+  status            String   @default("created") // created, paid, failed
+  amount            Decimal  @db.Decimal(10, 2)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  // Website W6: how it was paid (upi, card, netbanking, wallet…) and when Razorpay took the money.
+  method            String?
+  capturedAt        DateTime?
+}
+
+// Website W6 (docs/modules/web-04-checkout.md): every Razorpay payment request for an order.
+// A new one each time the customer presses Pay (Razorpay's advice), so a late payment on an
+// older request still finds its order. Payment (one row per order) keeps the one that paid.
+model PaymentAttempt {
+  id                String    @id @default(uuid())
+  orderId           String
+  order             Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  razorpayOrderId   String    @unique
+  amount            Decimal   @db.Decimal(10, 2)
+  // created | confirming (the page said paid, Razorpay not yet) | paid | failed | refunded
+  status            String    @default("created")
+  razorpayPaymentId String?
+  method            String?
+  failureReason     String?
+  capturedAt        DateTime?
+  // A payment that couldn't be used (paid after the sarees sold, or twice): refunded in full.
+  refundId          String?
+  refundStatus      String? // pending | processed | failed
+  refundReason      String?
+  refundedAt        DateTime?
+  // A refund Razorpay refused: tried again later and later; the owners are told once.
+  refundTries       Int       @default(0)
+  refundError       String?
+  nextRefundAt      DateTime?
+  alertedAt         DateTime?
+  lastCheckedAt     DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([orderId])
+  @@index([status, updatedAt])
+}
+
+// Website W6: each Razorpay notice (webhook) once, by Razorpay's event id.
+model PaymentEvent {
+  id                String   @id // x-razorpay-event-id
+  type              String
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  result            String
+  receivedAt        DateTime @default(now())
+
+  @@index([receivedAt])
+}
+
+model Shipment {
+  id            String    @id @default(uuid())
+  orderId       String    @unique
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  carrier       String    @default("DTDC")
+  // v2 (Module 7): one tracking number, one order: checked by the server, not by the
+  // database (orders shipped from the old app can share a number).
+  awbNumber     String?
+  // not_shipped | shipped | delivered — set manually by admin/staff (mark
+  // shipped / mark delivered). No courier API: the customer tracks by hand
+  // on DTDC's own site using the AWB shown on their order.
+  status        String    @default("not_shipped")
+  // Set once, the moment AWB is entered — `updatedAt` isn't reliable for
+  // "when was this shipped" since it's overwritten again by markOrderDelivered.
+  shippedAt     DateTime?
+  // v2 (Module 7): who shipped it; when and by whom it was marked delivered.
+  shippedById   String?
+  deliveredAt   DateTime?
+  deliveredById String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// One GST invoice per order, generated the moment payment is received
+// (online: the order.paid event; store: synchronously when a Billing sale
+// completes). taxableValue/cgstAmount/sgstAmount are derived at generation
+// time from the order's (GST-inclusive) line prices — see utils/gst.ts —
+// and stored so the PDF never needs to be recomputed to be re-served.
+model Invoice {
+  id             String    @id @default(uuid())
+  invoiceNumber  String    @unique
+  orderId        String    @unique
+  order          Order     @relation(fields: [orderId], references: [id])
+  channel        String // online | store — snapshot, avoids joining Order for list filters
+  customerName   String?
+  customerMobile String?
+  gstRatePercent Decimal   @db.Decimal(5, 2)
+  taxableValue   Decimal   @db.Decimal(10, 2)
+  cgstAmount     Decimal   @db.Decimal(10, 2)
+  sgstAmount     Decimal   @db.Decimal(10, 2)
+  totalAmount    Decimal   @db.Decimal(10, 2)
+  storageKey     String
+  url            String
+  generatedAt    DateTime  @default(now())
+  generatedBy    String // actorId, or "system" for the automatic online-payment trigger
+  // v2 (Module 5): set when the sale is cancelled. The invoice is kept and its PDF
+  // stamped CANCELLED; its number is never used again.
+  cancelledAt    DateTime?
+  // Website W6 (decision 6.12): the delivery state, and IGST for an order delivered outside
+  // the shop's state (then CGST and SGST are 0). Empty / 0 for every earlier invoice.
+  placeOfSupply  String?
+  igstAmount     Decimal   @default(0) @db.Decimal(10, 2)
+
+  @@index([channel, generatedAt])
+}
+
+// Transactional outbox: significant changes get written here in the same
+// transaction as the change itself, then an independent dispatcher delivers
+// them (today: push notifications). Future consumers (chatbot, analytics)
+// subscribe to the same feed without touching the modules that write it.
+model EventsOutbox {
+  id         String   @id @default(uuid())
+  eventType  String // order.placed, payment.captured, ...
+  payload    Json
+  dispatched Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([dispatched, createdAt])
+}
+
+// What the staff app and the storefront check when they open: the
+// maintenance switches, and per platform the newest build and the oldest one
+// still allowed. A single row ("default") — see modules/app-config.
+model AppConfig {
+  id String @id @default("default")
+
+  maintenanceEnabled    Boolean @default(false) // staff app: locks out STAFF, never ADMIN
+  maintenanceMessage    String  @default("")
+  webMaintenanceEnabled Boolean @default(false) // customer website
+  webMaintenanceMessage String  @default("")
+
+  // Build numbers are android.versionCode / ios.buildNumber, not "1.0.0".
+  androidLatestBuild Int     @default(0)
+  androidMinBuild    Int     @default(0) // builds below this must update
+  androidForceUpdate Boolean @default(false) // on: every build below latest must update
+  androidUpdateUrl   String  @default("")
+  iosLatestBuild     Int     @default(0)
+  iosMinBuild        Int     @default(0)
+  iosForceUpdate     Boolean @default(false)
+  iosUpdateUrl       String  @default("")
+
+  updatedAt DateTime @updatedAt
+  updatedBy String? // AuthAccount id of the admin who last changed it
+
+  // v2 (Module 11): shop details and the website address (empty = server settings),
+  // who turned maintenance on and since when, and who last changed each section.
+  shopName             String?
+  shopAddress          String?
+  shopMobile           String?
+  shopGstin            String?
+  websiteUrl           String?
+  maintenanceSince     DateTime?
+  maintenanceBy        String?
+  webMaintenanceSince  DateTime?
+  webMaintenanceBy     String?
+  maintenanceChangedAt DateTime?
+  maintenanceChangedBy String?
+  updatesChangedAt     DateTime?
+  updatesChangedBy     String?
+  shopChangedAt        DateTime?
+  shopChangedBy        String?
+}
+
+// ---------------------------------------------------------------------------
+// v2 admin app (Module 1: Sign in). See docs/modules/module-01-sign-in.md.
+// ---------------------------------------------------------------------------
+
+// A phone or tablet that passed the SMS check for an account. A correct PIN on
+// a device that is not trusted needs an SMS code first.
+model TrustedDevice {
+  id                 String    @id @default(uuid())
+  authAccountId      String
+  deviceId           String // random id the app creates once and keeps in the Keychain / Keystore
+  name               String // e.g. "iPhone 15"
+  platform           String // ios | android
+  biometricPublicKey String? // EC P-256 public key (SPKI, base64) whose private half lives in the device's security chip
+  biometricEnabledAt DateTime?
+  trustedAt          DateTime  @default(now())
+  lastSeenAt         DateTime  @default(now())
+  appVersion         String? // v2 (Module 11): the app version last used, e.g. "2.0.0 (26)"
+  revokedAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  authAccount AuthAccount     @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+  sessions    Session[]
+  challenges  AuthChallenge[]
+  pushToken   StaffPushToken?
+
+  @@unique([authAccountId, deviceId])
+  @@index([deviceId])
+}
+
+// v2 admin app: the phone's notification token (one per signed-in phone). Owners get a
+// notification for each online payment (and refunds) when `payments` is on. A phone signed
+// out (its TrustedDevice revoked) gets nothing.
+model StaffPushToken {
+  id              String   @id @default(uuid())
+  trustedDeviceId String   @unique
+  authAccountId   String
+  token           String   @unique
+  platform        String // android (Firebase) | ios (Apple)
+  payments        Boolean  @default(true)
+  lastSeenAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  trustedDevice TrustedDevice @relation(fields: [trustedDeviceId], references: [id], onDelete: Cascade)
+  authAccount   AuthAccount   @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+
+  @@index([authAccountId])
+}
+
+// One-time challenge for Face ID / fingerprint sign-in. The device signs the
+// payload with its biometric-protected key; valid 60 seconds, used once.
+model AuthChallenge {
+  id              String    @id @default(uuid())
+  trustedDeviceId String
+  nonce           String
+  expiresAt       DateTime
+  usedAt          DateTime?
+  createdAt       DateTime  @default(now())
+
+  trustedDevice TrustedDevice @relation(fields: [trustedDeviceId], references: [id], onDelete: Cascade)
+
+  @@index([trustedDeviceId, createdAt])
+}
+
+// Wrong-PIN counting for mobile numbers that have no app account, so their
+// replies ("n tries left", lock) look exactly like a real account's.
+model LoginThrottle {
+  mobile         String    @id
+  failedAttempts Int       @default(0)
+  lockCount      Int       @default(0)
+  lockedUntil    DateTime?
+  updatedAt      DateTime  @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// v2 website (W1: customer sign-in). See docs/modules/web-01-sign-in.md.
+// ---------------------------------------------------------------------------
+
+// An SMS code sent from the website: sign-in (the number may not have an account
+// yet, so this is keyed by mobile, unlike OtpCode) and change of mobile. Only a
+// hash is kept, or Message Central's reference ("provider:<id>").
+model PhoneCode {
+  id            String    @id @default(uuid())
+  mobile        String
+  purpose       String // shop_sign_in | shop_change_mobile
+  authAccountId String? // change of mobile: the customer who asked
+  codeHash      String
+  attempts      Int       @default(0)
+  usedAt        DateTime? // verified, replaced by a newer code, or used up by wrong tries
+  expiresAt     DateTime
+  ipAddress     String?
+  createdAt     DateTime  @default(now())
+
+  authAccount AuthAccount? @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+
+  @@index([mobile, purpose, createdAt])
+  @@index([ipAddress, createdAt])
+  @@index([createdAt])
+}
+
+// India Post's pincode directory, one row per pincode (scripts/load-pincodes.js).
+model Pincode {
+  pincode   String   @id // 6 digits
+  area      String // main post office, e.g. "Mangalagiri"
+  city      String // district, e.g. "Guntur"
+  state     String
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+// A browser (or later a phone) that accepted notifications: its Firebase Cloud
+// Messaging token. Visitors can subscribe before signing in (no account).
+model PushToken {
+  id            String    @id @default(uuid())
+  token         String    @unique
+  platform      String // web | android | ios
+  authAccountId String?
+  topics        String[]  @default([]) // orders | offers | arrivals
+  userAgent     String?
+  browser       String? // e.g. "Chrome on Android"
+  lastSeenAt    DateTime  @default(now())
+  removedAt     DateTime?
+  removedReason String? // unsubscribed | expired | account_deleted
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  authAccount AuthAccount? @relation(fields: [authAccountId], references: [id], onDelete: SetNull)
+
+  @@index([authAccountId])
+  @@index([removedAt])
+}
+
+// Every message sent to a customer (push now; SMS and email later), with its result.
+model Notification {
+  id            String    @id @default(uuid())
+  authAccountId String? // null for a message to visitors who subscribed without an account
+  channel       String // push | sms | email
+  type          String // order_paid | order_shipped | order_delivered | payment_failed | offers | arrivals | test
+  title         String
+  body          String
+  link          String?
+  data          Json?
+  status        String    @default("queued") // queued | sent | partly_sent | failed | no_device
+  sentCount     Int       @default(0)
+  failedCount   Int       @default(0)
+  error         String?
+  sentAt        DateTime?
+  readAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  authAccount AuthAccount? @relation(fields: [authAccountId], references: [id], onDelete: SetNull)
+
+  @@index([authAccountId, createdAt])
+  @@index([type, createdAt])
+}
+
+// Website W5 (16 Oct 2026, docs/modules/web-03-cart.md): a signed-in customer's bag, one row
+// per saree. A visitor's bag lives only in their browser. Nothing is held: stock is held only
+// while paying (W6, Reservation). quantity is 1 to 50 (a database check too). Rows unchanged
+// for 60 days are removed by the clean-up job; every row goes when the account is deleted.
+model BagItem {
+  id            String      @id @default(uuid())
+  authAccountId String
+  authAccount   AuthAccount @relation(fields: [authAccountId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity      Int
+  priceSeen     Decimal     @db.Decimal(10, 2) // the website price the customer last saw for it
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([authAccountId, productId])
+  @@index([updatedAt])
+}

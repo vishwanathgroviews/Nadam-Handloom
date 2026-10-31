@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Product Screens</title>
+  <meta name="description" content="Every Module 4 products and barcodes screen of the Nandam Handlooms admin app, clickable, with review notes.">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../module-1-sign-in/assets/mock.css">
+  <link rel="stylesheet" href="../module-1-sign-in/assets/app.css">
+  <link rel="stylesheet" href="../module-2-team/assets/m2.css">
+  <link rel="stylesheet" href="../module-3-categories/assets/m3.css">
+  <link rel="stylesheet" href="assets/m4.css">
+  <script src="../module-3-categories/assets/m3-data.js"></script>
+  <script src="assets/m4-data.js"></script>
+  <script src="assets/m4-screens.js"></script>
+  <script src="assets/m4-options.js"></script>
+</head>
+<body class="viewer">
+<script>if (/[?&]embed=1/.test(location.search)) document.body.className = 'embed';</script>
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html"><img src="assets/logo.png" alt=""><span><b>Nandam Handlooms</b><small>Admin app mock-up · Module 4: Products and barcodes</small></span></a>
+    <button class="menu-btn" type="button" data-menu-btn aria-expanded="false" aria-controls="site-nav" aria-label="Menu"><i data-icon="menu"></i></button>
+    <nav class="site-nav" id="site-nav" aria-label="Mock-up pages">
+      <a href="index.html">Start</a><a href="app.html#/products" aria-current="page">Screens</a><a href="../module-1-sign-in/kit.html">Design kit</a><a href="preview.html">Device preview</a>
+    </nav>
+  </div>
+</header>
+
+<main class="viewer-grid" id="main">
+  <aside class="v-list" id="v-list" aria-label="All screens"><nav id="v-nav"></nav></aside>
+
+  <section class="v-stage" aria-label="App preview">
+    <div class="v-stage-bar">
+      <span class="mock-tag">Phone preview</span>
+      <button type="button" class="btn btn-sm" data-plat="ios">iPhone</button>
+      <button type="button" class="btn btn-sm" data-plat="android">Android</button>
+      <a class="btn btn-sm" id="open-preview" href="preview.html"><i data-icon="tablet" class="icon-sm"></i>Tablet and side by side</a>
+    </div>
+    <div class="v-frame-wrap" id="frame-wrap">
+      <div class="device" id="device">
+        <div class="device-screen">
+          <div class="island"></div><div class="punch"></div>
+          <div class="app-root" id="app-root" data-platform="ios" data-size="phone">
+            <div class="statusbar" aria-hidden="true"><span class="sb-time">9:41</span>
+              <span class="sb-icons"><svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+              <svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 2.2c2.4 0 4.6.9 6.3 2.5l1.2-1.3A10.6 10.6 0 0 0 8 .4 10.6 10.6 0 0 0 .5 3.4l1.2 1.3A8.8 8.8 0 0 1 8 2.2zm0 3.6c1.4 0 2.7.5 3.7 1.4l1.2-1.3A7.2 7.2 0 0 0 8 4a7.2 7.2 0 0 0-4.9 1.9l1.2 1.3c1-.9 2.3-1.4 3.7-1.4zM8 9.4l2.2-2.3a3.2 3.2 0 0 0-4.4 0L8 9.4z"/></svg>
+              <span class="batt"></span></span></div>
+            <div class="app-viewport" id="app"></div>
+            <div class="app-overlays" id="app-overlays"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="v-mobilebar">
+      <button type="button" class="btn btn-sm" id="mb-screens" aria-controls="v-list" aria-expanded="false"><i data-icon="grid" class="icon-sm"></i>Screens</button>
+      <button type="button" class="btn btn-sm" id="mb-prev" aria-label="Previous screen"><i data-icon="left" class="icon-sm"></i></button>
+      <button type="button" class="btn btn-sm" id="mb-next" aria-label="Next screen"><i data-icon="right" class="icon-sm"></i></button>
+      <a class="btn btn-sm" href="#v-notes"><i data-icon="doc" class="icon-sm"></i>Notes</a>
+    </div>
+  </section>
+
+  <aside class="v-notes" id="v-notes" aria-live="polite" aria-label="Review notes"></aside>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">
+    <div><a class="brand" href="index.html"><img src="assets/logo.png" alt=""><span><b>Nandam Handlooms</b><small>Admin app · Module 4 of 11</small></span></a>
+      <p style="margin-top:.75rem">Clickable mock-up of the new admin app's product and barcode screens, with the shop's real sarees, tags and photos. Not the real app: nothing you change leaves this browser.</p></div>
+    <div><h4>Mock-up</h4><ul><li><a href="index.html">Start page</a></li><li><a href="app.html#/products">All screens</a></li><li><a href="../module-1-sign-in/kit.html">Design kit</a></li><li><a href="preview.html">Device preview</a></li></ul></div>
+    <div><h4>Project docs</h4><ul><li><a href="../../../modules/module-04-products.md">Module 4 plan</a></li><li><a href="../module-3-categories/index.html">Module 3 mock-up</a></li><li><a href="../../../current-system/admin-app-2-catalog.md">Old app: catalogue notes</a></li><li><a href="../../../README.md">Docs index</a></li></ul></div>
+    <div class="legal"><span>People's names are sample data. Sarees, tags and photos are the shop's own.</span><span>Android and iOS · phone and tablet</span></div>
+  </div>
+</footer>
+
+<script src="assets/m4-app.js"></script>
+<script>
+(function () {
+  if (document.body.classList.contains('embed')) return;
+  var nav = document.getElementById('v-nav'), notes = document.getElementById('v-notes'), list = document.getElementById('v-list');
+  var order = NH_SCREENS.map(function (s) { return s; });
+  nav.innerHTML = NH_GROUPS.map(function (g) {
+    return '<div><h3>' + g.title + '</h3>' + NH_SCREENS.filter(function (s) { return s.group === g.id; }).map(function (s) {
+      return '<a href="#/' + NH_ROUTE(s) + '" data-id="' + s.id + '">' + NH.icon(s.icon) + s.title + '</a>';
+    }).join('') + '</div>';
+  }).join('');
+  function idFor(r) {
+    var p = r.params, n = r.name;
+    if (n === 'products') return p.q ? 'search' : p.as === 'staff' ? 'staffproducts' : 'products';
+    if (n === 'scan') return { used: 'usedother', dup: 'usedbatch', again: 'replaceask', type: 'typetag' }[p.demo] || 'scan';
+    if (n === 'product') {
+      if (p.as === 'staff') return 'staffproduct';
+      if (p.demo) return { change: 'changetag', damaged: 'damagedtag', saree: 'sareedamaged', 'delete': 'delete', held: 'held' }[p.demo] || 'product';
+      return p.id === '72246a83' ? 'soldsaree' : p.id === 'cbb47607' ? 'multitag' : 'product';
+    }
+    return n;
+  }
+  var STATE_NAMES = { loading: 'Loading', empty: 'Empty', error: 'Error', success: 'Success', warning: 'Warning', popup: 'Pop-up' };
+  function li(a) { return a.length ? '<ul>' + a.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ul>' : '<p>None for this screen.</p>'; }
+  var currentId = 'products';
+  document.addEventListener('nh:route', function (e) {
+    var id = idFor(e.detail), s = NH_SCREEN(id);
+    currentId = s ? id : currentId;
+    nav.querySelectorAll('a').forEach(function (a) { a.setAttribute('aria-current', String(a.dataset.id === id)); });
+    list.classList.remove('is-open');
+    document.getElementById('open-preview').href = 'preview.html?screen=' + encodeURIComponent(location.hash.replace(/^#\//, ''));
+    if (!s) { notes.innerHTML = '<div class="card"><span class="eyebrow">Placeholder</span><h2>' + e.detail.name + '</h2><p>A placeholder tab. Its real design belongs to a later module.</p></div>'; return; }
+    var g = NH_GROUPS.filter(function (x) { return x.id === s.group; })[0];
+    notes.innerHTML =
+      '<div class="card"><span class="eyebrow">' + g.title + ' · ' + g.who + '</span><h2>' + s.title + '</h2><p>' + s.purpose + '</p>' +
+      '<h4>States you can try</h4><p>' + (s.states.length ? s.states.map(function (x) { return '<span class="badge" style="margin:0 .25rem .25rem 0">' + STATE_NAMES[x] + '</span>'; }).join('') + '<br><span class="field-hint">Use "Screen states" in Design options.</span>' : 'This screen has no extra states.') + '</p></div>' +
+      '<div class="card"><h4 style="margin-top:0">Rules</h4>' + li(s.rules) + '</div>' +
+      '<div class="card"><h4 style="margin-top:0">Try these edge cases</h4>' + li(s.edges) + '</div>' +
+      '<div class="card"><h4 style="margin-top:0">New or fixed vs the old app</h4>' + li(s.fixes) + '</div>';
+  });
+  function step(d) { var i = order.findIndex(function (s) { return s.id === currentId; }); var n = order[(i + d + order.length) % order.length]; location.hash = '#/' + NH_ROUTE(n); }
+  document.getElementById('mb-prev').addEventListener('click', function () { step(-1); });
+  document.getElementById('mb-next').addEventListener('click', function () { step(1); });
+  var mbs = document.getElementById('mb-screens');
+  mbs.addEventListener('click', function () { var o = !list.classList.contains('is-open'); list.classList.toggle('is-open', o); mbs.setAttribute('aria-expanded', String(o)); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') list.classList.remove('is-open'); });
+  document.querySelectorAll('[data-plat]').forEach(function (b) { b.addEventListener('click', function () { NH.setFlag('platform', b.dataset.plat); }); });
+  function syncPlat() { var p = NH.flags().platform; document.querySelectorAll('[data-plat]').forEach(function (b) { b.classList.toggle('btn-primary', b.dataset.plat === p); b.setAttribute('aria-pressed', String(b.dataset.plat === p)); }); }
+  document.addEventListener('nh:flags', syncPlat); syncPlat();
+  var wrap = document.getElementById('frame-wrap');
+  function fit() {
+    if (window.innerWidth <= 860) { wrap.style.removeProperty('--scale'); return; }
+    var avail = window.innerHeight - 64 - 20 - 44 - 24;
+    wrap.style.setProperty('--scale', Math.max(.62, Math.min(1, avail / 868)).toFixed(3));
+  }
+  window.addEventListener('resize', fit); fit();
+})();
+</script>
+</body>
+</html>

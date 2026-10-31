@@ -1,0 +1,7 @@
+{
+  "name": "nandam-system-bars",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "description": "Android's own button strip follows light/dark while the app is open"
+}

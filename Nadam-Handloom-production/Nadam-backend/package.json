@@ -1,0 +1,43 @@
+{
+  "name": "nadam-backend",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Nandam Handlooms API v2: MVC Express backend for the new admin app and website",
+  "type": "module",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prisma:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:status": "prisma migrate status",
+    "db:seed:dev": "node prisma/dev-seed.js",
+    "db:test:reset": "node tests/support/reset-test-db.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1149.0",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "argon2": "^0.45.1",
+    "dotenv": "^17.4.2",
+    "express": "^5.3.0",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.12.1",
+    "multer": "^2.4.0",
+    "pdfkit": "^0.20.2",
+    "pg": "^8.23.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "prisma": "^7.10.0",
+    "supertest": "^7.3.1",
+    "vitest": "^5.0.3"
+  }
+}

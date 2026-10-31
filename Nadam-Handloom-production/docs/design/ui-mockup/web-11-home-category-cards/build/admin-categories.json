@@ -1,0 +1,773 @@
+{
+ "read": "2026-10-25",
+ "categories": [
+  {
+   "name": "Handloom Cotton Dress Material",
+   "slug": "handloom-cotton-dress-material",
+   "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/site/categories/handloom-cotton-dress-material.jpg",
+   "sortOrder": 1,
+   "subcategories": 6,
+   "products": 1,
+   "inStock": 2,
+   "description": "Handloom cotton dress materials in plain weaves, embossed prints, and temple borders.",
+   "subs": [
+    {
+     "name": "50/50 Plain Dress Materials",
+     "inStock": 2,
+     "price": 200.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "50/50 Screen Printed Dress Materials",
+     "inStock": 0,
+     "price": 2199.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "50/50 Stripes Dress Materials",
+     "inStock": 0,
+     "price": 2199.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Gap Border Embossing Print",
+     "inStock": 0,
+     "price": 2199.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Plain Embossing Print",
+     "inStock": 0,
+     "price": 2199.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Temple Border Plain Dress Material",
+     "inStock": 0,
+     "price": 2199.0,
+     "hasPhoto": false
+    }
+   ]
+  },
+  {
+   "name": "MANGALAGIRI HANDLOOM PATTU SAREES",
+   "slug": "mangalagiri-handloom-pattu-sarees",
+   "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/categories/4a19f140-510e-4d0f-b812-5ffb7b2d56ad.jpg",
+   "sortOrder": 2,
+   "subcategories": 63,
+   "products": 1914,
+   "inStock": 1720,
+   "description": "✨ PURE MANGALAGIRI HANDLOOM PATTU SAREES ",
+   "subs": [
+    {
+     "name": "100/50 CHIKANKARI EMBROIDERY SAREES",
+     "inStock": 32,
+     "price": 4200.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "150 Border Real Bandini & Ajrakh",
+     "inStock": 19,
+     "price": 3500.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "150 checks embroidery",
+     "inStock": 20,
+     "price": 3000.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "150/50 DIGITAL PRINT SAREES",
+     "inStock": 24,
+     "price": 2800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "150/50 Ikkath Flower Bunch Saree",
+     "inStock": 19,
+     "price": 2800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "150/50 PLAIN SAREE EMBROIDERY BLOUSE",
+     "inStock": 49,
+     "price": 2700.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "150/50 Screenprint dye sarees",
+     "inStock": 18,
+     "price": 2500.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "150/50 border Applique Saree",
+     "inStock": 19,
+     "price": 4000.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "150/50 border Embroidry sarees",
+     "inStock": 20,
+     "price": 3200.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "150/50 border Plain Saree",
+     "inStock": 40,
+     "price": 2600.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "150/50 screen printed sarees",
+     "inStock": 20,
+     "price": 2700.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "200 KANCHI TRIPLE CHECKS SAREES",
+     "inStock": 15,
+     "price": 3300.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "250 KANCHI GAP BORDER SAREES",
+     "inStock": 36,
+     "price": 2600.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "250/50 Digital print",
+     "inStock": 24,
+     "price": 3000.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "250k Tanjore Sticker Saree",
+     "inStock": 18,
+     "price": 3500.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "300 KANCHI BORDER PLAIN SAREES",
+     "inStock": 39,
+     "price": 3000.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "300k Ikkath Border Check Saree",
+     "inStock": 17,
+     "price": 2000.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "350 KANCHI BORDER BUTA SAREES",
+     "inStock": 29,
+     "price": 3200.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50  border Embroidery sarees",
+     "inStock": 25,
+     "price": 2800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 Applique Saree",
+     "inStock": 20,
+     "price": 3600.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 BANDINI SCREENPRINTED SAREES",
+     "inStock": 25,
+     "price": 1800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 Border Baguru Printed Saree — Border",
+     "inStock": 26,
+     "price": 2400.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 CHECKS SAREE",
+     "inStock": 20,
+     "price": 2400.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 Checks Embroidry",
+     "inStock": 26,
+     "price": 3600.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "50/50 DIGITAL PRINT SAREES",
+     "inStock": 105,
+     "price": 2800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 Embossing Screen Print Sarees",
+     "inStock": 46,
+     "price": 2500.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 Flower Bunch Applique",
+     "inStock": 23,
+     "price": 3500.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 Middle Check hand painted sarees",
+     "inStock": 16,
+     "price": 2900.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 Middle Checks Sarees",
+     "inStock": 20,
+     "price": 2400.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 Middle Checks Screen Printed Saree",
+     "inStock": 21,
+     "price": 2700.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 Plain Saree",
+     "inStock": 45,
+     "price": 2000.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "50/50 Tanjore Screen Print Saree",
+     "inStock": 21,
+     "price": 2200.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 Zute Line Saree",
+     "inStock": 17,
+     "price": 2000.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 contrast Plain Saree",
+     "inStock": 40,
+     "price": 2000.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 dye Screen Printed Saree",
+     "inStock": 90,
+     "price": 2000.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 middle checks  Kalamkari Patchwork Saree",
+     "inStock": 18,
+     "price": 3000.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "50/50 silk kalankari sarees",
+     "inStock": 30,
+     "price": 1600.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Embroidery Saree",
+     "inStock": 21,
+     "price": 2300.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Flower Scallop Border",
+     "inStock": 18,
+     "price": 2200.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "GAP BORDER DIGITAL PRINT SAREES",
+     "inStock": 49,
+     "price": 2600.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "GAP BORDER EMBROIDERY SAREES",
+     "inStock": 57,
+     "price": 2800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "GAP BORDER HANDPAINTED SAREES",
+     "inStock": 11,
+     "price": 2800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Gap Border bramini Embroidry Saree",
+     "inStock": 15,
+     "price": 4200.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Gap border silk kalankari patch sarees",
+     "inStock": 12,
+     "price": 2600.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Plain saree bunch Embroidry",
+     "inStock": 35,
+     "price": 2400.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Pure Pattu 250k Butta Saree",
+     "inStock": 31,
+     "price": 4800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Pure Pattu 350k Butta Saree",
+     "inStock": 32,
+     "price": 5200.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Rainbow checks sarees",
+     "inStock": 34,
+     "price": 2800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Real Bandini Shibori  Hardweaving Saree",
+     "inStock": 47,
+     "price": 1700.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Real Tanjore painting sarees",
+     "inStock": 13,
+     "price": 4800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "SCALLOP BORDER EMBOSSING PRINT EMBROIDERY BLOUSE SAREES",
+     "inStock": 24,
+     "price": 2400.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "SCALLOP BORDER EMBROIDERY SAREES",
+     "inStock": 22,
+     "price": 2800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "SCALLOP BORDER FLOWER APPLIQUE SAREES",
+     "inStock": 42,
+     "price": 3800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "SCALLOP BORDER HANDPAINTED SAREES",
+     "inStock": 26,
+     "price": 2600.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Scallop Applique Saree",
+     "inStock": 21,
+     "price": 3800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Scallop Bandini screenprint Embroidry blouse",
+     "inStock": 13,
+     "price": 2400.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Scallop Digital Print Saree",
+     "inStock": 14,
+     "price": 2400.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Scallop Kollam & Design Printed Saree",
+     "inStock": 2,
+     "price": 2400.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Scallop Zari Line Embroidery Blouse",
+     "inStock": 16,
+     "price": 2200.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Scallop Zute lines blouse embroidery",
+     "inStock": 31,
+     "price": 2200.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Scallop border Tanjore Saree, Tanjore Blouse",
+     "inStock": 23,
+     "price": 3800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Shibori and real bandini lehanga type sarees",
+     "inStock": 19,
+     "price": 1800.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Tissue Border Straight Line Saree",
+     "inStock": 0,
+     "price": 2000.0,
+     "hasPhoto": false
+    }
+   ]
+  },
+  {
+   "name": "Handloom Cotton Saree",
+   "slug": "handloom-cotton-saree",
+   "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/site/categories/handloom-cotton-saree.jpg",
+   "sortOrder": 3,
+   "subcategories": 11,
+   "products": 2,
+   "inStock": 2,
+   "description": "Breathable handloom cotton sarees in checks, stripes, and block prints for daily and festive wear.",
+   "subs": [
+    {
+     "name": "50/50 Line Saree",
+     "inStock": 0,
+     "price": 2999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Cotton Checks Saree",
+     "inStock": 0,
+     "price": 2999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Cotton Digital Printed",
+     "inStock": 0,
+     "price": 2999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Cotton Embroidery Saree",
+     "inStock": 0,
+     "price": 2999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Cotton Gap Border Saree",
+     "inStock": 0,
+     "price": 2999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Gap Border Printed Saree",
+     "inStock": 0,
+     "price": 2999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Linen Cotton Printed",
+     "inStock": 0,
+     "price": 2999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Plain Cotton Saree",
+     "inStock": 2,
+     "price": 1500.0,
+     "hasPhoto": true
+    },
+    {
+     "name": "Plain Cotton Straight Line Saree",
+     "inStock": 0,
+     "price": 2999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Plain Printed Cotton Saree",
+     "inStock": 0,
+     "price": 2999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Temple Border Plain Saree",
+     "inStock": 0,
+     "price": 2999.0,
+     "hasPhoto": false
+    }
+   ]
+  },
+  {
+   "name": "Handloom Pattu Dress Material",
+   "slug": "handloom-pattu-dress-material",
+   "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/site/categories/handloom-pattu-dress-material.jpg",
+   "sortOrder": 4,
+   "subcategories": 24,
+   "products": 149,
+   "inStock": 152,
+   "description": "Pattu silk dress materials with applique, Tanjore painting, Shibori, and Kalamkari work.",
+   "subs": [
+    {
+     "name": "200k Checks Dress Material",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "250k Baguru Printed Dress Material",
+     "inStock": 19,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "250k Butta Dress Materials",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "250k Butta Top Digital Duppata",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "250k Plain Top Screen Printed Duppata",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "250k Screen Printed Top Plain Duppata",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "250k Shibori Bandini Dress Material",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "250k Top Digital Duppata",
+     "inStock": 23,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "300k Dye Screen Printed Material",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "300k Hand Painted Dress Material",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "300k Shibori Dress Material",
+     "inStock": 15,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "50/50 Chikankari Dress Material",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "50/50 Dress Material",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "50/50 Screen Printed Dress Material",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "50/50 Zute Line Dress Material",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Applique Top Applique Duppata Dress",
+     "inStock": 19,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Applique Work Dress Materials",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Digital Top / Digital Duppata Dress Material",
+     "inStock": 14,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Dye Magam Work Dress Material",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Gap Border Mangalagiri Kalamkari Dress Material",
+     "inStock": 24,
+     "price": 6499.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Plain Top Real Srikalahasthi Duppata",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Rangoli Border Block Printed",
+     "inStock": 25,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Real Tanjore Painted Dress Material",
+     "inStock": 13,
+     "price": 6999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Single Peacock Dress Material",
+     "inStock": 0,
+     "price": 6999.0,
+     "hasPhoto": false
+    }
+   ]
+  },
+  {
+   "name": "Pattu Lehanga Sets",
+   "slug": "pattu-lehanga-sets",
+   "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/site/categories/pattu-lehanga-sets.jpg",
+   "sortOrder": 5,
+   "subcategories": 11,
+   "products": 51,
+   "inStock": 53,
+   "description": "Pattu lehanga sets with digital prints, Kalamkari voni, Kutch embroidery, and hand-painted work.",
+   "subs": [
+    {
+     "name": "250k Lehanga Sets",
+     "inStock": 0,
+     "price": 1999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "250k kutch Work Embroidery Lehanga",
+     "inStock": 13,
+     "price": 1999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "300k ikkath Border Lehanga Sets",
+     "inStock": 0,
+     "price": 1999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "350k Butta Lehanga Scallop Pen Kalamkari Voni",
+     "inStock": 0,
+     "price": 1999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "350k Checks Digital Lehanga Voni",
+     "inStock": 0,
+     "price": 1999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "350k Hand Painted Lehanga Set",
+     "inStock": 11,
+     "price": 1999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "350k Plain Lehanga Digital Voni",
+     "inStock": 6,
+     "price": 1999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "350k Plain Lehanga Scallop Pen Kalamkari Voni",
+     "inStock": 0,
+     "price": 1999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Full Digital Set Lehanga",
+     "inStock": 11,
+     "price": 1999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Gap Border Applique Work Lehanga Sets",
+     "inStock": 0,
+     "price": 1999.0,
+     "hasPhoto": false
+    },
+    {
+     "name": "Kalamkari Lehanga Sets",
+     "inStock": 12,
+     "price": 1999.0,
+     "hasPhoto": true
+    }
+   ]
+  },
+  {
+   "name": "Fabrics",
+   "slug": "fabrics",
+   "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/categories/d4599869-c57d-4abb-927e-65e469c84671.png",
+   "sortOrder": 6,
+   "subcategories": 1,
+   "products": 2,
+   "inStock": 1,
+   "description": "Handloom fabric yardage — pure and regular pattu and cotton material sold by the piece for tailoring.",
+   "subs": [
+    {
+     "name": "Test1",
+     "inStock": 1,
+     "price": 10.0,
+     "hasPhoto": false
+    }
+   ]
+  }
+ ]
+}

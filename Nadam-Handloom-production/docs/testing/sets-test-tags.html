@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sets Test Tags</title>
+<meta name="description" content="Barcodes to scan from the screen while testing sets (one photo, several tags) in the Nandam Admin app, build 28.">
+<style>
+  :root { --bg: #f5f4ef; --card: #fff; --text: #16171f; --muted: #5d6070; --line: #e3e1d8; --primary: #0d5c61; --soft: #e0f0ee; --warn: #a35f0a; --warn-soft: #fbf0d9; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { background: var(--primary); color: #fff; padding: 22px 24px; }
+  header h1 { margin: 0 0 4px; font-size: 24px; }
+  header p { margin: 0; opacity: .85; max-width: 900px; }
+  main { max-width: 1240px; margin: 0 auto; padding: 20px 16px 60px; }
+  .note { background: var(--warn-soft); color: #5a3a05; border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; }
+  section { margin-top: 26px; }
+  h2 { font-size: 19px; margin: 0 0 4px; }
+  .lead { color: var(--muted); margin: 0 0 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .tag { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 12px 10px; text-align: center; }
+  .tag svg { width: 100%; height: auto; max-height: 120px; }
+  .tag b { display: block; font-size: 18px; letter-spacing: .06em; margin-top: 2px; }
+  .tag small { color: var(--muted); }
+  .tag.again { border: 2px dashed var(--warn); }
+  ol { margin: 6px 0 0; padding-left: 20px; }
+  ol li { margin: 3px 0; }
+  .steps { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
+  .chip { display: inline-block; background: var(--soft); color: var(--primary); border-radius: 6px; padding: 0 6px; font-weight: 700; }
+  @media (max-width: 600px) { header { padding: 18px 16px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Test tags for sets (one photo, several tags)</h1>
+  <p>Scan these from this screen with Nandam Admin, Android build 28. They are test tags (TEST01…), not real shop tags. Turn the laptop brightness up and hold the phone about a hand's width from the screen.</p>
+</header>
+<main>
+  <div class="note"><b>This is the real shop.</b> Sarees you save go on the website. Use any subcategory, then delete each test saree when done (Delete frees its TEST tags, so you can use them again).</div>
+
+  <div class="steps">
+    <h2>Test 1: a set of 5 in a batch</h2>
+    <ol>
+      <li>Products → a subcategory → Add products → Choose photos → pick <b>3 photos</b> → Next.</li>
+      <li>Photo 1 (one saree): scan <span class="chip">TEST06</span>. It moves to photo 2 by itself.</li>
+      <li>Photo 2 (the set): tap <b>+</b> until "Sarees in this photo" says <b>5</b>, then scan <span class="chip">TEST01</span> to <span class="chip">TEST05</span>. After the 5th it moves to photo 3.</li>
+      <li>Photo 3: scan <span class="chip">TEST07</span>. The check screen opens: photo 2 shows its 5 tags, "Save 7 sarees · 3 photos".</li>
+      <li>Save. Then open the set: it says "Set of 5 · 5 in stock".</li>
+    </ol>
+  </div>
+
+  <section>
+    <h2>The set of 5</h2>
+    <p class="lead">Scan these five on the same photo, after setting "Sarees in this photo" to 5.</p>
+    <div class="grid" id="set"></div>
+  </section>
+
+  <section>
+    <h2>Single sarees</h2>
+    <p class="lead">One tag each: the photo moves on by itself.</p>
+    <div class="grid" id="single"></div>
+  </section>
+
+  <section>
+    <div class="steps">
+      <h2>Test 2: mistakes the app should catch</h2>
+      <ol>
+        <li><b>Same tag twice:</b> while on the set's photo, scan <span class="chip">TEST01</span> again → "already on this photo".</li>
+        <li><b>A second tag on a one-saree photo:</b> on photo 1 (has TEST06), scan <span class="chip">TEST11</span> → it asks Replace, or "A set: keep both".</li>
+        <li><b>One more than counted:</b> tap photo 2 (the set, 5 of 5) in the strip, then scan <span class="chip">TEST12</span> → "Make it a set of 6?".</li>
+        <li><b>Tag on another photo:</b> on photo 3, scan <span class="chip">TEST06</span> → "Already used in this batch".</li>
+        <li><b>Short set:</b> set a photo to 5, scan only 3, tap Review → Save → it asks "Scan the other 2" or "Save it as a set of 3".</li>
+        <li><b>After saving:</b> start a new batch and scan <span class="chip">TEST01</span> → "already used" (it's on the saved set).</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2>Extra tags (for Test 2 and Test 3)</h2>
+    <p class="lead">TEST11 and TEST12 for the mistake checks; TEST08 to TEST10 for "Add more tags".</p>
+    <div class="grid" id="extra"></div>
+  </section>
+
+  <section>
+    <div class="steps">
+      <h2>Test 3: Add more tags later</h2>
+      <ol>
+        <li>Open the saved set (Set of 5) → <b>Add more tags (same design)</b>.</li>
+        <li>Scan <span class="chip">TEST01</span> → "already on this saree".</li>
+        <li>Scan <span class="chip">TEST08</span>, <span class="chip">TEST09</span>, <span class="chip">TEST10</span> → "Add 3 tags · set of 8" → it says "Set of 8 · 8 in stock".</li>
+        <li>Tap one tag → its own actions (Change tag, Tag damaged, Saree damaged, Remove this tag).</li>
+        <li>When finished: <b>Delete saree</b> on each test saree. All TEST tags become free again.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <h2>Quick add a set (optional)</h2>
+    <p class="lead">Subcategory → Quick add → take a photo → tap + to 3 → scan TEST01, TEST02, TEST03 (after deleting the batch test, or use TEST13–TEST15 below).</p>
+    <div class="grid" id="quick"></div>
+  </section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+<script>
+(function () {
+  var groups = {
+    set: [['TEST01', 'Set · 1 of 5'], ['TEST02', 'Set · 2 of 5'], ['TEST03', 'Set · 3 of 5'], ['TEST04', 'Set · 4 of 5'], ['TEST05', 'Set · 5 of 5']],
+    single: [['TEST06', 'Photo 1 · one saree'], ['TEST07', 'Photo 3 · one saree']],
+    extra: [['TEST11', 'Second tag on a one-saree photo'], ['TEST12', 'One more than counted'], ['TEST08', 'Add more tags'], ['TEST09', 'Add more tags'], ['TEST10', 'Add more tags']],
+    quick: [['TEST13', 'Quick add · 1 of 3'], ['TEST14', 'Quick add · 2 of 3'], ['TEST15', 'Quick add · 3 of 3']]
+  };
+  Object.keys(groups).forEach(function (id) {
+    var host = document.getElementById(id);
+    groups[id].forEach(function (g) {
+      var card = document.createElement('div');
+      card.className = 'tag';
+      card.innerHTML = '<svg aria-label="Barcode ' + g[0] + '"></svg><b>' + g[0] + '</b><small>' + g[1] + '</small>';
+      host.appendChild(card);
+      try {
+        JsBarcode(card.querySelector('svg'), g[0], { format: 'CODE128', width: 3, height: 90, displayValue: false, margin: 14, background: '#ffffff' });
+      } catch (e) {
+        card.querySelector('svg').outerHTML = '<p style="color:#a35f0a">Barcode didn\'t load (no internet?). Type ' + g[0] + ' in the app instead.</p>';
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

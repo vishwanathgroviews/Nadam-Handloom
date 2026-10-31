@@ -1,0 +1,7 @@
+{
+  "name": "nandam-share",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "description": "Send a file (catalogue PDF, invoice) to a customer's WhatsApp chat on Android, or through the share menu"
+}

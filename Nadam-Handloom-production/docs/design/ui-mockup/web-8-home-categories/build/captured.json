@@ -1,0 +1,1793 @@
+{
+ "at": "2026-10-23T16:12:08.954Z",
+ "site": "https://nandamhandlooms.com",
+ "parts": {
+  "htmlAttrs": {
+   "lang": "en-IN",
+   "data-mode": "light",
+   "class": "js-motion"
+  },
+  "layoutClass": "at-home",
+  "announce": "<div class=\"announce\" role=\"region\" aria-label=\"Announcements\"><div class=\"track\" style=\"transform: translateY(calc(-1 * var(--announce-h, 36px)));\"><div class=\"msg\" aria-hidden=\"true\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M3 6.5h11v9H3zM14 9.5h3.6l3.4 3.3v2.7h-7\"></path><circle cx=\"7\" cy=\"17.5\" r=\"1.8\"></circle><circle cx=\"17.5\" cy=\"17.5\" r=\"1.8\"></circle></svg>Free delivery across India on every order</div><div class=\"msg\" aria-hidden=\"false\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 9.5L5.5 4h13L20 9.5\"></path><path d=\"M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0\"></path><path d=\"M5.5 11.5V20h13v-8.5M10 20v-5h4v5\"></path></svg>Visit our store in Old Mangalagiri · open every day</div><div class=\"msg\" aria-hidden=\"true\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z\"></path></svg>1,736 handloom pieces online now</div></div></div>",
+  "header": "<header class=\"hdr\"><div class=\"wrap hdr-in\"><div class=\"left\"><button type=\"button\" class=\"menu-btn\" aria-haspopup=\"dialog\" aria-expanded=\"false\" aria-label=\"Menu\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 7h16M4 12h16M4 17h10\"></path></svg><span class=\"hide-sm\">Menu</span></button></div><a class=\"logo\" aria-label=\"Nandam Handlooms, home\" href=\"/\" data-discover=\"true\"><img alt=\"\" width=\"46\" height=\"46\" src=\"/img/logo-96.png\"><span class=\"wm\"><b>Nandam</b><small>Handlooms · Mangalagiri</small></span></a><div class=\"tools\"><button type=\"button\" class=\"btn btn-icon\" aria-label=\"Search\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"11\" cy=\"11\" r=\"7\"></circle><path d=\"M20 20l-3.5-3.5\"></path></svg></button><a class=\"acct-link\" aria-label=\"Sign in\" href=\"/sign-in\" data-discover=\"true\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"8\" r=\"4\"></circle><path d=\"M4.5 20.5a7.5 7.5 0 0 1 15 0\"></path></svg><span class=\"hide-sm\">Sign in</span></a><button type=\"button\" class=\"bag-link\" aria-label=\"Bag, empty\" aria-haspopup=\"dialog\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 8h14l-1.2 12H6.2L5 8z\"></path><path d=\"M9 8V6.5a3 3 0 0 1 6 0V8\"></path></svg></button></div></div></header>",
+  "mainAttrs": {
+   "id": "main",
+   "tabindex": "-1"
+  },
+  "sections": [
+   {
+    "cls": "intro",
+    "label": "",
+    "html": "<div class=\"intro\" aria-hidden=\"true\"><div><img alt=\"\" width=\"92\" height=\"92\" src=\"/img/logo-192.png\"><b>Nandam Handlooms</b><i></i><small>Old Mangalagiri</small></div></div>"
+   },
+   {
+    "cls": "lux-hero",
+    "label": "Featured",
+    "html": "<section class=\"lux-hero\" aria-roledescription=\"carousel\" aria-label=\"Featured\" style=\"--slide: 7.5s;\"><div class=\"slide\" aria-hidden=\"true\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"1 of 5: The loom\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAYABgDASIAAhEBAxEB/8QAGQABAAMBAQAAAAAAAAAAAAAAAAQFBgEC/8QAIRAAAQUAAgEFAAAAAAAAAAAAAgABAwQREiEFFCIxQXH/xAAXAQADAQAAAAAAAAAAAAAAAAAAAQID/8QAGBEBAQEBAQAAAAAAAAAAAAAAAQARIQL/2gAMAwEAAhEDEQA/AKekRVyY+O/i0sXlR9JpDhZmLOwyjDHp9L3E8ls3cWfj9Mse2+DwottiKwRsL9optuOWOLkwsON2iZJ81WwlL8vrrsdiWqeAbs6Iqo3Kwt2Sfx3vLTJERAQrf//Z&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/loom-480.webp 480w, /img/site/loom-800.webp 800w, /img/site/loom-1024.webp 1024w\" sizes=\"100vw\"><img sizes=\"100vw\" alt=\"\" width=\"1024\" height=\"1024\" loading=\"eager\" decoding=\"sync\" fetchpriority=\"high\" srcset=\"/img/site/loom-480.jpg 480w, /img/site/loom-800.jpg 800w, /img/site/loom-1024.jpg 1024w\" src=\"/img/site/loom-1024.jpg\" style=\"object-position: 58% 55%;\"></picture></span><div class=\"copy\" style=\"transform: translateY(0px); opacity: 1;\"><div class=\"wrap\"><div><span class=\"eyebrow\">From the looms of Mangalagiri</span><h1><span class=\"lines in\"><span class=\"ln\"><span style=\"--d: 0;\">Woven by hand,</span></span><span class=\"ln\"><span style=\"--d: 1;\">worn for a lifetime</span></span></span></h1><p>Pure Mangalagiri handloom pattu, from our store in Old Mangalagiri to your door, free across India.</p><div class=\"ctas\"><a class=\"btn btn-light btn-lg\" tabindex=\"-1\" href=\"/category/mangalagiri-handloom-pattu-sarees\" data-discover=\"true\">Discover the collection</a><a class=\"lux-link\" tabindex=\"-1\" href=\"/#craft\" data-discover=\"true\">Our craft <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></a></div></div></div></div></div><div class=\"slide\" aria-hidden=\"true\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"2 of 5: Zari\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAMCBAX/xAAdEAEAAgICAwAAAAAAAAAAAAABAAMCEQQiEjFB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AM7Ostq8WNo4lOIOtsVUqSxR9IEeVgNfU7HqEfmahA//2Q==&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/zari-480.webp 480w, /img/site/zari-800.webp 800w, /img/site/zari-1200.webp 1200w, /img/site/zari-1600.webp 1600w, /img/site/zari-1920.webp 1920w\" sizes=\"100vw\"><img sizes=\"100vw\" alt=\"\" width=\"1920\" height=\"1079\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/zari-480.jpg 480w, /img/site/zari-800.jpg 800w, /img/site/zari-1200.jpg 1200w, /img/site/zari-1600.jpg 1600w, /img/site/zari-1920.jpg 1920w\" src=\"/img/site/zari-1200.jpg\"></picture></span><div class=\"copy\" style=\"transform: translateY(0px); opacity: 1;\"><div class=\"wrap\"><div><span class=\"eyebrow\">The zari edit</span><h2 class=\"h1-like\" style=\"font-size: clamp(2.6rem, 7vw, 6.4rem); line-height: 1.02; color: rgb(255, 255, 255);\"><span class=\"lines in\"><span class=\"ln\"><span style=\"--d: 0;\">The quiet art of</span></span><span class=\"ln\"><span style=\"--d: 1;\">the zari border</span></span></span></h2><p>Borders woven in silver and gold zari: the signature of a Mangalagiri saree.</p><div class=\"ctas\"><a class=\"btn btn-light btn-lg\" tabindex=\"-1\" href=\"/shop?craft=pure\" data-discover=\"true\">Shop pure pattu</a><a class=\"lux-link\" tabindex=\"-1\" href=\"/#craft\" data-discover=\"true\">Our craft <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></a></div></div></div></div></div><div class=\"slide on\" aria-hidden=\"false\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"3 of 5: Pastels\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAQFA//EAB4QAAICAgIDAAAAAAAAAAAAAAABAhEDIQQSIjFB/8QAFgEBAQEAAAAAAAAAAAAAAAAAAQID/8QAFxEBAQEBAAAAAAAAAAAAAAAAAQACEf/aAAwDAQACEQMRAD8AqclyWPrFa+iMloqR8obQtPjx92CRJrFStgb5I1oCzQHLDWHT2//Z&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/pastel-480.webp 480w, /img/site/pastel-800.webp 800w, /img/site/pastel-1200.webp 1200w, /img/site/pastel-1600.webp 1600w, /img/site/pastel-1920.webp 1920w\" sizes=\"100vw\"><img sizes=\"100vw\" alt=\"\" width=\"1920\" height=\"1079\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/pastel-480.jpg 480w, /img/site/pastel-800.jpg 800w, /img/site/pastel-1200.jpg 1200w, /img/site/pastel-1600.jpg 1600w, /img/site/pastel-1920.jpg 1920w\" src=\"/img/site/pastel-1200.jpg\"></picture></span><div class=\"copy\" style=\"transform: translateY(0px); opacity: 1;\"><div class=\"wrap\"><div><span class=\"eyebrow\">Soft colour</span><h2 class=\"h1-like\" style=\"font-size: clamp(2.6rem, 7vw, 6.4rem); line-height: 1.02; color: rgb(255, 255, 255);\"><span class=\"lines in\"><span class=\"ln\"><span style=\"--d: 0;\">Quiet colour,</span></span><span class=\"ln\"><span style=\"--d: 1;\">rich borders</span></span></span></h2><p>Mint, blush and ivory pattu with fine borders and handwork.</p><div class=\"ctas\"><a class=\"btn btn-light btn-lg\" tabindex=\"0\" href=\"/shop?craft=embroidery,applique\" data-discover=\"true\">Shop embroidery</a><a class=\"lux-link\" tabindex=\"0\" href=\"/#craft\" data-discover=\"true\">Our craft <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></a></div></div></div></div></div><div class=\"slide\" aria-hidden=\"true\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"4 of 5: Kalamkari\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAQCAwX/xAAbEAACAwEBAQAAAAAAAAAAAAABAwACERIEIf/EABYBAQEBAAAAAAAAAAAAAAAAAAABBP/EABURAQEAAAAAAAAAAAAAAAAAAAAB/9oADAMBAAIRAxEAPwBmgAO5M/1sZR55t8joudyLPSGW0kyNK1F+0jTphIpoF0wQgr//2Q==&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/painted-480.webp 480w, /img/site/painted-800.webp 800w, /img/site/painted-1200.webp 1200w, /img/site/painted-1600.webp 1600w, /img/site/painted-1673.webp 1673w\" sizes=\"100vw\"><img sizes=\"100vw\" alt=\"\" width=\"1673\" height=\"940\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/painted-480.jpg 480w, /img/site/painted-800.jpg 800w, /img/site/painted-1200.jpg 1200w, /img/site/painted-1600.jpg 1600w, /img/site/painted-1673.jpg 1673w\" src=\"/img/site/painted-1200.jpg\"></picture></span><div class=\"copy\" style=\"transform: translateY(0px); opacity: 1;\"><div class=\"wrap\"><div><span class=\"eyebrow\">Painted by hand</span><h2 class=\"h1-like\" style=\"font-size: clamp(2.6rem, 7vw, 6.4rem); line-height: 1.02; color: rgb(255, 255, 255);\"><span class=\"lines in\"><span class=\"ln\"><span style=\"--d: 0;\">Kalamkari and</span></span><span class=\"ln\"><span style=\"--d: 1;\">Tanjore stories</span></span></span></h2><p>Hand-painted and printed pattu that carries a story in colour.</p><div class=\"ctas\"><a class=\"btn btn-light btn-lg\" tabindex=\"-1\" href=\"/shop?craft=kalamkari\" data-discover=\"true\">Shop the craft</a><a class=\"lux-link\" tabindex=\"-1\" href=\"/#craft\" data-discover=\"true\">Our craft <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></a></div></div></div></div></div><div class=\"slide\" aria-hidden=\"true\" role=\"group\" aria-roledescription=\"slide\" aria-label=\"5 of 5: Everyday\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAUEBv/EACEQAAICAgIBBQAAAAAAAAAAAAECAAMEEQUTITEyQUJR/8QAFAEBAAAAAAAAAAAAAAAAAAAAA//EABkRAAMBAQEAAAAAAAAAAAAAAAABESECA//aAAwDAQACEQMRAD8AJhDH7b1s2AJJs5B1JKWn1ltl7aHQnQI+Jz6cellh2x92oXm1NE6two24ozcau37sPLRNttQw8BFrJIH7EJvcEh//2Q==&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/checks-480.webp 480w, /img/site/checks-800.webp 800w, /img/site/checks-1200.webp 1200w\" sizes=\"100vw\"><img sizes=\"100vw\" alt=\"\" width=\"1200\" height=\"675\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/checks-480.jpg 480w, /img/site/checks-800.jpg 800w, /img/site/checks-1200.jpg 1200w\" src=\"/img/site/checks-1200.jpg\"></picture></span><div class=\"copy\" style=\"transform: translateY(0px); opacity: 1;\"><div class=\"wrap\"><div><span class=\"eyebrow\">Everyday heirlooms</span><h2 class=\"h1-like\" style=\"font-size: clamp(2.6rem, 7vw, 6.4rem); line-height: 1.02; color: rgb(255, 255, 255);\"><span class=\"lines in\"><span class=\"ln\"><span style=\"--d: 0;\">Checks, stripes</span></span><span class=\"ln\"><span style=\"--d: 1;\">and easy drapes</span></span></span></h2><p>Light Mangalagiri weaves you will reach for every week.</p><div class=\"ctas\"><a class=\"btn btn-light btn-lg\" tabindex=\"-1\" href=\"/shop?craft=checks,digital,screen,bandhani\" data-discover=\"true\">Shop everyday</a><a class=\"lux-link\" tabindex=\"-1\" href=\"/#craft\" data-discover=\"true\">Our craft <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></a></div></div></div></div></div><div class=\"hud\"><div class=\"wrap\"><div class=\"names\" role=\"group\" aria-label=\"Choose a slide\"><button type=\"button\" aria-current=\"false\">The loom<i></i></button><button type=\"button\" aria-current=\"false\">Zari<i></i></button><button type=\"button\" aria-current=\"true\">Pastels<i></i></button><button type=\"button\" aria-current=\"false\">Kalamkari<i></i></button><button type=\"button\" aria-current=\"false\">Everyday<i></i></button></div><div class=\"dots\" role=\"group\" aria-label=\"Choose a slide\"><button type=\"button\" aria-current=\"false\" aria-label=\"Slide 1: The loom\"></button><button type=\"button\" aria-current=\"false\" aria-label=\"Slide 2: Zari\"></button><button type=\"button\" aria-current=\"true\" aria-label=\"Slide 3: Pastels\"></button><button type=\"button\" aria-current=\"false\" aria-label=\"Slide 4: Kalamkari\"></button><button type=\"button\" aria-current=\"false\" aria-label=\"Slide 5: Everyday\"></button></div><div class=\"end\"><span class=\"tally\" aria-hidden=\"true\">03 — 05</span><button type=\"button\" class=\"pause\" aria-label=\"Pause the slides\"><svg class=\"ico ico-sm\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14\"></path></svg></button></div></div></div><div class=\"cue\" aria-hidden=\"true\">Scroll<i></i></div><p class=\"sr-only\" aria-live=\"polite\">Slide 3 of 5: Pastels</p></section>"
+   },
+   {
+    "cls": "statement",
+    "label": "Our story",
+    "html": "<section class=\"statement\" aria-label=\"Our story\"><div class=\"wrap\"><svg class=\"orn\" viewBox=\"0 0 64 64\" aria-hidden=\"true\"><g fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.2\"><path d=\"M32 6c6 9 6 17 0 26-6-9-6-17 0-26zM32 58c-6-9-6-17 0-26 6 9 6 17 0 26zM6 32c9-6 17-6 26 0-9 6-17 6-26 0zM58 32c-9 6-17 6-26 0 9-6 17-6 26 0z\"></path><circle cx=\"32\" cy=\"32\" r=\"4\"></circle></g></svg><p class=\"big\"><span><span class=\"w\">From</span> </span><span><span class=\"w\">the</span> </span><span><span class=\"w\">looms</span> </span><span><span class=\"w\">of</span> </span><span><em class=\"w\">Old</em> </span><span><em class=\"w\">Mangalagiri,</em> </span><span><span class=\"w\">every</span> </span><span><span class=\"w\">saree</span> </span><span><span class=\"w\">is</span> </span><span><span class=\"w\">woven</span> </span><span><span class=\"w\">slowly,</span> </span><span><span class=\"w\">by</span> </span><span><span class=\"w\">hand,</span> </span><span><span class=\"w\">to</span> </span><span><span class=\"w\">be</span> </span><span><span class=\"w\">worn</span> </span><span><span class=\"w\">for</span> </span><span><span class=\"w\">the</span> </span><span><span class=\"w\">moments</span> </span><span><span class=\"w\">you</span> </span><span><span class=\"w\">keep</span> </span><span><span class=\"w\">and</span> </span><span><span class=\"w\">passed</span> </span><span><span class=\"w\">on</span> </span><span><span class=\"w\">to</span> </span><span><span class=\"w\">the</span> </span><span><span class=\"w\">ones</span> </span><span><span class=\"w\">you</span> </span><span><span class=\"w\">love.</span> </span></p><a class=\"lux-link\" href=\"/#craft\" data-discover=\"true\">Discover our craft <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></a></div></section>"
+   },
+   {
+    "cls": "section",
+    "label": "h-collections",
+    "html": "<section class=\"section\" aria-labelledby=\"h-collections\" style=\"padding-top: 0px;\"><div class=\"wrap\"><div class=\"sec-head\"><div><span class=\"eyebrow\">The collections</span><h2 id=\"h-collections\"><span class=\"lines in\"><span class=\"ln\"><span style=\"--d: 0;\">Woven for every</span></span><span class=\"ln\"><span style=\"--d: 1;\">occasion</span></span></span></h2></div><a class=\"lux-link\" href=\"/collections\" data-discover=\"true\">All 76 collections <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></a></div><div class=\"edit-grid\"><a class=\"tile wipe in\" data-cur=\"Shop\" href=\"/category/mangalagiri-handloom-pattu-sarees\" data-discover=\"true\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAUBAwT/xAAiEAACAgIABgMAAAAAAAAAAAABAgADBBEFEhMUISIxQVH/xAAWAQEBAQAAAAAAAAAAAAAAAAADAgT/xAAZEQEBAAMBAAAAAAAAAAAAAAABAAIDEUH/2gAMAwEAAhEDEQA/AJTGs65sFm1i3dvdkjeuaN09VbX5FIyGW1hofMDD23a3g1nE8RbipXw5EJryG9KyR9QkiwPL/9k=&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/lamps-480.webp 480w, /img/site/lamps-800.webp 800w, /img/site/lamps-1200.webp 1200w\" sizes=\"(max-width: 900px) 100vw, 40vw\"><img sizes=\"(max-width: 900px) 100vw, 40vw\" alt=\"A Mangalagiri pattu saree with brass lamps\" width=\"1200\" height=\"674\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/lamps-480.jpg 480w, /img/site/lamps-800.jpg 800w, /img/site/lamps-1200.jpg 1200w\" src=\"/img/site/lamps-1200.jpg\"></picture></span><span class=\"cap\"><span class=\"lux-label\">1,538 pieces</span><b>Mangalagiri pattu sarees</b><span class=\"lux-link\">Shop now <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></span></span></a><a class=\"tile wipe in\" data-cur=\"Shop\" href=\"/category/handloom-pattu-dress-material\" data-discover=\"true\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAQDBf/EABwQAAEEAwEAAAAAAAAAAAAAAAEAAgMRBBIhIv/EABYBAQEBAAAAAAAAAAAAAAAAAAMCBf/EABsRAQEAAQUAAAAAAAAAAAAAAAEAAgMREiFR/9oADAMBAAIRAxEAPwCbFGO2IEtJJWZ0Eh8mlz4M2RrteUFc2YkXQQZoEvLUV8ppR08pElcXWUUHdohsBf/Z&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/applique-480.webp 480w, /img/site/applique-800.webp 800w, /img/site/applique-1200.webp 1200w\" sizes=\"(max-width: 900px) 100vw, 35vw\"><img sizes=\"(max-width: 900px) 100vw, 35vw\" alt=\"\" width=\"1200\" height=\"674\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/applique-480.jpg 480w, /img/site/applique-800.jpg 800w, /img/site/applique-1200.jpg 1200w\" src=\"/img/site/applique-1200.jpg\"></picture></span><span class=\"cap\"><span class=\"lux-label\">145 pieces</span><b>Pattu dress materials</b><span class=\"lux-link\">Shop now <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></span></span></a><a class=\"tile wipe in\" data-cur=\"Shop\" href=\"/shop?craft=pure\" data-discover=\"true\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAMFAv/EACEQAAICAAUFAAAAAAAAAAAAAAECAAMEESExQRITIiNR/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAL/xAAYEQEBAAMAAAAAAAAAAAAAAAAAARESMf/aAAwDAQACEQMRAD8An4RmtqBzCjkxz9utfHVvpkzAWlKDzltKGDUW+x9TC97ONpQ1g67NoR9rkLpCE25f/9k=&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/stack-480.webp 480w, /img/site/stack-800.webp 800w, /img/site/stack-1200.webp 1200w\" sizes=\"(max-width: 900px) 100vw, 35vw\"><img sizes=\"(max-width: 900px) 100vw, 35vw\" alt=\"\" width=\"1200\" height=\"674\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/stack-480.jpg 480w, /img/site/stack-800.jpg 800w, /img/site/stack-1200.jpg 1200w\" src=\"/img/site/stack-1200.jpg\"></picture></span><span class=\"cap\"><span class=\"lux-label\">215 pieces</span><b>Pure pattu and butta</b><span class=\"lux-link\">Shop now <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></span></span></a><a class=\"tile wipe in\" data-cur=\"Shop\" href=\"/collections\" data-discover=\"true\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAMEAv/EABoQAAIDAQEAAAAAAAAAAAAAAAECAAMRMSH/xAAVAQEBAAAAAAAAAAAAAAAAAAADBP/EABkRAQEBAAMAAAAAAAAAAAAAAAEAEQISE//aAAwDAQACEQMRAD8AjrFgGFNjRWD1CJupyZSr+ck/XWfcKBlVQdhHXHXwiEnTVl9TiBf/2Q==&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/gold-border-480.webp 480w, /img/site/gold-border-800.webp 800w, /img/site/gold-border-1200.webp 1200w, /img/site/gold-border-1400.webp 1400w\" sizes=\"(max-width: 900px) 100vw, 35vw\"><img sizes=\"(max-width: 900px) 100vw, 35vw\" alt=\"\" width=\"1400\" height=\"787\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/gold-border-480.jpg 480w, /img/site/gold-border-800.jpg 800w, /img/site/gold-border-1200.jpg 1200w, /img/site/gold-border-1400.jpg 1400w\" src=\"/img/site/gold-border-1200.jpg\"></picture></span><span class=\"cap\"><span class=\"lux-label\">76 collections · 8 crafts</span><b>Explore every collection</b><span class=\"lux-link\">View all <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></span></span></a></div></div></section>"
+   },
+   {
+    "cls": "section band",
+    "label": "h-new",
+    "html": "<section class=\"section band\" aria-labelledby=\"h-new\"><div class=\"wrap\"><div class=\"sec-head\"><div><span class=\"eyebrow\">Just arrived</span><h2 id=\"h-new\"><span class=\"lines in\"><span class=\"ln\"><span style=\"--d: 0;\">New this week</span></span></span></h2><p>The newest pieces from our store in Old Mangalagiri, added the day they arrive.</p></div><div class=\"side\"><div class=\"rail-nav\"><button type=\"button\" aria-label=\"Previous New sarees\" disabled=\"\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M14.5 6l-6 6 6 6\"></path></svg></button><button type=\"button\" aria-label=\"Next New sarees\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M9.5 6l6 6-6 6\"></path></svg></button></div><a class=\"lux-link\" href=\"/shop?sort=new\" data-discover=\"true\">View all <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></a></div></div><div class=\"rail-wrap\"><div class=\"rail \" tabindex=\"0\" role=\"region\" aria-label=\"New sarees\" data-cur=\"Drag\"><article class=\"pcard reveal in\" style=\"--i: 0;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-49\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/4809bec0-0278-45e5-80f9-299958a75e7b.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-49\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1862</span></div></div></article><article class=\"pcard reveal in\" style=\"--i: 1;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-48\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/9409b98b-a5a7-4d2b-b37c-1834ce226d0d.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-48\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1861</span></div></div></article><article class=\"pcard reveal in\" style=\"--i: 2;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-47\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/ff0204f2-c42e-4a9b-9f81-eca49c0b4bc8.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-47\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1860</span></div></div></article><article class=\"pcard reveal in\" style=\"--i: 3;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-46\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/7040f9ca-c677-440f-96cc-ad703b50cce0.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-46\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1859</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 4;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-45\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/4b3d1e66-71b5-469b-b8a4-c7bcd80b8ffa.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-45\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1858</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 5;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-44\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/1245b323-339a-4565-a250-977b928c7fe3.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-44\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1857</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 6;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-43\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/65526e32-dfdf-42c8-a4f8-b9adfe10674e.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-43\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1856</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 7;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-42\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/c32036d8-626a-4d51-a620-9d08fbce5beb.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-42\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1855</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 0;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-41\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/a3ea7470-4455-416f-90a8-784f5fb194a1.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-41\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1854</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 1;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-40\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/eae4e38d-0089-40b3-ab3e-99f4a1ae797d.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-40\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1853</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 2;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-39\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/6df9b776-21af-4550-8307-5a0943e227b7.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-39\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1852</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 3;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-38\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/1f357a02-8111-40dc-b4aa-f3a181217627.jpg\"><span class=\"tags\"><span class=\"badge\">New</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-38\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"sku\">NH-MHPS-1851</span></div></div></article></div><div class=\"rail-bar\" aria-hidden=\"true\"><i style=\"width: 28.2613%; left: 0%;\"></i></div></div></div></section>"
+   },
+   {
+    "cls": "lux-spot",
+    "label": "h-spot",
+    "html": "<section class=\"lux-spot\" aria-labelledby=\"h-spot\"><div class=\"big\" data-cur=\"View\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAMCBAX/xAAdEAEAAgICAwAAAAAAAAAAAAABAAMCEQQiEjFB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AM7Ostq8WNo4lOIOtsVUqSxR9IEeVgNfU7HqEfmahA//2Q==&quot;); transform: translateY(-84.3825px);\"><picture><source type=\"image/webp\" srcset=\"/img/site/zari-480.webp 480w, /img/site/zari-800.webp 800w, /img/site/zari-1200.webp 1200w, /img/site/zari-1600.webp 1600w, /img/site/zari-1920.webp 1920w\" sizes=\"(max-width: 900px) 100vw, 50vw\"><img sizes=\"(max-width: 900px) 100vw, 50vw\" alt=\"Silver zari border of a Mangalagiri pattu saree\" width=\"1920\" height=\"1079\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/zari-480.jpg 480w, /img/site/zari-800.jpg 800w, /img/site/zari-1200.jpg 1200w, /img/site/zari-1600.jpg 1600w, /img/site/zari-1920.jpg 1920w\" src=\"/img/site/zari-1200.jpg\"></picture></span></div><div class=\"txt\"><span class=\"eyebrow\">Collection spotlight</span><h2 id=\"h-spot\"><span class=\"lines in\"><span class=\"ln\"><span style=\"--d: 0;\">Pure Pattu 350k Butta Saree</span></span></span></h2><p class=\"reveal in\">32 pieces of our richest weave: pure pattu with butta motifs worked across the body, for weddings, festivals and family functions. ₹5,200 each.</p><div class=\"pgrid\"><article class=\"pcard reveal in\" style=\"--i: 0;\"><a class=\"ph\" aria-label=\"Pure Pattu 350k Butta Saree, ₹5,200\" data-cur=\"View\" href=\"/product/pure-pattu-350k-butta-saree-34\" data-discover=\"true\"><img alt=\"Pure Pattu 350k Butta Saree\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/83c78bd5-0ff2-4d98-acea-848bc36d60a1.jpg\"><span class=\"tags\"></span></a><div class=\"info\"><span class=\"col\">Pure Pattu &amp; Plain</span><a class=\"name\" href=\"/product/pure-pattu-350k-butta-saree-34\" data-discover=\"true\">Pure Pattu 350k Butta Saree</a><div class=\"row\"><span class=\"price\">₹5,200</span><span class=\"sku\">NH-MHPS-1107</span></div></div></article><article class=\"pcard reveal in\" style=\"--i: 1;\"><a class=\"ph\" aria-label=\"Pure Pattu 350k Butta Saree, ₹5,200\" data-cur=\"View\" href=\"/product/pure-pattu-350k-butta-saree-33\" data-discover=\"true\"><img alt=\"Pure Pattu 350k Butta Saree\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/46cb9712-52fb-4056-9311-2f4f142132ba.jpg\"><span class=\"tags\"></span></a><div class=\"info\"><span class=\"col\">Pure Pattu &amp; Plain</span><a class=\"name\" href=\"/product/pure-pattu-350k-butta-saree-33\" data-discover=\"true\">Pure Pattu 350k Butta Saree</a><div class=\"row\"><span class=\"price\">₹5,200</span><span class=\"sku\">NH-MHPS-1099</span></div></div></article><article class=\"pcard reveal in\" style=\"--i: 2;\"><a class=\"ph\" aria-label=\"Pure Pattu 350k Butta Saree, ₹5,200\" data-cur=\"View\" href=\"/product/pure-pattu-350k-butta-saree-32\" data-discover=\"true\"><img alt=\"Pure Pattu 350k Butta Saree\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/941ceaad-b46a-4340-a69c-286658e649a6.jpg\"><span class=\"tags\"></span></a><div class=\"info\"><span class=\"col\">Pure Pattu &amp; Plain</span><a class=\"name\" href=\"/product/pure-pattu-350k-butta-saree-32\" data-discover=\"true\">Pure Pattu 350k Butta Saree</a><div class=\"row\"><span class=\"price\">₹5,200</span><span class=\"sku\">NH-MHPS-1098</span></div></div></article></div><div><a class=\"btn btn-primary btn-lg\" href=\"/category/mangalagiri-handloom-pattu-sarees/578a9407-a71d-4565-b8be-8ba7ed00d4b7\" data-discover=\"true\">Shop the collection</a></div></div></section>"
+   },
+   {
+    "cls": "edits",
+    "label": "h-edits",
+    "html": "<section class=\"edits\" aria-labelledby=\"h-edits\" style=\"height: 280vh;\"><div class=\"pin\"><div class=\"wrap head\"><div><span class=\"eyebrow\">Edits</span><h2 id=\"h-edits\" style=\"margin-top: 0.8rem;\"><span class=\"lines in\"><span class=\"ln\"><span style=\"--d: 0;\">Dressed for the</span></span><span class=\"ln\"><span style=\"--d: 1;\">moment</span></span></span></h2></div><p>Curated groups of our collections. Keep scrolling to see them all.</p></div><div class=\"strip\" style=\"transform: translateX(0px);\"><a class=\"edit-card\" data-cur=\"Shop\" href=\"/shop?craft=pure\" data-discover=\"true\"><span class=\"im\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAQFA//EAB4QAAICAgIDAAAAAAAAAAAAAAABAhEDIQQSIjFB/8QAFgEBAQEAAAAAAAAAAAAAAAAAAQID/8QAFxEBAQEBAAAAAAAAAAAAAAAAAQACEf/aAAwDAQACEQMRAD8AqclyWPrFa+iMloqR8obQtPjx92CRJrFStgb5I1oCzQHLDWHT2//Z&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/pastel-480.webp 480w, /img/site/pastel-800.webp 800w, /img/site/pastel-1200.webp 1200w, /img/site/pastel-1600.webp 1600w, /img/site/pastel-1920.webp 1920w\" sizes=\"(max-width: 860px) 78vw, 30vw\"><img sizes=\"(max-width: 860px) 78vw, 30vw\" alt=\"\" width=\"1920\" height=\"1079\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/pastel-480.jpg 480w, /img/site/pastel-800.jpg 800w, /img/site/pastel-1200.jpg 1200w, /img/site/pastel-1600.jpg 1600w, /img/site/pastel-1920.jpg 1920w\" src=\"/img/site/pastel-1200.jpg\"></picture></span></span><span class=\"no\">01</span><b>The wedding edit</b><span class=\"s\">Pure pattu, butta and zari · 215 pieces</span></a><a class=\"edit-card\" data-cur=\"Shop\" href=\"/shop?craft=kalamkari\" data-discover=\"true\"><span class=\"im\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAQCAwX/xAAbEAACAwEBAQAAAAAAAAAAAAABAwACERIEIf/EABYBAQEBAAAAAAAAAAAAAAAAAAABBP/EABURAQEAAAAAAAAAAAAAAAAAAAAB/9oADAMBAAIRAxEAPwBmgAO5M/1sZR55t8joudyLPSGW0kyNK1F+0jTphIpoF0wQgr//2Q==&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/painted-480.webp 480w, /img/site/painted-800.webp 800w, /img/site/painted-1200.webp 1200w, /img/site/painted-1600.webp 1600w, /img/site/painted-1673.webp 1673w\" sizes=\"(max-width: 860px) 78vw, 30vw\"><img sizes=\"(max-width: 860px) 78vw, 30vw\" alt=\"\" width=\"1673\" height=\"940\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/painted-480.jpg 480w, /img/site/painted-800.jpg 800w, /img/site/painted-1200.jpg 1200w, /img/site/painted-1600.jpg 1600w, /img/site/painted-1673.jpg 1673w\" src=\"/img/site/painted-1200.jpg\"></picture></span></span><span class=\"no\">02</span><b>The festive edit</b><span class=\"s\">Kalamkari, Tanjore and hand-painted · 224 pieces</span></a><a class=\"edit-card\" data-cur=\"Shop\" href=\"/shop?craft=embroidery,applique\" data-discover=\"true\"><span class=\"im\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAUCAwT/xAAeEAABBAIDAQAAAAAAAAAAAAACAAEDEQQSBSExQf/EABQBAQAAAAAAAAAAAAAAAAAAAAL/xAAWEQEBAQAAAAAAAAAAAAAAAAAAARL/2gAMAwEAAhEDEQA/AE8HEX2ZJhgaRmWLL2Py0Qm7sqJ31y4zb20JQ1W6fiscntmpCmcxaoSLT//Z&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/mint-embroidery-480.webp 480w, /img/site/mint-embroidery-800.webp 800w, /img/site/mint-embroidery-1200.webp 1200w, /img/site/mint-embroidery-1400.webp 1400w\" sizes=\"(max-width: 860px) 78vw, 30vw\"><img sizes=\"(max-width: 860px) 78vw, 30vw\" alt=\"\" width=\"1400\" height=\"787\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/mint-embroidery-480.jpg 480w, /img/site/mint-embroidery-800.jpg 800w, /img/site/mint-embroidery-1200.jpg 1200w, /img/site/mint-embroidery-1400.jpg 1400w\" src=\"/img/site/mint-embroidery-1200.jpg\"></picture></span></span><span class=\"no\">03</span><b>Embroidered pastels</b><span class=\"s\">Soft colour with fine handwork · 531 pieces</span></a><a class=\"edit-card\" data-cur=\"Shop\" href=\"/shop?craft=checks,digital,screen,bandhani\" data-discover=\"true\"><span class=\"im\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAUEBv/EACEQAAICAgIBBQAAAAAAAAAAAAECAAMEEQUTITEyQUJR/8QAFAEBAAAAAAAAAAAAAAAAAAAAA//EABkRAAMBAQEAAAAAAAAAAAAAAAABESECA//aAAwDAQACEQMRAD8AJhDH7b1s2AJJs5B1JKWn1ltl7aHQnQI+Jz6cellh2x92oXm1NE6two24ozcau37sPLRNttQw8BFrJIH7EJvcEh//2Q==&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/checks-480.webp 480w, /img/site/checks-800.webp 800w, /img/site/checks-1200.webp 1200w\" sizes=\"(max-width: 860px) 78vw, 30vw\"><img sizes=\"(max-width: 860px) 78vw, 30vw\" alt=\"\" width=\"1200\" height=\"675\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/checks-480.jpg 480w, /img/site/checks-800.jpg 800w, /img/site/checks-1200.jpg 1200w\" src=\"/img/site/checks-1200.jpg\"></picture></span></span><span class=\"no\">04</span><b>Everyday Mangalagiri</b><span class=\"s\">Checks, prints and easy drapes · 666 pieces</span></a><a class=\"edit-card\" data-cur=\"Shop\" href=\"/shop?sets=1\" data-discover=\"true\"><span class=\"im\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAMFAv/EACEQAAICAAUFAAAAAAAAAAAAAAECAAMEESExQRITIiNR/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAL/xAAYEQEBAAMAAAAAAAAAAAAAAAAAARESMf/aAAwDAQACEQMRAD8An4RmtqBzCjkxz9utfHVvpkzAWlKDzltKGDUW+x9TC97ONpQ1g67NoR9rkLpCE25f/9k=&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/stack-480.webp 480w, /img/site/stack-800.webp 800w, /img/site/stack-1200.webp 1200w\" sizes=\"(max-width: 860px) 78vw, 30vw\"><img sizes=\"(max-width: 860px) 78vw, 30vw\" alt=\"\" width=\"1200\" height=\"674\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/stack-480.jpg 480w, /img/site/stack-800.jpg 800w, /img/site/stack-1200.jpg 1200w\" src=\"/img/site/stack-1200.jpg\"></picture></span></span><span class=\"no\">05</span><b>Buy for the family</b><span class=\"s\">Designs with several identical pieces · 149 pieces</span></a></div></div></section>"
+   },
+   {
+    "cls": "craftstory",
+    "label": "h-craft",
+    "html": "<section class=\"craftstory\" id=\"craft\" aria-labelledby=\"h-craft\"><h2 id=\"h-craft\" class=\"sr-only\">The craft</h2><div class=\"sticky\" aria-hidden=\"true\"><figure data-fig=\"true\" class=\"on\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAYABgDASIAAhEBAxEB/8QAGQABAAMBAQAAAAAAAAAAAAAAAAQFBgEC/8QAIRAAAQUAAgEFAAAAAAAAAAAAAgABAwQREiEFFCIxQXH/xAAXAQADAQAAAAAAAAAAAAAAAAAAAQID/8QAGBEBAQEBAQAAAAAAAAAAAAAAAQARIQL/2gAMAwEAAhEDEQA/AKekRVyY+O/i0sXlR9JpDhZmLOwyjDHp9L3E8ls3cWfj9Mse2+DwottiKwRsL9optuOWOLkwsON2iZJ81WwlL8vrrsdiWqeAbs6Iqo3Kwt2Sfx3vLTJERAQrf//Z&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/loom-480.webp 480w, /img/site/loom-800.webp 800w, /img/site/loom-1024.webp 1024w\" sizes=\"50vw\"><img sizes=\"50vw\" alt=\"\" width=\"1024\" height=\"1024\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/loom-480.jpg 480w, /img/site/loom-800.jpg 800w, /img/site/loom-1024.jpg 1024w\" src=\"/img/site/loom-1024.jpg\"></picture></span></figure><figure data-fig=\"true\" class=\"\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAMCBAX/xAAdEAEAAgICAwAAAAAAAAAAAAABAAMCEQQiEjFB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AM7Ostq8WNo4lOIOtsVUqSxR9IEeVgNfU7HqEfmahA//2Q==&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/zari-480.webp 480w, /img/site/zari-800.webp 800w, /img/site/zari-1200.webp 1200w, /img/site/zari-1600.webp 1600w, /img/site/zari-1920.webp 1920w\" sizes=\"50vw\"><img sizes=\"50vw\" alt=\"\" width=\"1920\" height=\"1079\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/zari-480.jpg 480w, /img/site/zari-800.jpg 800w, /img/site/zari-1200.jpg 1200w, /img/site/zari-1600.jpg 1600w, /img/site/zari-1920.jpg 1920w\" src=\"/img/site/zari-1200.jpg\"></picture></span></figure><figure data-fig=\"true\" class=\"\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAMFBP/EAB4QAQACAgEFAAAAAAAAAAAAAAEAAgMRMRMUIUFR/8QAFQEBAQAAAAAAAAAAAAAAAAAAAQD/xAAVEQEBAAAAAAAAAAAAAAAAAAAAEf/aAAwDAQACEQMRAD8AXhAF+R5emh3zJ+O64rRHd3qFNCb5hBFS1qvhhMrd6Y+4Sgj/2Q==&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/mint-border-480.webp 480w, /img/site/mint-border-800.webp 800w, /img/site/mint-border-1200.webp 1200w, /img/site/mint-border-1400.webp 1400w\" sizes=\"50vw\"><img sizes=\"50vw\" alt=\"\" width=\"1400\" height=\"787\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/mint-border-480.jpg 480w, /img/site/mint-border-800.jpg 800w, /img/site/mint-border-1200.jpg 1200w, /img/site/mint-border-1400.jpg 1400w\" src=\"/img/site/mint-border-1200.jpg\"></picture></span></figure><figure data-fig=\"true\" class=\"\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAQDBf/EABwQAAEEAwEAAAAAAAAAAAAAAAEAAgMRBBIhIv/EABYBAQEBAAAAAAAAAAAAAAAAAAMCBf/EABsRAQEAAQUAAAAAAAAAAAAAAAEAAgMREiFR/9oADAMBAAIRAxEAPwCbFGO2IEtJJWZ0Eh8mlz4M2RrteUFc2YkXQQZoEvLUV8ppR08pElcXWUUHdohsBf/Z&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/applique-480.webp 480w, /img/site/applique-800.webp 800w, /img/site/applique-1200.webp 1200w\" sizes=\"50vw\"><img sizes=\"50vw\" alt=\"\" width=\"1200\" height=\"674\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/applique-480.jpg 480w, /img/site/applique-800.jpg 800w, /img/site/applique-1200.jpg 1200w\" src=\"/img/site/applique-1200.jpg\"></picture></span></figure><span class=\"count\">01 / 04</span></div><div class=\"steps-col\"><div class=\"step on\" data-step=\"true\"><span class=\"mob\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAYABgDASIAAhEBAxEB/8QAGQABAAMBAQAAAAAAAAAAAAAAAAQFBgEC/8QAIRAAAQUAAgEFAAAAAAAAAAAAAgABAwQREiEFFCIxQXH/xAAXAQADAQAAAAAAAAAAAAAAAAAAAQID/8QAGBEBAQEBAQAAAAAAAAAAAAAAAQARIQL/2gAMAwEAAhEDEQA/AKekRVyY+O/i0sXlR9JpDhZmLOwyjDHp9L3E8ls3cWfj9Mse2+DwottiKwRsL9optuOWOLkwsON2iZJ81WwlL8vrrsdiWqeAbs6Iqo3Kwt2Sfx3vLTJERAQrf//Z&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/loom-480.webp 480w, /img/site/loom-800.webp 800w, /img/site/loom-1024.webp 1024w\" sizes=\"100vw\"><img sizes=\"100vw\" alt=\"\" width=\"1024\" height=\"1024\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/loom-480.jpg 480w, /img/site/loom-800.jpg 800w, /img/site/loom-1024.jpg 1024w\" src=\"/img/site/loom-1024.jpg\"></picture></span></span><span class=\"no\">01</span><span class=\"eyebrow\">The craft</span><h3>The loom</h3><p>Every Mangalagiri saree starts on a handloom. The weaver throws the shuttle by hand, thread by thread, over several days.</p></div><div class=\"step\" data-step=\"true\"><span class=\"mob\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAMCBAX/xAAdEAEAAgICAwAAAAAAAAAAAAABAAMCEQQiEjFB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AM7Ostq8WNo4lOIOtsVUqSxR9IEeVgNfU7HqEfmahA//2Q==&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/zari-480.webp 480w, /img/site/zari-800.webp 800w, /img/site/zari-1200.webp 1200w, /img/site/zari-1600.webp 1600w, /img/site/zari-1920.webp 1920w\" sizes=\"100vw\"><img sizes=\"100vw\" alt=\"\" width=\"1920\" height=\"1079\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/zari-480.jpg 480w, /img/site/zari-800.jpg 800w, /img/site/zari-1200.jpg 1200w, /img/site/zari-1600.jpg 1600w, /img/site/zari-1920.jpg 1920w\" src=\"/img/site/zari-1200.jpg\"></picture></span></span><span class=\"no\">02</span><span class=\"eyebrow\">The craft</span><h3>The zari border</h3><p>Borders are woven in with silver and gold zari. A crisp, clean border is the signature of Mangalagiri.</p></div><div class=\"step\" data-step=\"true\"><span class=\"mob\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAMFBP/EAB4QAQACAgEFAAAAAAAAAAAAAAEAAgMRMRMUIUFR/8QAFQEBAQAAAAAAAAAAAAAAAAAAAQD/xAAVEQEBAAAAAAAAAAAAAAAAAAAAEf/aAAwDAQACEQMRAD8AXhAF+R5emh3zJ+O64rRHd3qFNCb5hBFS1qvhhMrd6Y+4Sgj/2Q==&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/mint-border-480.webp 480w, /img/site/mint-border-800.webp 800w, /img/site/mint-border-1200.webp 1200w, /img/site/mint-border-1400.webp 1400w\" sizes=\"100vw\"><img sizes=\"100vw\" alt=\"\" width=\"1400\" height=\"787\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/mint-border-480.jpg 480w, /img/site/mint-border-800.jpg 800w, /img/site/mint-border-1200.jpg 1200w, /img/site/mint-border-1400.jpg 1400w\" src=\"/img/site/mint-border-1200.jpg\"></picture></span></span><span class=\"no\">03</span><span class=\"eyebrow\">The craft</span><h3>Finished by hand</h3><p>Embroidery, applique and fine work are added by hand once the weaving is done.</p></div><div class=\"step\" data-step=\"true\"><span class=\"mob\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAQDBf/EABwQAAEEAwEAAAAAAAAAAAAAAAEAAgMRBBIhIv/EABYBAQEBAAAAAAAAAAAAAAAAAAMCBf/EABsRAQEAAQUAAAAAAAAAAAAAAAEAAgMREiFR/9oADAMBAAIRAxEAPwCbFGO2IEtJJWZ0Eh8mlz4M2RrteUFc2YkXQQZoEvLUV8ppR08pElcXWUUHdohsBf/Z&quot;);\"><picture><source type=\"image/webp\" srcset=\"/img/site/applique-480.webp 480w, /img/site/applique-800.webp 800w, /img/site/applique-1200.webp 1200w\" sizes=\"100vw\"><img sizes=\"100vw\" alt=\"\" width=\"1200\" height=\"674\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/applique-480.jpg 480w, /img/site/applique-800.jpg 800w, /img/site/applique-1200.jpg 1200w\" src=\"/img/site/applique-1200.jpg\"></picture></span></span><span class=\"no\">04</span><span class=\"eyebrow\">The craft</span><h3>Painted and printed</h3><p>Kalamkari, Tanjore and hand-painted pieces carry stories from the region in colour.</p><a class=\"lux-link\" href=\"/collections\" data-discover=\"true\">See every collection <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></a></div></div></section>"
+   },
+   {
+    "cls": "promise",
+    "label": "Our promise",
+    "html": "<section class=\"promise\" aria-label=\"Our promise\"><div class=\"wrap\"><div class=\"it reveal in\" style=\"--i: 0;\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"8\"></circle><path d=\"M4.5 9.5c5 1 10 1 15 0M4.5 14.5c5-1 10-1 15 0M9.5 4.5c1 5 1 10 0 15M14.5 4.5c-1 5-1 10 0 15\"></path></svg><b>Woven in Mangalagiri</b><span>From our store in Old Mangalagiri</span></div><div class=\"it reveal in\" style=\"--i: 1;\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M3 6.5h11v9H3zM14 9.5h3.6l3.4 3.3v2.7h-7\"></path><circle cx=\"7\" cy=\"17.5\" r=\"1.8\"></circle><circle cx=\"17.5\" cy=\"17.5\" r=\"1.8\"></circle></svg><b>Free delivery</b><span>On every order, anywhere in India</span></div><div class=\"it reveal in\" style=\"--i: 2;\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.2A8.5 8.5 0 1 1 20.5 12z\"></path><path d=\"M9 8.5c0 3.5 2.6 6.5 6.5 6.5l1-1.6-2-1-1 1c-1.4-.6-2.4-1.6-3-3l1-1-1-2L9 8.5z\"></path></svg><b>Order on WhatsApp</b><span>Send us the saree code; we confirm and ship</span></div><div class=\"it reveal in\" style=\"--i: 3;\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M4 9.5L5.5 4h13L20 9.5\"></path><path d=\"M4 9.5a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0\"></path><path d=\"M5.5 11.5V20h13v-8.5M10 20v-5h4v5\"></path></svg><b>Visit the store</b><span>Monday to Sunday, 9:30 am to 8:30 pm</span></div></div></section>"
+   },
+   {
+    "cls": "section",
+    "label": "h-sets",
+    "html": "<section class=\"section\" aria-labelledby=\"h-sets\"><div class=\"wrap\"><div class=\"sec-head\"><div><span class=\"eyebrow\">For the family</span><h2 id=\"h-sets\"><span class=\"lines in\"><span class=\"ln\"><span style=\"--d: 0;\">More than one</span></span><span class=\"ln\"><span style=\"--d: 1;\">of a design</span></span></span></h2><p>149 designs have several identical pieces in stock: for sisters, mothers and daughters, or a family function.</p></div><div class=\"side\"><div class=\"rail-nav\"><button type=\"button\" aria-label=\"Previous Sets\" disabled=\"\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M14.5 6l-6 6 6 6\"></path></svg></button><button type=\"button\" aria-label=\"Next Sets\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M9.5 6l6 6-6 6\"></path></svg></button></div><a class=\"lux-link\" href=\"/shop?sets=1\" data-discover=\"true\">View all <svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M5 12h14M13 6l6 6-6 6\"></path></svg></a></div></div><div class=\"rail-wrap\"><div class=\"rail \" tabindex=\"0\" role=\"region\" aria-label=\"Sets\" data-cur=\"Drag\"><article class=\"pcard reveal in\" style=\"--i: 0;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800, set of 2\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-26\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/2c0f7af6-f2ea-4574-86a0-829390a951d0.jpg\"><span class=\"tags\"><span class=\"badge\">New</span><span class=\"badge set\">Set of 2</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-26\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"stock\">2 in stock</span></div></div></article><article class=\"pcard reveal in\" style=\"--i: 1;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800, set of 2\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-18\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/c3f95b75-b1c6-422b-99b5-b0645fb5ed92.jpg\"><span class=\"tags\"><span class=\"badge\">New</span><span class=\"badge set\">Set of 2</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-18\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"stock\">2 in stock</span></div></div></article><article class=\"pcard reveal in\" style=\"--i: 2;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800, set of 2\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-15\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/dfc784c3-208e-43cf-9995-c10bf09614ca.jpg\"><span class=\"tags\"><span class=\"badge\">New</span><span class=\"badge set\">Set of 2</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-15\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"stock\">2 in stock</span></div></div></article><article class=\"pcard reveal in\" style=\"--i: 3;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800, set of 2\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-14\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/1c156f29-533e-4e23-98ce-97ee7e436bd9.jpg\"><span class=\"tags\"><span class=\"badge\">New</span><span class=\"badge set\">Set of 2</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-14\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"stock\">2 in stock</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 4;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800, set of 2\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-13\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/1402fe32-cd54-4aa7-b84f-5336b006d109.jpg\"><span class=\"tags\"><span class=\"badge\">New</span><span class=\"badge set\">Set of 2</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-13\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"stock\">2 in stock</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 5;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800, set of 2\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-12\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/9ee96289-a8ca-47e1-b9ec-a12962a77b7d.jpg\"><span class=\"tags\"><span class=\"badge\">New</span><span class=\"badge set\">Set of 2</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-12\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"stock\">2 in stock</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 6;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800, set of 2\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-11\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/81a042d5-8c02-41d1-a4c4-9eb77f9bfc6c.jpg\"><span class=\"tags\"><span class=\"badge\">New</span><span class=\"badge set\">Set of 2</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-11\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"stock\">2 in stock</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 7;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800, set of 4\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-10\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/e10001cb-7bb0-4d48-ad3b-7824b5dadfc5.jpg\"><span class=\"tags\"><span class=\"badge\">New</span><span class=\"badge set\">Set of 4</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-10\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"stock\">4 in stock</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 0;\"><a class=\"ph\" aria-label=\"50/50 Digital Print Sarees, ₹2,800, set of 2\" data-cur=\"View\" href=\"/product/50-50-digital-print-sarees-9\" data-discover=\"true\"><img alt=\"50/50 DIGITAL PRINT SAREES\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/1bcf8be6-ac59-45b8-bb62-3a79fc135fa4.jpg\"><span class=\"tags\"><span class=\"badge\">New</span><span class=\"badge set\">Set of 2</span></span></a><div class=\"info\"><span class=\"col\">Digital Print</span><a class=\"name\" href=\"/product/50-50-digital-print-sarees-9\" data-discover=\"true\">50/50 Digital Print Sarees</a><div class=\"row\"><span class=\"price\">₹2,800</span><span class=\"stock\">2 in stock</span></div></div></article><article class=\"pcard reveal\" style=\"--i: 1;\"><a class=\"ph\" aria-label=\"300k Ikkath Border Check Saree, ₹2,000, set of 2\" data-cur=\"View\" href=\"/product/300k-ikkath-border-check-saree-21\" data-discover=\"true\"><img alt=\"300k Ikkath Border Check Saree\" loading=\"lazy\" decoding=\"async\" width=\"600\" height=\"800\" src=\"https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/704fe43e-9205-4914-ade8-a3ea3d68d869.jpg\"><span class=\"tags\"><span class=\"badge\">New</span><span class=\"badge set\">Set of 2</span></span></a><div class=\"info\"><span class=\"col\">Checks</span><a class=\"name\" href=\"/product/300k-ikkath-border-check-saree-21\" data-discover=\"true\">300k Ikkath Border Check Saree</a><div class=\"row\"><span class=\"price\">₹2,000</span><span class=\"stock\">2 in stock</span></div></div></article></div><div class=\"rail-bar\" aria-hidden=\"true\"><i style=\"width: 33.9555%; left: 0%;\"></i></div></div></div></section>"
+   },
+   {
+    "cls": "lux-store",
+    "label": "h-store",
+    "html": "<section class=\"lux-store\" id=\"store\" aria-labelledby=\"h-store\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAUBAwT/xAAiEAACAgIABgMAAAAAAAAAAAABAgADBBEFEhMUISIxQVH/xAAWAQEBAQAAAAAAAAAAAAAAAAADAgT/xAAZEQEBAAMBAAAAAAAAAAAAAAABAAIDEUH/2gAMAwEAAhEDEQA/AJTGs65sFm1i3dvdkjeuaN09VbX5FIyGW1hofMDD23a3g1nE8RbipXw5EJryG9KyR9QkiwPL/9k=&quot;); transform: translateY(-57.6125px);\"><picture><source type=\"image/webp\" srcset=\"/img/site/lamps-480.webp 480w, /img/site/lamps-800.webp 800w, /img/site/lamps-1200.webp 1200w\" sizes=\"100vw\"><img sizes=\"100vw\" alt=\"\" width=\"1200\" height=\"674\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/lamps-480.jpg 480w, /img/site/lamps-800.jpg 800w, /img/site/lamps-1200.jpg 1200w\" src=\"/img/site/lamps-1200.jpg\"></picture></span><div class=\"wrap\"><div class=\"card-glass\"><span class=\"eyebrow\">Visit the store</span><h2 id=\"h-store\"><span class=\"lines in\"><span class=\"ln\"><span style=\"--d: 0;\">Come and see</span></span><span class=\"ln\"><span style=\"--d: 1;\">them in daylight</span></span></span></h2><p>Feel the weave, see a design in every colour, and let us help you choose.</p><dl><div><dt>Address</dt><dd><span style=\"display: block;\">#10-23, Opp. Brahmam Gari Temple</span><span style=\"display: block;\">Hussain Katta, Old Mangalagiri</span><span style=\"display: block;\">Guntur Dist, Andhra Pradesh 522 503</span></dd></div><div><dt>Open</dt><dd>Monday to Sunday, 9:30 am to 8:30 pm</dd></div><div><dt>Call</dt><dd><a href=\"tel:+919494170180\">+91 94941 70180</a></dd></div></dl><div class=\"acts\"><a class=\"btn btn-light\" href=\"https://maps.app.goo.gl/qK54PztChaCdGzMz6\" target=\"_blank\" rel=\"noopener noreferrer\"><svg class=\"ico ico-sm\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 21s-6.5-6.2-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21z\"></path><circle cx=\"12\" cy=\"9.8\" r=\"2.3\"></circle></svg>Directions</a><a class=\"btn btn-outline-light\" href=\"https://wa.me/917382968566\" target=\"_blank\" rel=\"noopener noreferrer\"><svg class=\"ico ico-sm\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.2A8.5 8.5 0 1 1 20.5 12z\"></path><path d=\"M9 8.5c0 3.5 2.6 6.5 6.5 6.5l1-1.6-2-1-1 1c-1.4-.6-2.4-1.6-3-3l1-1-1-2L9 8.5z\"></path></svg>WhatsApp</a></div></div></div></section>"
+   },
+   {
+    "cls": "lux-news",
+    "label": "h-alerts",
+    "html": "<section class=\"lux-news\" aria-labelledby=\"h-alerts\"><div class=\"wrap\"><span class=\"eyebrow\">New-arrival alerts</span><h2 id=\"h-alerts\">Be the first to see new sarees</h2><p class=\"muted\">New pieces reach the store every week. Get one short alert on this phone or computer when they go up. No email, no spam; turn it off any time.</p><button type=\"button\" class=\"btn btn-primary btn-lg\"><svg class=\"ico ico-sm\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z\"></path></svg>Tell me about new arrivals</button></div></section>"
+   }
+  ],
+  "footer": "<footer class=\"ftr\"><div class=\"wrap\"><div class=\"top\"><div class=\"brand\"><div class=\"row\"><img alt=\"\" width=\"52\" height=\"52\" loading=\"lazy\" src=\"/img/logo-96.png\"><b>Nandam Handlooms</b></div><p>Mangalagiri handloom pattu sarees and dress materials, from our store in Old Mangalagiri to your door.</p><ul><li><a href=\"/sign-in\" data-discover=\"true\">Sign in or create an account</a></li></ul></div><div><h4>Shop</h4><ul><li><a href=\"/category/mangalagiri-handloom-pattu-sarees\" data-discover=\"true\">Mangalagiri Handloom Pattu Sarees</a></li><li><a href=\"/category/handloom-cotton-saree\" data-discover=\"true\">Handloom Cotton Saree</a></li><li><a href=\"/category/handloom-pattu-dress-material\" data-discover=\"true\">Handloom Pattu Dress Material</a></li><li><a href=\"/category/pattu-lehanga-sets\" data-discover=\"true\">Pattu Lehanga Sets</a></li><li><a href=\"/collections\" data-discover=\"true\">All collections</a></li><li><a href=\"/shop?sort=new\" data-discover=\"true\">New in</a></li><li><a href=\"/shop?sets=1\" data-discover=\"true\">Sets for the family</a></li></ul></div><div><h4>Help</h4><ul><li><a href=\"https://wa.me/917382968566\" target=\"_blank\" rel=\"noopener noreferrer\">WhatsApp us</a></li><li><a href=\"tel:+919494170180\">Call +91 94941 70180</a></li><li><a href=\"/privacy\" data-discover=\"true\">Privacy</a></li><li><a href=\"/terms\" data-discover=\"true\">Terms</a></li></ul></div><div><h4>Visit the store</h4><ul><li><span style=\"display: block;\">#10-23, Opp. Brahmam Gari Temple</span><span style=\"display: block;\">Hussain Katta, Old Mangalagiri</span><span style=\"display: block;\">Guntur Dist, Andhra Pradesh 522 503</span></li><li>Monday to Sunday, 9:30 am to 8:30 pm</li><li><a href=\"https://maps.app.goo.gl/qK54PztChaCdGzMz6\" target=\"_blank\" rel=\"noopener noreferrer\">Directions on Google Maps <svg class=\"ico ico-sm\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5\"></path></svg></a></li></ul></div></div><div class=\"wordmark\" aria-hidden=\"true\">Nandam</div><div class=\"ftr-theme\"><span>Theme</span><div class=\"theme-seg\" role=\"group\" aria-label=\"Colour theme\"><button type=\"button\" aria-pressed=\"true\"><svg class=\"ico ico-sm\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"8.5\"></circle><path d=\"M12 3.5v17a8.5 8.5 0 0 0 0-17z\" fill=\"currentColor\" stroke=\"none\"></path></svg>Auto</button><button type=\"button\" aria-pressed=\"false\"><svg class=\"ico ico-sm\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><circle cx=\"12\" cy=\"12\" r=\"4\"></circle><path d=\"M12 2.5v2M12 19.5v2M4.5 12h-2M21.5 12h-2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4\"></path></svg>Light</button><button type=\"button\" aria-pressed=\"false\"><svg class=\"ico ico-sm\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z\"></path></svg>Dark</button></div></div><div class=\"bottom\"><span>© 2026 Nandam Handlooms, Mangalagiri. All prices include taxes.</span><span>GSTIN 37CCWPN2487C1Z2</span></div></div></footer>",
+  "fab": "<a class=\"wa-fab\" href=\"https://wa.me/917382968566\" target=\"_blank\" rel=\"noopener noreferrer\" aria-label=\"Message Nandam Handlooms on WhatsApp\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M20.5 12a8.5 8.5 0 0 1-12.4 7.5L3.5 20.5l1.1-4.2A8.5 8.5 0 1 1 20.5 12z\"></path><path d=\"M9 8.5c0 3.5 2.6 6.5 6.5 6.5l1-1.6-2-1-1 1c-1.4-.6-2.4-1.6-3-3l1-1-1-2L9 8.5z\"></path></svg></a>",
+  "css": [
+   "https://nandamhandlooms.com/assets/index-B-7-MRn8.css"
+  ],
+  "skeleton": [
+   {
+    "tag": "div",
+    "cls": "at-home",
+    "id": ""
+   },
+   {
+    "tag": "main",
+    "cls": "",
+    "id": "main"
+   }
+  ],
+  "siblings": [
+   "a.skip-link",
+   "div.announce",
+   "header.hdr",
+   "main.",
+   "footer.ftr",
+   "a.wa-fab",
+   "div.lux-cursor"
+  ],
+  "bodyFirst": [
+   "noscript#.",
+   "div#root."
+  ],
+  "menu": "<div class=\"fullmenu\" role=\"dialog\" aria-modal=\"true\" aria-label=\"Menu\"><div class=\"l\"><button type=\"button\" class=\"close\"><svg class=\"ico\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M6 6l12 12M18 6L6 18\"></path></svg>Close</button><nav aria-label=\"Main\"><a href=\"/category/mangalagiri-handloom-pattu-sarees\" data-discover=\"true\" style=\"animation-delay: 120ms;\">Mangalagiri pattu sarees<small>1,538</small></a><a href=\"/category/handloom-cotton-saree\" data-discover=\"true\" style=\"animation-delay: 180ms;\">Handloom Cotton Saree<small>2</small></a><a href=\"/category/handloom-pattu-dress-material\" data-discover=\"true\" style=\"animation-delay: 240ms;\">Handloom Pattu Dress Material<small>145</small></a><a href=\"/category/pattu-lehanga-sets\" data-discover=\"true\" style=\"animation-delay: 300ms;\">Pattu Lehanga Sets<small>51</small></a><a href=\"/collections\" data-discover=\"true\" style=\"animation-delay: 360ms;\">All collections<small>76</small></a><a href=\"/shop?sort=new\" data-discover=\"true\" style=\"animation-delay: 420ms;\">New in</a><a href=\"/bag\" data-discover=\"true\" style=\"animation-delay: 480ms;\">Bag</a><a href=\"/#store\" data-discover=\"true\" style=\"animation-delay: 540ms;\">Visit the store</a><a href=\"/sign-in\" data-discover=\"true\" style=\"animation-delay: 600ms;\">Sign in</a></nav><div class=\"meta\"><div><b>Visit the store</b>Hussain Katta, Mangalagiri, Andhra Pradesh, 522503<br>Monday to Sunday, 9:30 am to 8:30 pm</div><div><b>Call or WhatsApp</b>+91 94941 70180<br>WhatsApp +91 73829 68566</div></div></div><div class=\"r\" aria-hidden=\"true\"><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAAYABgDASIAAhEBAxEB/8QAGQABAAMBAQAAAAAAAAAAAAAAAAQFBgEC/8QAIRAAAQUAAgEFAAAAAAAAAAAAAgABAwQREiEFFCIxQXH/xAAXAQADAQAAAAAAAAAAAAAAAAAAAQID/8QAGBEBAQEBAQAAAAAAAAAAAAAAAQARIQL/2gAMAwEAAhEDEQA/AKekRVyY+O/i0sXlR9JpDhZmLOwyjDHp9L3E8ls3cWfj9Mse2+DwottiKwRsL9optuOWOLkwsON2iZJ81WwlL8vrrsdiWqeAbs6Iqo3Kwt2Sfx3vLTJERAQrf//Z&quot;); position: absolute; inset: 0px; opacity: 1; transition: opacity 0.8s;\"><picture><source type=\"image/webp\" srcset=\"/img/site/loom-480.webp 480w, /img/site/loom-800.webp 800w, /img/site/loom-1024.webp 1024w\" sizes=\"45vw\"><img sizes=\"45vw\" alt=\"\" width=\"1024\" height=\"1024\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/loom-480.jpg 480w, /img/site/loom-800.jpg 800w, /img/site/loom-1024.jpg 1024w\" src=\"/img/site/loom-1024.jpg\"></picture></span><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAMCBAX/xAAdEAEAAgICAwAAAAAAAAAAAAABAAMCEQQiEjFB/8QAFAEBAAAAAAAAAAAAAAAAAAAAAP/EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/AM7Ostq8WNo4lOIOtsVUqSxR9IEeVgNfU7HqEfmahA//2Q==&quot;); position: absolute; inset: 0px; opacity: 0; transition: opacity 0.8s;\"><picture><source type=\"image/webp\" srcset=\"/img/site/zari-480.webp 480w, /img/site/zari-800.webp 800w, /img/site/zari-1200.webp 1200w, /img/site/zari-1600.webp 1600w, /img/site/zari-1920.webp 1920w\" sizes=\"45vw\"><img sizes=\"45vw\" alt=\"\" width=\"1920\" height=\"1079\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/zari-480.jpg 480w, /img/site/zari-800.jpg 800w, /img/site/zari-1200.jpg 1200w, /img/site/zari-1600.jpg 1600w, /img/site/zari-1920.jpg 1920w\" src=\"/img/site/zari-1200.jpg\"></picture></span><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAFwAAAwEAAAAAAAAAAAAAAAAAAAQFA//EAB4QAAICAgIDAAAAAAAAAAAAAAABAhEDIQQSIjFB/8QAFgEBAQEAAAAAAAAAAAAAAAAAAQID/8QAFxEBAQEBAAAAAAAAAAAAAAAAAQACEf/aAAwDAQACEQMRAD8AqclyWPrFa+iMloqR8obQtPjx92CRJrFStgb5I1oCzQHLDWHT2//Z&quot;); position: absolute; inset: 0px; opacity: 0; transition: opacity 0.8s;\"><picture><source type=\"image/webp\" srcset=\"/img/site/pastel-480.webp 480w, /img/site/pastel-800.webp 800w, /img/site/pastel-1200.webp 1200w, /img/site/pastel-1600.webp 1600w, /img/site/pastel-1920.webp 1920w\" sizes=\"45vw\"><img sizes=\"45vw\" alt=\"\" width=\"1920\" height=\"1079\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/pastel-480.jpg 480w, /img/site/pastel-800.jpg 800w, /img/site/pastel-1200.jpg 1200w, /img/site/pastel-1600.jpg 1600w, /img/site/pastel-1920.jpg 1920w\" src=\"/img/site/pastel-1200.jpg\"></picture></span><span class=\"pic \" style=\"background-image: url(&quot;data:image/jpeg;base64,/9j/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCAANABgDASIAAhEBAxEB/8QAGAAAAgMAAAAAAAAAAAAAAAAAAAQCAwX/xAAbEAACAwEBAQAAAAAAAAAAAAABAwACERIEIf/EABYBAQEBAAAAAAAAAAAAAAAAAAABBP/EABURAQEAAAAAAAAAAAAAAAAAAAAB/9oADAMBAAIRAxEAPwBmgAO5M/1sZR55t8joudyLPSGW0kyNK1F+0jTphIpoF0wQgr//2Q==&quot;); position: absolute; inset: 0px; opacity: 0; transition: opacity 0.8s;\"><picture><source type=\"image/webp\" srcset=\"/img/site/painted-480.webp 480w, /img/site/painted-800.webp 800w, /img/site/painted-1200.webp 1200w, /img/site/painted-1600.webp 1600w, /img/site/painted-1673.webp 1673w\" sizes=\"45vw\"><img sizes=\"45vw\" alt=\"\" width=\"1673\" height=\"940\" loading=\"lazy\" decoding=\"async\" srcset=\"/img/site/painted-480.jpg 480w, /img/site/painted-800.jpg 800w, /img/site/painted-1200.jpg 1200w, /img/site/painted-1600.jpg 1600w, /img/site/painted-1673.jpg 1673w\" src=\"/img/site/painted-1200.jpg\"></picture></span></div></div>"
+ },
+ "home": {
+  "totals": {
+   "sarees": 1736,
+   "collections": 76,
+   "sets": 149
+  },
+  "categories": [
+   {
+    "slug": "mangalagiri-handloom-pattu-sarees",
+    "name": "Mangalagiri Handloom Pattu Sarees",
+    "description": "Authentic Mangalagiri handloom pattu sarees: rich colours, traditional borders and a royal drape for festivals, weddings, family functions and every celebration.",
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/categories/4a19f140-510e-4d0f-b812-5ffb7b2d56ad.jpg",
+    "count": 1538,
+    "collections": 62
+   },
+   {
+    "slug": "handloom-cotton-saree",
+    "name": "Handloom Cotton Saree",
+    "description": "Breathable handloom cotton sarees in checks, stripes, and block prints for daily and festive wear.",
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/site/categories/handloom-cotton-saree.jpg",
+    "count": 2,
+    "collections": 1
+   },
+   {
+    "slug": "handloom-pattu-dress-material",
+    "name": "Handloom Pattu Dress Material",
+    "description": "Pattu silk dress materials with applique, Tanjore painting, Shibori, and Kalamkari work.",
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/site/categories/handloom-pattu-dress-material.jpg",
+    "count": 145,
+    "collections": 8
+   },
+   {
+    "slug": "pattu-lehanga-sets",
+    "name": "Pattu Lehanga Sets",
+    "description": "Pattu lehanga sets with digital prints, Kalamkari voni, Kutch embroidery, and hand-painted work.",
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/site/categories/pattu-lehanga-sets.jpg",
+    "count": 51,
+    "collections": 5
+   }
+  ],
+  "crafts": [
+   {
+    "key": "embroidery",
+    "name": "Embroidery",
+    "count": 387,
+    "collections": 16,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/0bb709a4-b0dc-415c-93ae-8871380878c7.jpg"
+   },
+   {
+    "key": "applique",
+    "name": "Applique",
+    "count": 144,
+    "collections": 6,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/10567e49-340d-4f0d-8732-bcf8561fa44f.jpg"
+   },
+   {
+    "key": "digital",
+    "name": "Digital Print",
+    "count": 232,
+    "collections": 9,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/9936c900-f916-413e-8ae9-44ba0f9ad1cf.jpg"
+   },
+   {
+    "key": "screen",
+    "name": "Screen & Block Print",
+    "count": 244,
+    "collections": 9,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/afdb8779-90e4-43c1-9277-7918278334cd.jpg"
+   },
+   {
+    "key": "kalamkari",
+    "name": "Kalamkari & Hand Painted",
+    "count": 224,
+    "collections": 13,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/547e7439-4962-4f73-9572-0eaf469937fb.jpg"
+   },
+   {
+    "key": "bandhani",
+    "name": "Bandhani & Shibori",
+    "count": 87,
+    "collections": 4,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/0da8d732-4637-4988-afb2-2ecb303a1b65.jpg"
+   },
+   {
+    "key": "checks",
+    "name": "Checks",
+    "count": 103,
+    "collections": 5,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/16f342fd-30af-4dce-869d-f03336faf20d.jpg"
+   },
+   {
+    "key": "pure",
+    "name": "Pure Pattu & Plain",
+    "count": 215,
+    "collections": 8,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/ea56d4bb-ef51-4503-8337-1e1f2a888240.jpg"
+   }
+  ],
+  "edits": [
+   {
+    "key": "wedding",
+    "crafts": [
+     "pure"
+    ],
+    "sets": false,
+    "count": 215
+   },
+   {
+    "key": "festive",
+    "crafts": [
+     "kalamkari"
+    ],
+    "sets": false,
+    "count": 224
+   },
+   {
+    "key": "pastels",
+    "crafts": [
+     "embroidery",
+     "applique"
+    ],
+    "sets": false,
+    "count": 531
+   },
+   {
+    "key": "everyday",
+    "crafts": [
+     "checks",
+     "digital",
+     "screen",
+     "bandhani"
+    ],
+    "sets": false,
+    "count": 666
+   },
+   {
+    "key": "family",
+    "crafts": [],
+    "sets": true,
+    "count": 149
+   }
+  ],
+  "newest": [
+   {
+    "slug": "50-50-digital-print-sarees-49",
+    "sku": "NH-MHPS-1862",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/4809bec0-0278-45e5-80f9-299958a75e7b.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:30:10.735Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-48",
+    "sku": "NH-MHPS-1861",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/9409b98b-a5a7-4d2b-b37c-1834ce226d0d.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:30:10.136Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-47",
+    "sku": "NH-MHPS-1860",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/ff0204f2-c42e-4a9b-9f81-eca49c0b4bc8.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:30:09.313Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-46",
+    "sku": "NH-MHPS-1859",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/7040f9ca-c677-440f-96cc-ad703b50cce0.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:30:08.288Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-45",
+    "sku": "NH-MHPS-1858",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/4b3d1e66-71b5-469b-b8a4-c7bcd80b8ffa.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:30:07.389Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-44",
+    "sku": "NH-MHPS-1857",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/1245b323-339a-4565-a250-977b928c7fe3.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:30:06.459Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-43",
+    "sku": "NH-MHPS-1856",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/65526e32-dfdf-42c8-a4f8-b9adfe10674e.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:30:05.564Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-42",
+    "sku": "NH-MHPS-1855",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/c32036d8-626a-4d51-a620-9d08fbce5beb.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:30:04.459Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-41",
+    "sku": "NH-MHPS-1854",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/a3ea7470-4455-416f-90a8-784f5fb194a1.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:30:00.735Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-40",
+    "sku": "NH-MHPS-1853",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/eae4e38d-0089-40b3-ab3e-99f4a1ae797d.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:59.496Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-39",
+    "sku": "NH-MHPS-1852",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/6df9b776-21af-4550-8307-5a0943e227b7.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:58.807Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-38",
+    "sku": "NH-MHPS-1851",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 1,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/1f357a02-8111-40dc-b4aa-f3a181217627.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:58.163Z"
+   }
+  ],
+  "spotlight": {
+   "collection": {
+    "id": "578a9407-a71d-4565-b8be-8ba7ed00d4b7",
+    "name": "Pure Pattu 350k Butta Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "pure",
+    "price": 5200,
+    "band": "o50",
+    "count": 32,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/69dc6b39-b250-49a3-97d6-4149693b4f99.jpg",
+    "description": ""
+   },
+   "products": [
+    {
+     "slug": "pure-pattu-350k-butta-saree-34",
+     "sku": "NH-MHPS-1107",
+     "name": "Pure Pattu 350k Butta Saree",
+     "collection": {
+      "id": "578a9407-a71d-4565-b8be-8ba7ed00d4b7",
+      "name": "Pure Pattu 350k Butta Saree"
+     },
+     "category": "mangalagiri-handloom-pattu-sarees",
+     "craft": "pure",
+     "price": 5200,
+     "available": 1,
+     "photo": {
+      "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/83c78bd5-0ff2-4d98-acea-848bc36d60a1.jpg",
+      "alt": "Pure Pattu 350k Butta Saree"
+     },
+     "isNew": false,
+     "addedAt": "2026-10-09T06:35:25.643Z"
+    },
+    {
+     "slug": "pure-pattu-350k-butta-saree-33",
+     "sku": "NH-MHPS-1099",
+     "name": "Pure Pattu 350k Butta Saree",
+     "collection": {
+      "id": "578a9407-a71d-4565-b8be-8ba7ed00d4b7",
+      "name": "Pure Pattu 350k Butta Saree"
+     },
+     "category": "mangalagiri-handloom-pattu-sarees",
+     "craft": "pure",
+     "price": 5200,
+     "available": 1,
+     "photo": {
+      "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/46cb9712-52fb-4056-9311-2f4f142132ba.jpg",
+      "alt": "Pure Pattu 350k Butta Saree"
+     },
+     "isNew": false,
+     "addedAt": "2026-10-09T06:27:54.321Z"
+    },
+    {
+     "slug": "pure-pattu-350k-butta-saree-32",
+     "sku": "NH-MHPS-1098",
+     "name": "Pure Pattu 350k Butta Saree",
+     "collection": {
+      "id": "578a9407-a71d-4565-b8be-8ba7ed00d4b7",
+      "name": "Pure Pattu 350k Butta Saree"
+     },
+     "category": "mangalagiri-handloom-pattu-sarees",
+     "craft": "pure",
+     "price": 5200,
+     "available": 1,
+     "photo": {
+      "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/941ceaad-b46a-4340-a69c-286658e649a6.jpg",
+      "alt": "Pure Pattu 350k Butta Saree"
+     },
+     "isNew": false,
+     "addedAt": "2026-10-09T06:27:21.719Z"
+    }
+   ]
+  },
+  "sets": [
+   {
+    "slug": "50-50-digital-print-sarees-26",
+    "sku": "NH-MHPS-1839",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 2,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/2c0f7af6-f2ea-4574-86a0-829390a951d0.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:44.387Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-18",
+    "sku": "NH-MHPS-1831",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 2,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/c3f95b75-b1c6-422b-99b5-b0645fb5ed92.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:34.343Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-15",
+    "sku": "NH-MHPS-1828",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 2,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/dfc784c3-208e-43cf-9995-c10bf09614ca.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:28.880Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-14",
+    "sku": "NH-MHPS-1827",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 2,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/1c156f29-533e-4e23-98ce-97ee7e436bd9.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:27.914Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-13",
+    "sku": "NH-MHPS-1826",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 2,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/1402fe32-cd54-4aa7-b84f-5336b006d109.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:26.732Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-12",
+    "sku": "NH-MHPS-1825",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 2,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/9ee96289-a8ca-47e1-b9ec-a12962a77b7d.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:25.414Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-11",
+    "sku": "NH-MHPS-1824",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 2,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/81a042d5-8c02-41d1-a4c4-9eb77f9bfc6c.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:24.185Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-10",
+    "sku": "NH-MHPS-1823",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 4,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/e10001cb-7bb0-4d48-ad3b-7824b5dadfc5.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:22.329Z"
+   },
+   {
+    "slug": "50-50-digital-print-sarees-9",
+    "sku": "NH-MHPS-1822",
+    "name": "50/50 Digital Print Sarees",
+    "collection": {
+     "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+     "name": "50/50 Digital Print Sarees"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "available": 2,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/1bcf8be6-ac59-45b8-bb62-3a79fc135fa4.jpg",
+     "alt": "50/50 DIGITAL PRINT SAREES"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-23T07:29:19.519Z"
+   },
+   {
+    "slug": "300k-ikkath-border-check-saree-21",
+    "sku": "NH-MHPS-1816",
+    "name": "300k Ikkath Border Check Saree",
+    "collection": {
+     "id": "ea99a4ac-9ba5-46d4-9f55-f8ab9fb6520e",
+     "name": "300k Ikkath Border Check Saree"
+    },
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "checks",
+    "price": 2000,
+    "available": 2,
+    "photo": {
+     "url": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/704fe43e-9205-4914-ade8-a3ea3d68d869.jpg",
+     "alt": "300k Ikkath Border Check Saree"
+    },
+    "isNew": true,
+    "addedAt": "2026-10-22T08:20:25.416Z"
+   }
+  ],
+  "store": {
+   "name": "Nandam Handlooms",
+   "phone": "9494170180",
+   "addressLines": [
+    "#10-23, Opp. Brahmam Gari Temple",
+    "Hussain Katta, Old Mangalagiri",
+    "Guntur Dist, Andhra Pradesh 522 503"
+   ],
+   "hours": "Monday to Sunday, 9:30 am to 8:30 pm",
+   "openingHours": "Mo-Su 09:30-20:30",
+   "whatsapp": "917382968566",
+   "mapUrl": "https://maps.app.goo.gl/qK54PztChaCdGzMz6"
+  }
+ },
+ "catalog": {
+  "totals": {
+   "sarees": 1736,
+   "collections": 76,
+   "sets": 149
+  },
+  "categories": [
+   {
+    "slug": "mangalagiri-handloom-pattu-sarees",
+    "name": "Mangalagiri Handloom Pattu Sarees",
+    "description": "Authentic Mangalagiri handloom pattu sarees: rich colours, traditional borders and a royal drape for festivals, weddings, family functions and every celebration.",
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/categories/4a19f140-510e-4d0f-b812-5ffb7b2d56ad.jpg",
+    "count": 1538,
+    "collections": 62
+   },
+   {
+    "slug": "handloom-cotton-saree",
+    "name": "Handloom Cotton Saree",
+    "description": "Breathable handloom cotton sarees in checks, stripes, and block prints for daily and festive wear.",
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/site/categories/handloom-cotton-saree.jpg",
+    "count": 2,
+    "collections": 1
+   },
+   {
+    "slug": "handloom-pattu-dress-material",
+    "name": "Handloom Pattu Dress Material",
+    "description": "Pattu silk dress materials with applique, Tanjore painting, Shibori, and Kalamkari work.",
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/site/categories/handloom-pattu-dress-material.jpg",
+    "count": 145,
+    "collections": 8
+   },
+   {
+    "slug": "pattu-lehanga-sets",
+    "name": "Pattu Lehanga Sets",
+    "description": "Pattu lehanga sets with digital prints, Kalamkari voni, Kutch embroidery, and hand-painted work.",
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/site/categories/pattu-lehanga-sets.jpg",
+    "count": 51,
+    "collections": 5
+   }
+  ],
+  "collections": [
+   {
+    "id": "99d3c248-1a0d-4ac1-8a40-1c9217d2cc3d",
+    "name": "50/50 Digital Print Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "band": "25-35",
+    "count": 77,
+    "sets": 13,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/9936c900-f916-413e-8ae9-44ba0f9ad1cf.jpg",
+    "description": ""
+   },
+   {
+    "id": "50de29a1-5dbc-4ca5-9766-005776df66c5",
+    "name": "50/50 dye Screen Printed Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "screen",
+    "price": 2000,
+    "band": "u25",
+    "count": 64,
+    "sets": 19,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/afdb8779-90e4-43c1-9277-7918278334cd.jpg",
+    "description": ""
+   },
+   {
+    "id": "a9b75bed-f34f-48e0-bc28-cc0eb8843d54",
+    "name": "Gap Border Embroidery Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 2800,
+    "band": "25-35",
+    "count": 46,
+    "sets": 7,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/0bb709a4-b0dc-415c-93ae-8871380878c7.jpg",
+    "description": ""
+   },
+   {
+    "id": "5f448b92-27ca-4fb6-9c30-850ab4d4d00a",
+    "name": "Real Bandini Shibori Hardweaving Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "bandhani",
+    "price": 1700,
+    "band": "u25",
+    "count": 46,
+    "sets": 1,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/0da8d732-4637-4988-afb2-2ecb303a1b65.jpg",
+    "description": ""
+   },
+   {
+    "id": "1fbcd502-291c-4f3c-9063-e890afca2cb2",
+    "name": "Gap Border Digital Print Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2600,
+    "band": "25-35",
+    "count": 44,
+    "sets": 2,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/3b6bed78-fc53-4f1c-85bb-99a997ce6963.jpg",
+    "description": ""
+   },
+   {
+    "id": "347e18ff-1bb5-489c-b3ff-6574ec3788d9",
+    "name": "50/50 Embossing Screen Print Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "screen",
+    "price": 2500,
+    "band": "25-35",
+    "count": 43,
+    "sets": 3,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/4f2358bf-8b4c-4a8f-bd7b-a941750c913e.jpg",
+    "description": ""
+   },
+   {
+    "id": "593e1b7c-eb4d-4ec4-9b14-882b873164f5",
+    "name": "Scallop Border Flower Applique Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "applique",
+    "price": 3800,
+    "band": "35-50",
+    "count": 42,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/10567e49-340d-4f0d-8732-bcf8561fa44f.jpg",
+    "description": ""
+   },
+   {
+    "id": "1a6fad2a-ff08-4ed0-9d9f-d2fff52fe8fb",
+    "name": "150/50 Plain Saree Embroidery Blouse",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 2700,
+    "band": "25-35",
+    "count": 40,
+    "sets": 9,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/5e0b8be6-3583-4d68-96d8-5ccf43da1bc1.jpg",
+    "description": ""
+   },
+   {
+    "id": "0a909c2c-a62c-4973-9100-1e48ec8a1c29",
+    "name": "50/50 Plain Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "pure",
+    "price": 2000,
+    "band": "u25",
+    "count": 38,
+    "sets": 9,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/ea56d4bb-ef51-4503-8337-1e1f2a888240.jpg",
+    "description": "Pure and regular pattu silk sarees, handwoven with Kanchi, temple, and scallop zari borders."
+   },
+   {
+    "id": "d93b3115-170c-41d6-bd52-d9d242b21daf",
+    "name": "300 Kanchi Border Plain Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "pure",
+    "price": 3000,
+    "band": "25-35",
+    "count": 35,
+    "sets": 5,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/e9f604b9-6ab8-4976-bbe5-097e11154d9e.jpg",
+    "description": ""
+   },
+   {
+    "id": "29edc55b-6e2c-4215-89dd-80d2407776e1",
+    "name": "Plain saree bunch Embroidry",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 2400,
+    "band": "u25",
+    "count": 35,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/7b5d2110-4f33-42eb-898b-694d9f7ab5f2.jpg",
+    "description": ""
+   },
+   {
+    "id": "34f68ec3-b47a-409c-a947-409e02f3faaa",
+    "name": "Rainbow checks sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "checks",
+    "price": 2800,
+    "band": "25-35",
+    "count": 34,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/16f342fd-30af-4dce-869d-f03336faf20d.jpg",
+    "description": ""
+   },
+   {
+    "id": "c342de94-44ff-40d3-bd85-4aab20b58083",
+    "name": "100/50 Chikankari Embroidery Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 4200,
+    "band": "35-50",
+    "count": 32,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/abb8b990-fa28-4b00-b4c1-773cfd8aa4db.jpg",
+    "description": ""
+   },
+   {
+    "id": "578a9407-a71d-4565-b8be-8ba7ed00d4b7",
+    "name": "Pure Pattu 350k Butta Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "pure",
+    "price": 5200,
+    "band": "o50",
+    "count": 32,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/69dc6b39-b250-49a3-97d6-4149693b4f99.jpg",
+    "description": ""
+   },
+   {
+    "id": "861d4e14-cfaa-4e85-b971-1d00e7c4a2f0",
+    "name": "Pure Pattu 250k Butta Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "pure",
+    "price": 4800,
+    "band": "35-50",
+    "count": 30,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/6c48f41b-f708-4e8e-a591-a2b19ead880b.jpg",
+    "description": ""
+   },
+   {
+    "id": "b4c23495-b9e5-4f5c-bfd9-d5fe4b58b6a9",
+    "name": "Scallop Zute lines blouse embroidery",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 2200,
+    "band": "u25",
+    "count": 30,
+    "sets": 1,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/46e72f9a-7d9d-4a9f-b35c-a7510c79d7d7.jpg",
+    "description": ""
+   },
+   {
+    "id": "3b1234f3-e528-41a6-a2bc-7959a5888c9a",
+    "name": "150/50 border Plain Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "pure",
+    "price": 2600,
+    "band": "25-35",
+    "count": 28,
+    "sets": 4,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/8a19c316-6b9b-4cec-b1c7-bf6aad0b91bb.jpg",
+    "description": ""
+   },
+   {
+    "id": "d0ef74d2-b01a-4c0a-9bd8-24be247df164",
+    "name": "50/50 silk kalankari sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "kalamkari",
+    "price": 1600,
+    "band": "u25",
+    "count": 28,
+    "sets": 2,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/547e7439-4962-4f73-9572-0eaf469937fb.jpg",
+    "description": ""
+   },
+   {
+    "id": "a5423792-cc1c-4dbb-b233-7feed142080e",
+    "name": "50/50 contrast Plain Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "pure",
+    "price": 2000,
+    "band": "u25",
+    "count": 27,
+    "sets": 11,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/615d6542-102b-4700-9718-d5da8a7272f1.jpg",
+    "description": ""
+   },
+   {
+    "id": "db5508fe-1b26-41ee-84bd-93fb45086fec",
+    "name": "50/50 Border Baguru Printed Saree — Border",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "screen",
+    "price": 2400,
+    "band": "u25",
+    "count": 26,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/b90a37d8-5220-4470-a9cf-d4c48fa8faac.jpg",
+    "description": ""
+   },
+   {
+    "id": "1b5262fc-b263-401b-b771-66de2d48195e",
+    "name": "Scallop Border Handpainted Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "kalamkari",
+    "price": 2600,
+    "band": "25-35",
+    "count": 26,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/2db9863c-0de3-4c1d-888f-1406a0f936ba.jpg",
+    "description": ""
+   },
+   {
+    "id": "a58d1fce-8225-4e1a-8260-3de6fdb67f41",
+    "name": "50/50 Bandini Screenprinted Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "screen",
+    "price": 1800,
+    "band": "u25",
+    "count": 25,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/ac861dae-1a3e-4c81-8e26-d04a50176a7f.jpg",
+    "description": ""
+   },
+   {
+    "id": "239cc62a-6e75-4083-9d89-5aed1399e624",
+    "name": "Rangoli Border Block Printed",
+    "category": "handloom-pattu-dress-material",
+    "craft": null,
+    "price": 6999,
+    "band": "o50",
+    "count": 25,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/b5a4d368-3066-4387-a3c7-27e24f1718d8.jpg",
+    "description": "Pattu silk dress materials with applique, Tanjore painting, Shibori, and Kalamkari work."
+   },
+   {
+    "id": "b6b360c9-6308-4161-a910-08fbe6764b3c",
+    "name": "250 Kanchi Gap Border Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": null,
+    "price": 2600,
+    "band": "25-35",
+    "count": 24,
+    "sets": 5,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/fb0d4cbd-8a6f-43d5-bb2a-842beda37a51.jpg",
+    "description": ""
+   },
+   {
+    "id": "8394cab0-b8d5-4572-a97c-cd8ddee55021",
+    "name": "50/50 border Embroidery sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 2800,
+    "band": "25-35",
+    "count": 24,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/4a5d3342-4351-4a20-bdda-8ae4ddb2df88.jpg",
+    "description": ""
+   },
+   {
+    "id": "cf19a1ed-dacb-4427-9cc0-ba226134e041",
+    "name": "Gap Border Mangalagiri Kalamkari Dress Material",
+    "category": "handloom-pattu-dress-material",
+    "craft": "kalamkari",
+    "price": 6499,
+    "band": "o50",
+    "count": 24,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/e8209b82-5adf-4132-aadf-77b342f6f992.jpg",
+    "description": "Pattu silk dress materials with applique, Tanjore painting, Shibori, and Kalamkari work."
+   },
+   {
+    "id": "e7cf6ac5-34aa-49b6-900f-7e4412636177",
+    "name": "250/50 Digital print",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 3000,
+    "band": "25-35",
+    "count": 23,
+    "sets": 2,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/e0d5da0d-a53d-497f-a14c-4568e1f69efe.jpg",
+    "description": ""
+   },
+   {
+    "id": "93806611-09bd-45d8-91f6-fb49726da7de",
+    "name": "250k Top Digital Duppata",
+    "category": "handloom-pattu-dress-material",
+    "craft": "digital",
+    "price": 6999,
+    "band": "o50",
+    "count": 23,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/56494ddd-6559-458a-9793-fb8b5c7d2004.jpg",
+    "description": "Pattu silk dress materials with applique, Tanjore painting, Shibori, and Kalamkari work."
+   },
+   {
+    "id": "442794d7-ee43-478f-bdb5-e868bf342201",
+    "name": "350 Kanchi Border Buta Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "pure",
+    "price": 3200,
+    "band": "25-35",
+    "count": 23,
+    "sets": 4,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/dd54dc17-874a-4bf5-b1ae-2df07d7f1ff2.jpg",
+    "description": ""
+   },
+   {
+    "id": "c3bd8c1e-a99f-4a5a-b8e8-0a9b42b4151a",
+    "name": "50/50 Checks Embroidry",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 3600,
+    "band": "35-50",
+    "count": 23,
+    "sets": 4,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/2af2c93e-a5c1-4d76-9d91-234cb506ab67.jpg",
+    "description": "Pure and regular pattu silk sarees, handwoven with Kanchi, temple, and scallop zari borders."
+   },
+   {
+    "id": "71a16ea4-a20e-4195-bd9a-c012edb77ea5",
+    "name": "50/50 Flower Bunch Applique",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "applique",
+    "price": 3500,
+    "band": "25-35",
+    "count": 23,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/cf324e7e-a2b1-4379-828b-a65020b32f09.jpg",
+    "description": ""
+   },
+   {
+    "id": "70e916cc-bfe4-4a80-a645-179ac9e3d9fd",
+    "name": "50/50 Middle Checks Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "checks",
+    "price": 2400,
+    "band": "u25",
+    "count": 23,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/2a91b9b0-cee0-4d8e-b1d4-f601b4b8a67d.jpg",
+    "description": ""
+   },
+   {
+    "id": "ca87eb9b-c7f1-4896-8f00-d72087d77476",
+    "name": "Scallop border Tanjore Saree, Tanjore Blouse",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "kalamkari",
+    "price": 3800,
+    "band": "35-50",
+    "count": 23,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/ed8ed5cb-c6ae-406d-b5df-d3d892576636.jpg",
+    "description": ""
+   },
+   {
+    "id": "52694b7c-051f-4fba-ab2c-dc9fd2fd5c0c",
+    "name": "150/50 Digital Print Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2800,
+    "band": "25-35",
+    "count": 22,
+    "sets": 3,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/0121a107-5c72-4f77-8ccd-eae244b5dc87.jpg",
+    "description": ""
+   },
+   {
+    "id": "2c8308fd-2fb7-4bc0-b55f-71e428c2575f",
+    "name": "Scallop Border Embossing Print Embroidery Blouse Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 2400,
+    "band": "u25",
+    "count": 22,
+    "sets": 2,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/18bc1af0-29c6-4d49-916e-2bcdb778c3f8.jpg",
+    "description": ""
+   },
+   {
+    "id": "60301a95-da0c-4b8c-8b46-979aad4da970",
+    "name": "Scallop Applique Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "applique",
+    "price": 3800,
+    "band": "35-50",
+    "count": 21,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/944cef41-33aa-4789-8c3a-1caccb33fe46.jpg",
+    "description": ""
+   },
+   {
+    "id": "cfec2a98-ac5d-4544-815b-b69c9d0417ea",
+    "name": "Scallop Border Embroidery Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 2800,
+    "band": "25-35",
+    "count": 21,
+    "sets": 1,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/415e1fb8-67b4-4757-91ae-14108e819eb2.jpg",
+    "description": ""
+   },
+   {
+    "id": "00e31a3b-757c-4760-9c53-f912efe32ddd",
+    "name": "150/50 screen printed sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "screen",
+    "price": 2700,
+    "band": "25-35",
+    "count": 20,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/e432ea6a-45f3-4b25-aef3-ad53eceefc26.jpg",
+    "description": ""
+   },
+   {
+    "id": "2bf2692a-5a5b-43e9-851d-b35b335cd661",
+    "name": "50/50 Applique Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "applique",
+    "price": 3600,
+    "band": "35-50",
+    "count": 20,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/4c9c5438-9e03-4c20-81cf-9f29630392a9.jpg",
+    "description": ""
+   },
+   {
+    "id": "315104ba-5f2b-47f4-830d-be988a52ef2f",
+    "name": "50/50 Middle Checks Screen Printed Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "screen",
+    "price": 2700,
+    "band": "25-35",
+    "count": 20,
+    "sets": 1,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/9e7b8220-65af-47aa-9ab4-126c3331be27.jpg",
+    "description": ""
+   },
+   {
+    "id": "1e4eb27c-4cee-4826-a701-189e84075aa6",
+    "name": "50/50 Tanjore Screen Print Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "screen",
+    "price": 2200,
+    "band": "u25",
+    "count": 20,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/b1e1aee2-6cf0-4bbd-ad31-273fd51231cf.jpg",
+    "description": ""
+   },
+   {
+    "id": "570d3c75-1cec-4a74-bb81-e69ced6a3669",
+    "name": "Embroidery Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 2300,
+    "band": "u25",
+    "count": 20,
+    "sets": 1,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/b2a26653-a5b9-4210-9b56-8cce5ef6423a.jpg",
+    "description": ""
+   },
+   {
+    "id": "a6ad7b80-7e4f-4edb-a7b4-739513b7829f",
+    "name": "150/50 border Applique Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "applique",
+    "price": 4000,
+    "band": "35-50",
+    "count": 19,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/baee8aa5-dece-4761-a299-022e8ecf07e5.jpg",
+    "description": ""
+   },
+   {
+    "id": "4db3abb9-472d-4f3d-b6a4-d24fff9a03b9",
+    "name": "150/50 border Embroidry sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 3200,
+    "band": "25-35",
+    "count": 19,
+    "sets": 1,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/5c4ad4be-1cf1-476f-bdfc-0a91217bc278.jpg",
+    "description": ""
+   },
+   {
+    "id": "e2be65c4-fd44-4368-895d-66f25e343668",
+    "name": "Applique Top Applique Duppata Dress",
+    "category": "handloom-pattu-dress-material",
+    "craft": "applique",
+    "price": 6999,
+    "band": "o50",
+    "count": 19,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/57e94e41-2b54-4af3-8513-7c8d65975964.jpg",
+    "description": "Pattu silk dress materials with applique, Tanjore painting, Shibori, and Kalamkari work."
+   },
+   {
+    "id": "d4b5a84f-7890-4a72-adcf-f91da3a315c3",
+    "name": "150 checks embroidery",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 3000,
+    "band": "25-35",
+    "count": 18,
+    "sets": 2,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/609a9044-1cad-4c34-b8c7-3473236bd9c9.jpg",
+    "description": ""
+   },
+   {
+    "id": "bc1308c0-f384-4f41-80e6-41b930afcd39",
+    "name": "250k Tanjore Sticker Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "kalamkari",
+    "price": 3500,
+    "band": "25-35",
+    "count": 18,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/6c24f13c-cfef-4a39-9958-2bc1fb2a0d3f.jpg",
+    "description": ""
+   },
+   {
+    "id": "db55acb6-172f-495c-9b44-ea5a5d2fddd8",
+    "name": "50/50 Checks Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "checks",
+    "price": 2400,
+    "band": "u25",
+    "count": 18,
+    "sets": 1,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/04b696af-cc4d-4934-8bac-0784a901000e.jpg",
+    "description": ""
+   },
+   {
+    "id": "597c9bb1-301c-4bed-85f5-6c4e4c4df94f",
+    "name": "50/50 middle checks Kalamkari Patchwork Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "kalamkari",
+    "price": 3000,
+    "band": "25-35",
+    "count": 18,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/de6e9e44-ee35-4ac1-bbb9-85691246fef8.jpg",
+    "description": ""
+   },
+   {
+    "id": "63e2023e-1d17-4737-96f0-f0859720cc9d",
+    "name": "Flower Scallop Border",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": null,
+    "price": 2200,
+    "band": "u25",
+    "count": 18,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/47cc87ae-69f6-4cde-b952-ff052099941c.jpg",
+    "description": ""
+   },
+   {
+    "id": "2398f414-26c6-4f50-85a3-d97d554de52f",
+    "name": "50/50 Middle Check hand painted sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "kalamkari",
+    "price": 2900,
+    "band": "25-35",
+    "count": 17,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/82271431-c9d6-4afc-82c6-7e661856380f.jpg",
+    "description": ""
+   },
+   {
+    "id": "e358836e-8ccc-4f39-b4c3-517eefe7b54c",
+    "name": "150/50 Ikkath Flower Bunch Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": null,
+    "price": 2800,
+    "band": "25-35",
+    "count": 16,
+    "sets": 3,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/9c5d5f96-c1a1-4180-a07b-1ded3bc7dcdc.jpg",
+    "description": ""
+   },
+   {
+    "id": "e34433fc-8d15-4486-9b41-3c17bbaa8752",
+    "name": "Scallop Zari Line Embroidery Blouse",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 2200,
+    "band": "u25",
+    "count": 16,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/4a3abbbe-dbcf-47af-abc0-173374607fc4.jpg",
+    "description": ""
+   },
+   {
+    "id": "ea99a4ac-9ba5-46d4-9f55-f8ab9fb6520e",
+    "name": "300k Ikkath Border Check Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "checks",
+    "price": 2000,
+    "band": "u25",
+    "count": 15,
+    "sets": 3,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/704fe43e-9205-4914-ade8-a3ea3d68d869.jpg",
+    "description": "Pure and regular pattu silk sarees, handwoven with Kanchi, temple, and scallop zari borders."
+   },
+   {
+    "id": "59845bbe-089e-43f2-95eb-5f723490d7a3",
+    "name": "300k Shibori Dress Material",
+    "category": "handloom-pattu-dress-material",
+    "craft": "bandhani",
+    "price": 6999,
+    "band": "o50",
+    "count": 15,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/c73368fa-cbb0-4f32-b4c1-ea7c44d5b0ce.jpg",
+    "description": "Pattu silk dress materials with applique, Tanjore painting, Shibori, and Kalamkari work."
+   },
+   {
+    "id": "860eac13-527e-45a4-a441-fb5524dce9ad",
+    "name": "50/50 Zute Line Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": null,
+    "price": 2000,
+    "band": "u25",
+    "count": 15,
+    "sets": 2,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/187dd246-b1ed-4b0e-a97a-1aa0165bdfd6.jpg",
+    "description": ""
+   },
+   {
+    "id": "8f8823b1-4ef7-46b0-83b1-a47acb72b490",
+    "name": "Gap Border bramini Embroidry Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 4200,
+    "band": "35-50",
+    "count": 15,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/9da98d1d-1731-4d7f-8bc2-fa5597624fd6.jpg",
+    "description": ""
+   },
+   {
+    "id": "f1d93f34-39d0-414e-a6fd-99a5e0d0bd30",
+    "name": "250k Baguru Printed Dress Material",
+    "category": "handloom-pattu-dress-material",
+    "craft": "screen",
+    "price": 6999,
+    "band": "o50",
+    "count": 14,
+    "sets": 3,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/2af77897-673c-420c-91be-8315557fa0d2.jpg",
+    "description": "Pattu silk dress materials with applique, Tanjore painting, Shibori, and Kalamkari work."
+   },
+   {
+    "id": "772cf178-56e3-458b-ac1e-89086bcbd26b",
+    "name": "Scallop Digital Print Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "digital",
+    "price": 2400,
+    "band": "u25",
+    "count": 14,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/5d613890-70d3-4695-9cfd-5a99f7eb1bf1.jpg",
+    "description": ""
+   },
+   {
+    "id": "80cfa6ac-fc61-48f2-b525-251bf1818c13",
+    "name": "150 Border Real Bandini & Ajrakh",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "bandhani",
+    "price": 3500,
+    "band": "25-35",
+    "count": 13,
+    "sets": 6,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/132440f2-8606-4046-a05a-5038f40452f1.jpg",
+    "description": ""
+   },
+   {
+    "id": "a1956ab4-1018-4023-8850-1221ef236205",
+    "name": "200 Kanchi Triple Checks Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "checks",
+    "price": 3300,
+    "band": "25-35",
+    "count": 13,
+    "sets": 3,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/d6821d68-0192-4a99-b845-b4a7e499f9fc.jpg",
+    "description": ""
+   },
+   {
+    "id": "662068b5-c80a-44fe-8d01-41b392dda7f9",
+    "name": "250k kutch Work Embroidery Lehanga",
+    "category": "pattu-lehanga-sets",
+    "craft": "embroidery",
+    "price": 1999,
+    "band": "u25",
+    "count": 13,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/95edab2f-6fd6-40fd-bcfd-cefc2fabe208.jpg",
+    "description": "Pattu lehanga sets with digital prints, Kalamkari voni, Kutch embroidery, and hand-painted work."
+   },
+   {
+    "id": "8cabe3f4-2e74-4bc0-9a0d-4c41c7f57e47",
+    "name": "Real Tanjore Painted Dress Material",
+    "category": "handloom-pattu-dress-material",
+    "craft": "kalamkari",
+    "price": 6999,
+    "band": "o50",
+    "count": 13,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/8c946565-a140-4a65-8299-c28d6c53af72.jpg",
+    "description": "Pattu silk dress materials with applique, Tanjore painting, Shibori, and Kalamkari work."
+   },
+   {
+    "id": "4eb1ce5b-325a-4773-b4dc-858132ec0eef",
+    "name": "Real Tanjore painting sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "kalamkari",
+    "price": 4800,
+    "band": "35-50",
+    "count": 13,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/284557fa-5812-4d85-9087-e74c8db2384c.jpg",
+    "description": ""
+   },
+   {
+    "id": "28485102-b416-426c-ac66-4f1ba5cb60e6",
+    "name": "Scallop Bandini screenprint Embroidry blouse",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "embroidery",
+    "price": 2400,
+    "band": "u25",
+    "count": 13,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/668fbc20-233c-4923-8ce8-87578a4e6077.jpg",
+    "description": ""
+   },
+   {
+    "id": "482e266e-7011-48fc-9cc0-022cbb6719c2",
+    "name": "Shibori and real bandini lehanga type sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "bandhani",
+    "price": 1800,
+    "band": "u25",
+    "count": 13,
+    "sets": 6,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/ad207daa-5c6e-4e79-8c16-7dd68b3bb37b.jpg",
+    "description": ""
+   },
+   {
+    "id": "7c0d1d07-2193-4ffd-aab2-30895eb1e38a",
+    "name": "150/50 Screenprint dye sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "screen",
+    "price": 2500,
+    "band": "25-35",
+    "count": 12,
+    "sets": 6,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/63dec92b-6439-4c70-a4e4-31af0f01c6b1.jpg",
+    "description": ""
+   },
+   {
+    "id": "ba928190-c7e1-471e-a0eb-211ee2a1c345",
+    "name": "Digital Top / Digital Duppata Dress Material",
+    "category": "handloom-pattu-dress-material",
+    "craft": "digital",
+    "price": 6999,
+    "band": "o50",
+    "count": 12,
+    "sets": 2,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/d9006521-719e-4de5-9633-7c74199780e1.jpg",
+    "description": "Pattu silk dress materials with applique, Tanjore painting, Shibori, and Kalamkari work."
+   },
+   {
+    "id": "11538e1e-b05d-43af-8a25-f46adbffafe2",
+    "name": "Gap border silk kalankari patch sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "kalamkari",
+    "price": 2600,
+    "band": "25-35",
+    "count": 12,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/a85b394c-ec9d-413c-b6b1-6d7a4f734378.jpg",
+    "description": ""
+   },
+   {
+    "id": "608ded96-dda2-44b7-83f9-58f35fb47350",
+    "name": "350k Hand Painted Lehanga Set",
+    "category": "pattu-lehanga-sets",
+    "craft": "kalamkari",
+    "price": 1999,
+    "band": "u25",
+    "count": 11,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/6453af65-f551-4b5b-bfc0-a48b086d3e51.jpg",
+    "description": "Pattu lehanga sets with digital prints, Kalamkari voni, Kutch embroidery, and hand-painted work."
+   },
+   {
+    "id": "091bd51b-f8cb-4074-9b38-f285b897d27d",
+    "name": "Full Digital Set Lehanga",
+    "category": "pattu-lehanga-sets",
+    "craft": "digital",
+    "price": 1999,
+    "band": "u25",
+    "count": 11,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/ee11312d-19be-4ca4-ad04-1300e5f471c9.jpg",
+    "description": "Pattu lehanga sets with digital prints, Kalamkari voni, Kutch embroidery, and hand-painted work."
+   },
+   {
+    "id": "4e5339e0-feac-458d-9503-c69d5b046c69",
+    "name": "Gap Border Handpainted Sarees",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": "kalamkari",
+    "price": 2800,
+    "band": "25-35",
+    "count": 11,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/f97501d4-05d5-49d2-abe5-6ff4bc9439db.jpg",
+    "description": ""
+   },
+   {
+    "id": "16de68d2-1f02-4fd6-935b-75d0df171a7d",
+    "name": "Kalamkari Lehanga Sets",
+    "category": "pattu-lehanga-sets",
+    "craft": "kalamkari",
+    "price": 1999,
+    "band": "u25",
+    "count": 10,
+    "sets": 2,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/5f74d998-3a87-43c3-8781-03d3ff6a892b.jpg",
+    "description": "Pattu lehanga sets with digital prints, Kalamkari voni, Kutch embroidery, and hand-painted work."
+   },
+   {
+    "id": "221cd172-dabf-42fa-92e9-db37a54670ff",
+    "name": "350k Plain Lehanga Digital Voni",
+    "category": "pattu-lehanga-sets",
+    "craft": "digital",
+    "price": 1999,
+    "band": "u25",
+    "count": 6,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/ec0719a5-0672-4942-94ad-96193e5cda3c.jpg",
+    "description": "Pattu lehanga sets with digital prints, Kalamkari voni, Kutch embroidery, and hand-painted work."
+   },
+   {
+    "id": "0b6dab5d-1319-4b04-93f4-a886258cfc03",
+    "name": "Plain Cotton Saree",
+    "category": "handloom-cotton-saree",
+    "craft": "pure",
+    "price": 1500,
+    "band": "u25",
+    "count": 2,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/e1a87ed6-c59b-4387-958d-5e455a9ef4e6.jpg",
+    "description": "Breathable handloom cotton sarees in checks, stripes, and block prints for daily and festive wear."
+   },
+   {
+    "id": "93e8d1e6-09f5-45d4-b9b5-c6dc37d26098",
+    "name": "Scallop Kollam & Design Printed Saree",
+    "category": "mangalagiri-handloom-pattu-sarees",
+    "craft": null,
+    "price": 2400,
+    "band": "u25",
+    "count": 2,
+    "sets": 0,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/a84ec44c-db28-4574-93e3-09e8b0cdfa27.jpg",
+    "description": ""
+   }
+  ],
+  "crafts": [
+   {
+    "key": "embroidery",
+    "name": "Embroidery",
+    "count": 387,
+    "collections": 16,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/0bb709a4-b0dc-415c-93ae-8871380878c7.jpg"
+   },
+   {
+    "key": "applique",
+    "name": "Applique",
+    "count": 144,
+    "collections": 6,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/10567e49-340d-4f0d-8732-bcf8561fa44f.jpg"
+   },
+   {
+    "key": "digital",
+    "name": "Digital Print",
+    "count": 232,
+    "collections": 9,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/9936c900-f916-413e-8ae9-44ba0f9ad1cf.jpg"
+   },
+   {
+    "key": "screen",
+    "name": "Screen & Block Print",
+    "count": 244,
+    "collections": 9,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/afdb8779-90e4-43c1-9277-7918278334cd.jpg"
+   },
+   {
+    "key": "kalamkari",
+    "name": "Kalamkari & Hand Painted",
+    "count": 224,
+    "collections": 13,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/547e7439-4962-4f73-9572-0eaf469937fb.jpg"
+   },
+   {
+    "key": "bandhani",
+    "name": "Bandhani & Shibori",
+    "count": 87,
+    "collections": 4,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/0da8d732-4637-4988-afb2-2ecb303a1b65.jpg"
+   },
+   {
+    "key": "checks",
+    "name": "Checks",
+    "count": 103,
+    "collections": 5,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/subcategories/16f342fd-30af-4dce-869d-f03336faf20d.jpg"
+   },
+   {
+    "key": "pure",
+    "name": "Pure Pattu & Plain",
+    "count": 215,
+    "collections": 8,
+    "image": "https://nandamhandlooms-media.s3.ap-south-1.amazonaws.com/products/ea56d4bb-ef51-4503-8337-1e1f2a888240.jpg"
+   }
+  ],
+  "priceBands": [
+   {
+    "key": "u25",
+    "label": "Under ₹2,500"
+   },
+   {
+    "key": "25-35",
+    "label": "₹2,500 to ₹3,500"
+   },
+   {
+    "key": "35-50",
+    "label": "₹3,501 to ₹5,000"
+   },
+   {
+    "key": "o50",
+    "label": "Over ₹5,000"
+   }
+  ]
+ }
+}

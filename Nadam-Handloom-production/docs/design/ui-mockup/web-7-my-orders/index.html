@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en-IN" data-mode="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>W7 My orders mock-up · Nandam Handlooms</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="img/logo-96.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&amp;family=Manrope:wght@400;600;700&amp;family=Instrument+Serif&amp;family=Hanken+Grotesk:wght@400;600;700&amp;display=swap">
+  <link rel="stylesheet" href="assets/fonts.css">
+  <link rel="stylesheet" href="assets/site/tokens.css">
+  <link rel="stylesheet" href="assets/site/base.css">
+  <link rel="stylesheet" href="assets/site/pages.css">
+  <link rel="stylesheet" href="assets/site/shop.css">
+  <link rel="stylesheet" href="assets/bag.css">
+  <link rel="stylesheet" href="assets/checkout.css">
+  <link rel="stylesheet" href="assets/orders.css">
+  <link rel="stylesheet" href="assets/mock.css">
+  <script src="assets/opts.js"></script>
+</head>
+<body>
+  <div class="mock-strip" role="note"><span class="mock-tag">Mock-up</span> Website module W7, My orders · nothing here is the real website or a real order</div>
+  <main class="start" id="main">
+    <section class="hero">
+      <span class="eyebrow">Website module W7 · mock-up</span>
+      <h1>My orders</h1>
+      <p class="lead">After paying, the customer can always find the order: where it is (being packed, shipped, delivered), the parcel's tracking number, the GST invoice, buy the same sarees again, and help on WhatsApp. Also every other ending: waiting for payment, confirming, refunded, cancelled by the shop, not found. Built in the live website's own look, with real sarees and prices.</p>
+      <div class="row-wrap">
+        <a class="btn btn-primary btn-lg" href="site.html#/account/orders?state=normal">Open My orders</a>
+        <a class="btn btn-lg" href="site.html#/account?state=normal">My account</a>
+        <a class="btn btn-lg" href="kit.html">Design kit</a>
+        <a class="btn btn-lg" href="preview.html">Device preview</a>
+      </div>
+      <p class="muted small">The plan with every rule and decision: <code>docs/modules/web-05-my-orders.md</code></p>
+    </section>
+
+    <section>
+      <h2>How to use it</h2>
+      <ol class="steps-list">
+        <li>Open <b>My orders</b>: Priya (a sample customer) has 6 orders in different states. Press <b>View order</b> on any of them.</li>
+        <li>Try the buttons: <b>Copy</b> and <b>Track on DTDC</b>, <b>Invoice</b>, <b>Buy again</b> (it really fills the bag), <b>Help on WhatsApp</b>.</li>
+        <li>Press <b>Design options</b> (bottom left) to try the lettered choices; <b>A</b> is my recommendation. <b>Screen states</b> there jumps to every state.</li>
+        <li>Press <b>Copy my choices</b> and send them. Nothing is built before your picks.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Screens</h2>
+      <div id="screens" class="stack-lg"></div>
+    </section>
+
+    <section>
+      <h2>Your decisions (plan section 6)</h2>
+      <div class="table-wrap"><table class="table stack">
+        <thead><tr><th>#</th><th>Question</th><th>Options</th><th>Recommended</th></tr></thead>
+        <tbody>
+          <tr><td data-label="#">7.1</td><td data-label="">Where My orders is</td><td data-label="Options">A a tab in My account (and in the menu, and the latest order on the overview) · B its own page in the header</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">7.2</td><td data-label="">The list</td><td data-label="Options">A cards with photos, status and what's next · B compact rows · C grouped by month</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">7.3</td><td data-label="">One order</td><td data-label="Options">A progress line on top, one column · B two columns</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">7.4</td><td data-label="">Tracking</td><td data-label="Options">A a card: courier, number, Copy, "Track on DTDC" · B the number only</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">7.5</td><td data-label="">Which orders show</td><td data-label="Options">A website orders (also the 2 paid on the old website) · B also shop and WhatsApp bills with the same mobile</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">7.6</td><td data-label="">Invoice</td><td data-label="Options">A downloaded through our server, only by that customer · B the stored public link</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">7.7</td><td data-label="">Buy again</td><td data-label="Options">A the whole order back to the bag (what is still on sale) · B each saree · C not offered</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">7.8</td><td data-label="">Shipped and delivered notices</td><td data-label="Options">A a web notification (if turned on) and the order page · B also SMS (needs DLT templates; later)</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">7.9</td><td data-label="">A checkout not paid yet</td><td data-label="Options">A shown only while its sarees are held (Pay now) · B never shown</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">7.10</td><td data-label="">Cancelling</td><td data-label="Options">A a Cancel button before shipping, refunded automatically · B a cancel request the owner approves · C WhatsApp only (as today)</td><td data-label="Recommended"><b>To discuss</b><span class="mock-tag">Parked</span></td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted small" style="margin-top:.6rem">7.6 and 7.8 are rules, not looks: they show in the screens (the Invoice button, the sample notification) but have no switch. 7.10 is not built: until it is decided, each order says "Need to cancel or change something? WhatsApp us".</p>
+    </section>
+
+    <section class="two">
+      <div>
+        <h2>What the old website got wrong (fixed in W7)</h2>
+        <ul class="plain">
+          <li>Only the first 10 orders ever showed. Now 20 at a time, with Show more.</li>
+          <li>Checkouts never paid were listed as "Payment Pending" forever. Now only paid orders, and one being paid while its sarees are held.</li>
+          <li>The order showed the address saved today, not the one it went to. Now always the address kept on the order.</li>
+          <li>The invoice was a public link anyone could open, and the payment signature reached the browser. Now the invoice comes through our server, only to its customer.</li>
+          <li>Online orders never showed "Delivered", and customers got no notice when shipped. Now both.</li>
+          <li>A failed load said "No orders yet". Now "Your orders didn't load. Try again".</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Facts (live data, 16 Oct)</h2>
+        <div class="facts">
+          <div class="fact"><b>2 of 20</b><span>website orders were paid (old website: 1 shipped, 1 delivered); 18 are abandoned checkouts, never shown</span></div>
+          <div class="fact"><b>DTDC</b><span>every shipped order has the courier, tracking number and date</span></div>
+          <div class="fact"><b>0</b><span>shipped or delivered notices ever sent (the types exist, unused)</span></div>
+          <div class="fact"><b>2 of 39</b><span>counter bills have a mobile: shop bills in My orders would add almost nothing now</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="two">
+      <div>
+        <h2>Found while planning</h2>
+        <ul class="plain">
+          <li><b>A W6 slip:</b> an order paid and then cancelled by the shop says "Nothing was charged". W7 fixes it: "Cancelled · refund on its way".</li>
+          <li><b>No "packed" status</b> exists in the shop's system: "Packed" means "being packed" until it ships.</li>
+          <li><b>DTDC has no link per tracking number:</b> "Track on DTDC" opens its page and Copy puts the number on the clipboard.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Real, sample, parked</h2>
+        <ul class="plain">
+          <li><b>Real:</b> the sarees, codes, prices and photos; the shop's details; the website's look.</li>
+          <li><b>Sample:</b> the customer "Priya Sharma", her orders, dates, invoice and tracking numbers. Marked <span class="mock-tag">Sample</span>.</li>
+          <li><b>Owner to confirm:</b> "packed within 2 working days, delivered in 3 to 7 days".</li>
+          <li><b>Parked:</b> cancelling (7.10), returns, live courier status, SMS.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Files</h2>
+      <p class="muted">This folder: <code>docs/design/ui-mockup/web-7-my-orders/</code>. <code>site.html</code> is the website mock-up; <code>assets/orders.css</code> holds the new My orders styles; <code>assets/site/</code> are the live website's styles, unchanged. See <code>README.md</code>.</p>
+    </section>
+  </main>
+  <script>
+    (function () {
+      var DESC = {
+        'site.html#/account?state=normal': 'The overview gets the latest order, and a My orders tab.',
+        'site.html#/account/orders?state=normal': 'Every order, newest first, with what happens next.',
+        'site.html#/account/orders?state=empty': 'A new customer: no orders yet.',
+        'site.html#/account/orders?state=loading': 'While the list loads.',
+        'site.html#/account/orders?state=error': 'The list couldn\'t load: Try again (never "No orders yet").',
+        'site.html#/order/NH48213097?state=packing': 'Paid: the progress line, the sarees, invoice, buy again, help.',
+        'site.html#/order/NH47106255?state=shipped': 'The tracking card: number, Copy, Track on DTDC.',
+        'site.html#/order/NH46339810?state=delivered': 'Delivered, with its date.',
+        'site.html#/order/NH49011876?state=held': 'A checkout being paid: held until a time, Pay now.',
+        'site.html#/order/NH48213097?state=bankslow': 'The bank is slow: confirming (as in W6).',
+        'site.html#/order/NH45902114?state=refunded': 'Paid after the hold and the saree sold: refunded.',
+        'site.html#/order/NH44871203?state=shopcancel': 'The shop cancelled it after payment: refund on its way.',
+        'site.html#/order/NH38800121?state=oldsite': 'An order from the old website, shown like any other.',
+        'site.html#/order/NH46339810?state=buyagain': 'Buy again when one saree has sold since.',
+        'site.html#/order/NH00000000?state=notfound': 'A wrong number, or someone else\'s order.',
+        'site.html#/account/orders?state=notify': 'The notification when the shop marks it shipped.',
+        'index.html': 'This page.', 'kit.html': 'The parts: badges, cards, rows, progress, tracking, notes.', 'preview.html': 'Any screen on a phone, tablet or laptop.'
+      };
+      var html = '';
+      window.W5Opts.screens.forEach(function (g) {
+        html += '<div><h3 style="margin-bottom:.8rem">' + g[0] + '</h3><div class="grid">' + g[1].map(function (s) {
+          var tag = /state=(empty|loading|error|held|bankslow|refunded|shopcancel|oldsite|buyagain|notfound|notify)/.test(s[0]) ? '<span class="mock-tag">Sample state</span>' : '';
+          return '<a class="scr" href="' + s[0] + '"><b>' + s[1] + '</b><span>' + (DESC[s[0]] || '') + '</span>' + tag + '</a>';
+        }).join('') + '</div></div>';
+      });
+      document.getElementById('screens').innerHTML = html;
+    })();
+  </script>
+</body>
+</html>

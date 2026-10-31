@@ -1,0 +1,101 @@
+/* The new top of the home page: the categories straight under the header, no carousel (client,
+   23 Oct 2026). Built only from the live website's tokens and parts (.section, .wrap, .eyebrow,
+   .lux-link, .craft, .chip, .rail), so it reads as the same website in light and dark.
+   A, B and C are the three layouts to choose from; the chosen one becomes website code. */
+
+/* No full-screen photo behind the header any more: the header is solid from the top, as on
+   every other page. The first section sits close under it. */
+.hc { padding-top: clamp(22px, 3.2vw, 44px); }
+.hc-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; flex-wrap: wrap; margin-bottom: clamp(18px, 2.6vw, 30px); }
+.hc-head > div { display: grid; gap: .5rem; }
+.hc-head h1 { font-size: clamp(2rem, 3.8vw, 3.3rem); }
+.hc-head .hc-sum { color: var(--ink-2); font-size: .92rem; margin: 0; }
+.hc-head .hc-sum b { color: var(--ink); font-weight: 650; }
+.hc-head.center { justify-content: center; text-align: center; }
+.hc-head.center > div { justify-items: center; }
+
+/* ---------- A: four category tiles ---------- */
+.hc-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(10px, 1.4vw, 20px); }
+.hc-tile { position: relative; display: block; aspect-ratio: 3 / 4; overflow: hidden; background: var(--mat); color: #fff; isolation: isolate; }
+.hc-tile .pic { position: absolute; inset: 0; }
+.hc-tile .pic img { transition: transform 1.8s var(--ease-out); }
+.hc-tile:hover .pic img { transform: scale(1.06); }
+.hc-tile::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 6, 6, 0) 38%, rgba(10, 6, 6, .8)); z-index: 0; }
+.hc-tile .cap { position: absolute; z-index: 1; left: clamp(14px, 1.6vw, 24px); right: clamp(14px, 1.6vw, 24px); bottom: clamp(14px, 1.6vw, 24px); display: grid; gap: .4rem; }
+.hc-tile .cap .lux-label { color: rgba(255, 255, 255, .84); }
+.hc-tile .cap b { font-family: var(--f-display); font-weight: var(--display-weight); font-size: clamp(1.25rem, 2vw, 1.9rem); line-height: 1.08; }
+.hc-tile .cap .lux-link { justify-self: start; color: #fff; margin-top: .2rem; }
+.hc-tile:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.hc-crafts { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: .4rem 1.2rem; margin-top: clamp(18px, 2.4vw, 28px); }
+.hc-crafts > .lux-label { padding-top: .95rem; }
+.hc-crafts .chip-row { padding-bottom: 0; flex-wrap: wrap; }
+.hc-crafts .chip small { color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.hc-crafts .chip:hover small { color: inherit; }
+@media (max-width: 900px) {
+  .hc-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hc-crafts { grid-template-columns: minmax(0, 1fr); }
+  .hc-crafts > .lux-label { padding-top: 0; }
+  .hc-crafts .chip-row { flex-wrap: nowrap; margin-inline: calc(-1 * var(--gutter)) calc(-1 * var(--gutter-r)); padding-inline: var(--gutter) var(--gutter-r); scroll-padding-inline: var(--gutter); }
+}
+@media (max-width: 560px) {
+  .hc-tile .cap .lux-link { display: none; } /* the whole tile is the link; small screens keep the name and count */
+  .hc-tile .cap .lux-label { letter-spacing: .18em; font-size: .6rem; }
+}
+
+/* ---------- B: round photos (the categories big, the crafts smaller), then the largest collections ---------- */
+.hc-circles { display: flex; justify-content: center; gap: clamp(14px, 2.4vw, 40px); }
+.hc-circles.cats { margin-bottom: clamp(18px, 2.4vw, 30px); }
+.hc-circles.crafts { gap: clamp(10px, 1.6vw, 24px); margin-bottom: clamp(30px, 4.4vw, 56px); }
+.hc-crafts-label { display: block; text-align: center; margin-bottom: 1rem; }
+.hc-circle { display: grid; justify-items: center; align-content: start; gap: .5rem; text-align: center; width: clamp(96px, 8vw, 112px); }
+.hc-circles.cats .hc-circle { width: clamp(120px, 14vw, 196px); }
+.hc-circle .ring { width: 100%; aspect-ratio: 1; border-radius: 50%; padding: 4px; border: 1px solid var(--line-2); transition: border-color var(--dur), transform var(--dur) var(--ease); }
+.hc-circles.cats .ring { padding: 6px; border: 1.5px solid var(--gold); }
+.hc-circle .ring .pic { width: 100%; height: 100%; border-radius: 50%; }
+.hc-circle:hover .ring { border-color: var(--accent); transform: translateY(-3px); }
+.hc-circle b { font-size: .84rem; font-weight: 650; line-height: 1.25; color: var(--ink); }
+.hc-circles.cats .hc-circle b { font-family: var(--f-display); font-weight: var(--display-weight); font-size: clamp(1.02rem, 1.5vw, 1.35rem); line-height: 1.15; }
+.hc-circle small { font-size: .74rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: -.3rem; }
+.hc-circle:focus-visible .ring { outline: 3px solid var(--gold); outline-offset: 3px; }
+.hc-cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(10px, 1.4vw, 20px); }
+.hc-cols .craft .t b { font-size: clamp(1.1rem, 1.6vw, 1.45rem); }
+@media (max-width: 900px) {
+  .hc-circles.cats { gap: 10px; }
+  .hc-circles.cats .hc-circle { width: auto; flex: 1 1 0; min-width: 0; }
+  .hc-circles.cats .hc-circle b { font-size: .95rem; }
+  .hc-circles.crafts { justify-content: flex-start; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gutter)) calc(-1 * var(--gutter-r)); padding: 4px var(--gutter-r) 6px var(--gutter); scroll-padding-inline: var(--gutter); scroll-snap-type: x proximity; }
+  .hc-circles.crafts::-webkit-scrollbar { display: none; }
+  .hc-circles.crafts .hc-circle { flex: 0 0 82px; scroll-snap-align: start; }
+  .hc-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ---------- C: each category with its collections ---------- */
+.hc-c { padding-bottom: 0; }
+.hc-jump { margin-top: .2rem; }
+.hc-band { padding-block: clamp(26px, 3.6vw, 48px); border-top: 1px solid var(--line); }
+.hc-band:nth-of-type(even) { background: var(--surface-2); }
+.hc-band .sec-head { margin-bottom: clamp(16px, 2vw, 24px); }
+.hc-band h2 { font-size: clamp(1.6rem, 2.6vw, 2.3rem); }
+.hc-band .rail { --rail-gap: 16px; grid-auto-columns: calc((100% - 4 * 16px) / 5); }
+.hc-lead { position: relative; display: grid; align-content: end; gap: .45rem; aspect-ratio: 4 / 5; padding: 1.2rem; overflow: hidden; color: #fff; background: #1b1210; }
+.hc-lead .pic { position: absolute; inset: 0; }
+.hc-lead .pic img { opacity: .78; transition: transform 1.6s var(--ease-out); }
+.hc-lead:hover .pic img { transform: scale(1.05); }
+.hc-lead > :not(.pic) { position: relative; z-index: 1; }
+.hc-lead b { font-family: var(--f-display); font-weight: var(--display-weight); font-size: 1.5rem; line-height: 1.08; }
+.hc-lead .lux-link { justify-self: start; color: #fff; }
+.hc-band .rail-bar { margin-top: 1.4rem; }
+@media (max-width: 900px) { .hc-band .rail { grid-auto-columns: 46%; } }
+@media (max-width: 560px) { .hc-band .rail { grid-auto-columns: 62%; } }
+
+/* ---------- Loading and "couldn't load" ---------- */
+.hc-skel { position: relative; overflow: hidden; }
+.hc-skel .skel { position: absolute; inset: 0; }
+.hc-skel.round { border-radius: 50%; }
+.hc-error { display: grid; justify-items: center; gap: 1rem; text-align: center; padding: clamp(28px, 5vw, 64px) 1rem; border: 1px dashed var(--line-2); background: var(--surface); }
+.hc-error p { margin: 0; color: var(--ink-2); }
+
+/* Reveal: tiles come in one after another (the website's own .reveal timing). */
+.hc .reveal { transition-delay: calc(var(--i, 0) * 70ms); }
+.hc-skel.craft::after { display: none; }
+.hc-circle .ring .hc-skel { width: 100%; height: 100%; }

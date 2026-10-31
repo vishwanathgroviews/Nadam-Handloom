@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en-IN" data-mode="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>The website, as the client wants it · mock-up · Nandam Handlooms</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="img/logo-96.png">
+  <link rel="stylesheet" href="assets/ecom.css">
+  <link rel="stylesheet" href="assets/mock.css">
+  <script src="assets/data.js"></script>
+  <script src="assets/opts.js"></script>
+  <style>
+    .steps3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .steps3 .ph { display: grid; grid-template-columns: 1fr 34%; gap: 8px; align-items: start; }
+    .steps3 img { width: 100%; border: 1px solid var(--line); border-radius: var(--r-sm); }
+    @media (max-width: 900px) { .steps3 { grid-template-columns: 1fr; } }
+    .catlist { display: grid; gap: 26px; }
+    .catlist h3 { font-size: 1.15rem; display: flex; gap: .6rem; align-items: baseline; flex-wrap: wrap; }
+    .catlist h3 small { font-size: .84rem; color: var(--muted); font-weight: 500; }
+    .cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-top: .7rem; }
+    .cols a, .cols span.up { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: .7rem; align-items: center; padding: 6px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); }
+    .cols span.up { grid-template-columns: minmax(0, 1fr); padding: 10px; color: var(--muted); border-style: dashed; }
+    .cols a:hover { border-color: var(--accent); }
+    .cols img { width: 44px; height: 56px; object-fit: cover; background: var(--mat); }
+    .cols b { display: block; font-size: .86rem; font-weight: 600; line-height: 1.25; }
+    .cols a span { font-size: .76rem; color: var(--muted); }
+    .cols .fixed { outline: 2px dashed #B79A2B; outline-offset: -2px; }
+    .grid-scr { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+    .grid-scr .scr span { font-size: .74rem; color: var(--muted); word-break: break-all; }
+  </style>
+</head>
+<body>
+  <div class="mock-strip" role="note"><span class="mock-tag">Mock-up</span> The website, as the client wants it · nothing here changes the real website</div>
+  <main class="start" id="main">
+    <section class="hero">
+      <span class="eyebrow">Website · mock-up · 25 Oct 2026</span>
+      <h1 class="display">The website, as the client wants it</h1>
+      <p class="lead">The home page in the design he picked ("products first", option A): search at the top, all 6 categories as round photos, the latest collections, then every saree with filters. A category shows all of its collections (subcategories) with photos, and a collection shows all of its sarees. Then the saree page, bag, sign in, checkout and My orders. Every category, collection and saree is real (live on <span data-at></span>).</p>
+      <div class="row-wrap">
+        <a class="btn btn-primary btn-lg" href="site.html#/">Open the website</a>
+        <a class="btn btn-lg" href="preview.html">Phone and laptop</a>
+        <a class="btn btn-lg" href="kit.html">Design kit</a>
+      </div>
+      <p class="muted small">The earlier version (the home page in the website's current look) is kept on the Desktop: "Nandam mock-up - categories, collections, sarees (25 Oct)". "Collection" is the website's word for a subcategory. The saree photos load from the shop's photo store, so this needs the internet.</p>
+    </section>
+
+    <section>
+      <h2>The three steps</h2>
+      <div class="steps3">
+        <div class="opt"><h3><b>1</b>Home: categories, latest, every saree</h3><div class="ph"><img src="img/step-1-laptop.jpg" alt="Laptop: the header with search, the 6 categories as round photos, the latest collections." loading="lazy"><img src="img/step-1-phone.jpg" alt="Phone: the same, two sarees in a row." loading="lazy"></div><p>The 6 categories (two say "Coming soon"), the crafts, the latest collections, then all sarees with filters and sort.</p><a class="btn" href="site.html#/">Open</a></div>
+        <div class="opt"><h3><b>2</b>A category: all its collections</h3><div class="ph"><img src="img/step-2-laptop.jpg" alt="Laptop: Mangalagiri Handloom Pattu Sarees, its collections as photos." loading="lazy"><img src="img/step-2-phone.jpg" alt="Phone: the collections two in a row." loading="lazy"></div><p>A slim banner, then every collection of the category as a photo with its pieces and price.</p><a class="btn" href="site.html#/c/mangalagiri-handloom-pattu-sarees">Open</a></div>
+        <div class="opt"><h3><b>3</b>A collection: all its sarees</h3><div class="ph"><img src="img/step-3-laptop.jpg" alt="Laptop: Gap Border Embroidery Sarees, the grid of sarees." loading="lazy"><img src="img/step-3-phone.jpg" alt="Phone: the sarees two in a row." loading="lazy"></div><p>Every saree with photo, price, code and Add to bag; Sets only, sort, bigger or smaller photos, Load more.</p><a class="btn" href="site.html" data-gap>Open</a></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Every screen</h2>
+      <div data-screens style="display:grid;gap:22px"></div>
+    </section>
+
+    <section>
+      <h2>Your choices</h2>
+      <table>
+        <thead><tr><th>Choice</th><th>A (recommended)</th><th>B</th></tr></thead>
+        <tbody>
+          <tr><td><b>Home page</b></td><td colspan="2">Option A, as picked: the sarees straight away, with the categories and the latest collections on top</td></tr>
+          <tr><td><b>1. A category page</b></td><td>Its collections only, as photos (what the client asked)</td><td>Its collections, then all its sarees below</td></tr>
+          <tr><td><b>2. The category's banner</b></td><td>Slim, so the collections start on the first screen</td><td>Big</td></tr>
+          <tr><td><b>3. A collection's photo</b></td><td>The name on the photo</td><td>The name under the photo</td></tr>
+          <tr><td><b>4. Order of the collections</b></td><td>The most pieces first</td><td>A to Z</td></tr>
+          <tr><td><b>5. On a collection page</b></td><td>As shown</td><td>The category's other collections as chips at the top</td></tr>
+          <tr><td><b>6. The saree page</b></td><td>Photo and details side by side</td><td>A bigger photo</td></tr>
+        </tbody>
+      </table>
+      <p class="muted small">Switch them with <b>Design options</b> (bottom left), then <b>Copy my choices</b> and send the text. The look (colours, fonts, corners, light and dark) is there too; A is the picked one.</p>
+    </section>
+
+    <section>
+      <h2>The 6 categories and their collections (live)</h2>
+      <p class="muted">Each one opens its page in the mock-up. A dashed box marks a photo I chose instead of the collection's own. The two categories without sarees on the website yet list the subcategories the admin app already has.</p>
+      <div class="catlist" data-catlist></div>
+    </section>
+
+    <section class="two">
+      <div>
+        <h2>Real, sample, chosen</h2>
+        <ul class="plain">
+          <li><b>Real:</b> all <b data-total></b> sarees with photos, codes, prices and stock; the 6 categories, <span data-cols></span> collections, crafts and price bands with the live counts; the shop's address and hours; the new number +91 73823 88565 (ready, not live yet).</li>
+          <li><b>Sample:</b> the customer Priya Sharma (98765 43210) and her orders, the DTDC numbers, the SMS code <b>123456</b>, the pincode check, the payment window (a stand-in for Razorpay's).</li>
+          <li><b>Photos chosen:</b> pattu sarees and pattu dress materials use the website's own photos; lehanga sets a real set; cotton sarees its real saree; cotton dress materials and fabrics their admin app photos. Kalamkari Lehanga Sets (its photo is a keyboard) and Plain Cotton Saree use one of their own sarees.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>For the shop</h2>
+        <ul class="plain">
+          <li><b>Two categories have no real stock yet:</b> Handloom Cotton Dress Material (6 subcategories; its only stock is the two test pieces TEST02 and TEST05 at ₹200) and Fabrics (its only subcategory is "Test1" with a ₹10 test piece). Delete the test pieces and add real ones; until then they say "Coming soon".</li>
+          <li>Fix the two collection photos above; add upright category photos (at least 900 × 1200).</li>
+          <li>"Plain Cotton Saree" holds printed sarees: the name may need a change. Tidy spellings ("Embroidry", "kalankari", "bramini").</li>
+          <li>A name with the colour on each saree (they repeat inside a collection) and the colour field filled would make the grid and search clearer.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <script>
+    (function () {
+      var NH = window.NH, f = new Intl.NumberFormat('en-IN');
+      document.querySelector('[data-at]').textContent = new Date(NH.at).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }) + ' IST';
+      document.querySelector('[data-total]').textContent = f.format(NH.products.length);
+      document.querySelector('[data-cols]').textContent = NH.collections.length;
+      document.querySelector('[data-catlist]').innerHTML = NH.categories.map(function (c) {
+        var cols = NH.collections.filter(function (x) { return x.category === c.slug; });
+        var body = c.soon
+          ? c.upcoming.map(function (u) { return '<span class="up">' + u + ' · coming soon</span>'; }).join('') || '<span class="up">Coming soon</span>'
+          : cols.map(function (x) { return '<a href="site.html#/collection/' + x.id + '"' + (x.photoFixed ? ' class="fixed"' : '') + '><img src="' + x.image + '" alt="" loading="lazy"><span><b>' + x.name + '</b>' + f.format(x.count) + ' pieces · ₹' + f.format(x.price) + '</span></a>'; }).join('');
+        return '<div><h3><a class="btn-link" href="site.html#/c/' + c.slug + '">' + c.name + '</a><small>' + (c.soon ? 'Coming soon' : f.format(c.count) + ' pieces · ' + cols.length + ' collection' + (cols.length === 1 ? '' : 's')) + '</small></h3><div class="cols">' + body + '</div></div>';
+      }).join('');
+      document.querySelector('[data-screens]').innerHTML = window.W10Opts.screens().map(function (g) {
+        return '<div><h3 style="font-size:1rem;margin-bottom:.7rem">' + g[0] + '</h3><div class="grid-scr">' + g[1].map(function (s) { return '<a class="scr" href="' + s[0] + '"><b>' + s[1] + '</b><span>' + s[0].replace('site.html', '') + '</span></a>'; }).join('') + '</div></div>';
+      }).join('');
+      var gap = NH.collections.filter(function (x) { return x.name === 'Gap Border Embroidery Sarees'; })[0];
+      if (gap) document.querySelector('[data-gap]').href = 'site.html#/collection/' + gap.id;
+    })();
+  </script>
+</body>
+</html>

@@ -1,9 +1,0 @@
-node_modules
-dist
-.env
-
-# Local dev server log
-.tmp-dev.log
-
-# STORAGE_PROVIDER=local writes uploaded images here
-uploads/

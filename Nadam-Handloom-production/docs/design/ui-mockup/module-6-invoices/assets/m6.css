@@ -1,0 +1,65 @@
+/* Module 6 (Invoices and the sales summary): styles on top of Modules 1–5 (mock.css,
+   app.css, m2.css, m3.css, m4.css, m5.css). */
+
+/* Invoice rows */
+.inv-ico { width: 40px; height: 40px; border-radius: var(--r-md); background: var(--surface-2); color: var(--text-2); display: flex; align-items: center; justify-content: center; flex: none; }
+.inv-ico .icon { width: 20px; height: 20px; }
+.invrow .grow b { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; font-variant-numeric: tabular-nums; }
+.invrow .grow .badge { font-size: 10.5px; padding: .05rem .45rem; }
+.invrow .amt { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.invrow.cancelled .amt { text-decoration: line-through; color: var(--muted); }
+.inv-total { display: flex; align-items: flex-end; justify-content: space-between; gap: .5rem; padding: .8rem 1rem; margin: .2rem 0 .75rem; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--border); }
+.inv-total span { display: grid; }
+.inv-total small { color: var(--muted); font-size: 12.5px; }
+.inv-total b { font-size: var(--fs-22); font-variant-numeric: tabular-nums; }
+.day-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; margin: .9rem .2rem .4rem; font-size: 13px; }
+.day-head b { text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-size: 12px; }
+.day-head span { color: var(--text-2); font-weight: 650; font-variant-numeric: tabular-nums; }
+.list-end { text-align: center; color: var(--muted); font-size: 13px; margin: .8rem 0 0; }
+
+/* One invoice */
+.inv-hero { display: grid; justify-items: center; gap: .15rem; padding: .4rem 0 .6rem; }
+.inv-hero b { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.inv-hero span { color: var(--text-2); font-size: 14px; }
+.bline .lp { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Sales summary */
+.sum-card { display: grid; gap: .6rem; padding: 1rem; border-radius: var(--r-lg); background: var(--surface); border: 1px solid var(--border); }
+.sum-big { display: grid; }
+.sum-big small { color: var(--muted); font-size: 13px; }
+.sum-big b { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.sum-split { display: flex; flex-wrap: wrap; gap: .35rem .9rem; font-size: 13px; color: var(--text-2); padding-top: .5rem; border-top: 1px solid var(--border); }
+.sum-split b { color: var(--text); font-variant-numeric: tabular-nums; }
+.sum-note { display: flex; gap: .45rem; align-items: flex-start; margin: 0; font-size: 13px; color: var(--muted); }
+.sum-note .icon { flex: none; margin-top: 2px; }
+.sum-note.warn { color: var(--text); background: var(--warning-soft); padding: .55rem .7rem; border-radius: var(--r-md); }
+.month-cards { display: grid; gap: .5rem; margin-bottom: 1rem; }
+.month-card { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .85rem 1rem; border-radius: var(--r-lg); border: 1.5px solid var(--border-strong); background: var(--surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.month-card span { display: grid; gap: .1rem; }
+.month-card b { display: inline-flex; gap: .35rem; align-items: center; }
+.month-card small { color: var(--muted); font-size: 12.5px; }
+.month-card .amt { font-weight: 800; font-variant-numeric: tabular-nums; }
+.month-card[aria-pressed="true"] { border-color: var(--primary); background: var(--primary-soft); }
+.csv-prev { max-height: 220px; overflow: auto; font-size: 12px; }
+.csv-prev td, .csv-prev th { padding: .35rem .45rem; white-space: nowrap; }
+
+/* Calendar */
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin: .4rem 0; }
+.cal-nav b { font-size: 15px; }
+.cal-sel { font-weight: 700; color: var(--primary); margin: .2rem 0 0; }
+[data-mode="dark"] .cal-sel { color: var(--primary-strong); }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-h { text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); padding: .2rem 0; }
+.cal-d { aspect-ratio: 1; min-height: 36px; border: 0; border-radius: var(--r-md); background: transparent; color: var(--text); font: inherit; font-weight: 650; cursor: pointer; }
+.cal-d:hover:not(:disabled) { background: var(--surface-2); }
+.cal-d.today { box-shadow: inset 0 0 0 1.5px var(--primary); }
+.cal-d.mid { background: var(--primary-soft); border-radius: 0; }
+.cal-d.sel { background: var(--primary); color: var(--on-primary); }
+.cal-d:disabled { color: var(--muted); opacity: .4; cursor: default; }
+
+/* Summary PDF pages */
+.pdf-pages { display: grid; gap: 1rem; }
+.pdf-pages .a4inv { aspect-ratio: auto; min-height: 0; }
+.a4inv tr.strike td { text-decoration: line-through; color: #999; }
+.a4inv h4 { color: #7A1F2B; }
+.pdf-pages td:first-child, .pdf-pages th:first-child { white-space: nowrap; }

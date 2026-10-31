@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en-IN" data-mode="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Design kit · W5 bag mock-up</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="img/logo-96.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&amp;family=Manrope:wght@400;600;700&amp;family=Instrument+Serif&amp;family=Hanken+Grotesk:wght@400;600;700&amp;display=swap">
+  <link rel="stylesheet" href="assets/fonts.css">
+  <link rel="stylesheet" href="assets/site/tokens.css">
+  <link rel="stylesheet" href="assets/site/base.css">
+  <link rel="stylesheet" href="assets/site/pages.css">
+  <link rel="stylesheet" href="assets/site/shop.css">
+  <link rel="stylesheet" href="assets/bag.css">
+  <link rel="stylesheet" href="assets/mock.css">
+  <script src="assets/opts.js"></script>
+</head>
+<body>
+  <div class="mock-strip" role="note"><span class="mock-tag">Mock-up</span> Design kit for W5, the bag · <a href="index.html">Start page</a> · <a href="site.html#/bag">Website mock-up</a></div>
+  <main class="kit" id="main">
+    <header class="stack-sm"><span class="eyebrow">W5 · design kit</span><h1>The bag's parts</h1><p class="lead">Everything new in W5, in the live website's design. The colours and fonts follow the "Design options" panel (A is the live website).</p></header>
+    <section><h2>Colours</h2><div class="swatches" id="sw"></div></section>
+    <section class="type-scale"><h2>Type</h2>
+      <p class="display" style="font-size:clamp(2.3rem,4.6vw,4.1rem)">Your bag <small class="muted small">page title</small></p><p class="display" style="font-size:clamp(1.8rem,3.2vw,2.8rem)">Order summary <small class="muted small">section</small></p><p class="display" style="font-size:1.32rem">Pure Pattu 350k Butta Saree <small class="muted small">saree name in the bag</small></p>
+      <p>Body: Sarees in your bag aren't held for you: our store sells them too.</p>
+      <p class="small muted">Small: Includes all taxes · free delivery across India</p>
+      <span class="eyebrow">Eyebrow · before you order</span>
+      <p><span class="pricebox" style="border:0;padding:0"><span class="price">₹13,800</span></span></p>
+    </section>
+    <section><h2>Buttons</h2><div class="row" id="btns"></div></section>
+    <section><h2>How many (5.4)</h2><div class="row" id="qty"></div></section>
+    <section><h2>The bag in the header (5.5)</h2><div class="row" id="icons-hdr"></div></section>
+    <section><h2>Bag lines</h2><div class="blines" id="lines" style="max-width:860px"></div></section>
+    <section><h2>Order summary</h2><div style="max-width:380px" id="sum"></div></section>
+    <section><h2>Messages</h2><div class="stack" id="alerts" style="max-width:720px"></div></section>
+    <section><h2>Short messages (toasts)</h2><div class="stack" id="toasts" style="max-width:460px"></div></section>
+    <section><h2>Badges and tags</h2><div class="row" id="badges"></div></section>
+    <section><h2>Form fields</h2><div class="grid-2" style="max-width:720px">
+      <div class="field"><label for="k1">Mobile number</label><div class="input-group"><span class="pre">+91</span><input id="k1" class="input" value="98765 43210"></div><span class="field-hint">Sample</span></div>
+      <div class="field"><label for="k2">Pieces</label><select id="k2" class="select"><option>1</option><option selected>2</option><option>3</option></select></div>
+      <div class="field has-error"><label for="k3">Pincode</label><input id="k3" class="input" value="5220"><span class="field-error" id="k3e"></span></div>
+    </div></section>
+    <section><h2>Table: the bag's rules</h2><div class="table-wrap"><table class="table stack"><thead><tr><th>Rule</th><th>Number</th><th>Why</th></tr></thead><tbody>
+      <tr><td data-label="">Different sarees in one bag</td><td data-label="Number">20</td><td data-label="Why">The most in one old order was 3</td></tr>
+      <tr><td data-label="">Pieces of a set</td><td data-label="Number">Up to the stock (today at most 5)</td><td data-label="Why">136 sets on the website</td></tr>
+      <tr><td data-label="">Saved bag in an account</td><td data-label="Number">60 days after the last change</td><td data-label="Why">Old bags would only show sold sarees</td></tr>
+      <tr><td data-label="">Saree held</td><td data-label="Number">Not in the bag; 15 minutes while paying (W6)</td><td data-label="Why">The store sells the same pieces</td></tr>
+    </tbody></table></div></section>
+    <section><h2>Loading and progress</h2><div class="stack" style="max-width:520px">
+      <span class="checking"><i></i>Checking prices and stock…</span>
+      <div class="progress"><i style="width:60%"></i></div>
+      <div class="skel" style="height:18px;width:60%"></div><div class="skel" style="height:120px"></div>
+    </div></section>
+    <section><h2>Empty</h2><div id="empty"></div></section>
+    <section><h2>Icons (the website's set)</h2><div class="icons" id="ic"></div></section>
+  </main>
+  <script src="assets/icons.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/site.js"></script>
+  <script>
+    (function () {
+      var P = window.W5Parts, I = P.icon, $ = function (id) { return document.getElementById(id); };
+      function draw() {
+        var cs = getComputedStyle(document.documentElement);
+        $('sw').innerHTML = ['bg', 'surface', 'surface-2', 'line-2', 'ink', 'ink-2', 'muted', 'accent', 'accent-soft', 'gold', 'gold-soft', 'mat', 'ok', 'warn', 'bad', 'info'].map(function (t) {
+          return '<div class="swatch"><i style="background:var(--' + t + ')"></i><span>--' + t + '<br>' + cs.getPropertyValue('--' + t).trim() + '</span></div>';
+        }).join('');
+        $('btns').innerHTML = '<button class="btn btn-primary btn-lg">' + I('bag', 'sm') + 'Add to bag</button><button class="btn btn-primary btn-lg is-loading" aria-busy="true">Adding</button><button class="btn btn-primary btn-lg" disabled>' + I('bag', 'sm') + 'Add to bag</button>' +
+          '<button class="btn btn-inbag btn-lg">' + I('check', 'sm') + 'In your bag · View</button><button class="btn btn-wa btn-lg">' + I('whatsapp', 'sm') + 'Send bag on WhatsApp</button><button class="btn btn-primary btn-lg">' + I('lock', 'sm') + 'Checkout</button>' +
+          '<button class="btn btn-ink btn-lg">Buy now</button><button class="btn">Continue shopping</button><button class="btn btn-ghost">Keep it</button><button class="btn btn-danger">Clear the bag</button><button class="btn btn-sm">' + I('refresh', 'sm') + 'Try again</button><button class="btn btn-icon" aria-label="Close">' + I('x') + '</button>';
+        $('qty').innerHTML = '<div class="stack-sm"><b class="small">A</b>' + P.qtyControl('150-50-plain-saree-7', 2, 5, 'pdp', 'a') + P.qtyControl('150-50-plain-saree-7', 1, 5, 'line', 'a') + '</div>' +
+          '<div class="stack-sm"><b class="small">B</b>' + P.qtyControl('150-50-plain-saree-7', 2, 5, 'pdp', 'b') + P.qtyControl('150-50-plain-saree-7', 2, 5, 'line', 'b') + '</div>' +
+          '<div class="stack-sm"><b class="small">C</b>' + P.qtyControl('150-50-plain-saree-7', 2, 5, 'pdp', 'c') + P.qtyControl('150-50-plain-saree-7', 2, 5, 'line', 'c') + '</div>' +
+          '<div class="stack-sm"><b class="small">Single piece</b><span class="qty-fixed">1 piece</span></div>';
+        $('icons-hdr').innerHTML = '<div class="hdr" style="position:static;border:1px solid var(--line)"><div class="tools" style="padding:.4rem 1rem;display:flex;flex-wrap:wrap;gap:.6rem 1.6rem;align-items:center;justify-content:flex-start">' +
+          '<span class="small"><b>A</b></span><span class="bag-link">' + I('bag') + '<span class="bag-n">4</span></span>' +
+          '<span class="small"><b>B</b></span><span class="bag-link" style="padding-inline:.3rem">Bag (4)</span>' +
+          '<span class="small"><b>C</b></span><span class="bag-link">' + I('bag') + '<span style="font-size:.86rem;letter-spacing:.04em;text-transform:none">₹13,800</span></span></div></div>';
+        function L(slug, qty, o) { o = o || {}; var s = P.bySlug[slug]; var b = P.line(slug, qty, o.b); return { b: b, s: s, state: o.state || 'ok', available: o.available != null ? o.available : s.available, price: s.price, priceWas: o.priceWas == null ? null : o.priceWas, note: o.note }; }
+        $('lines').innerHTML = [
+          L('pure-pattu-350k-butta-saree-34', 1), L('150-50-plain-saree-7', 2),
+          L('gap-border-embroidery-sarees-19', 2, { available: 2, b: { fewerFrom: 4 } }),
+          L('scallop-border-hand-painted-saree-31', 1, { priceWas: 2400, b: { priceSeen: 2400 } }),
+          L('real-tanjore-painting-sarees-11', 1, { state: 'sold_out', available: 0, note: 'It sold at our store.' }),
+          L('rainbow-checks-sarees-41', 1, { state: 'unavailable' }),
+          L('50-50-digital-print-34', 2, { b: { from: 'account' } }),
+        ].map(function (x) { return P.lineHtml(x); }).join('');
+        $('sum').innerHTML = '<aside class="sum card" style="position:static"><h2>Order summary</h2><div class="sumrow"><span>Subtotal (4 pieces)</span><span class="v">₹13,800</span></div><div class="sumrow"><span>Delivery</span><span class="free">Free</span></div><div class="sumrow total"><span>Total</span><span class="v">₹13,800</span></div><p class="tax">Includes all taxes</p>' +
+          '<div class="acts"><button class="btn btn-wa btn-lg btn-block">' + I('whatsapp', 'sm') + 'Send bag on WhatsApp</button><p class="soon">Online payment is coming soon. We reply on WhatsApp with the payment details.</p><a class="btn btn-block" href="site.html#/shop">Continue shopping</a></div>' +
+          '<div class="notes"><div>' + I('truck', 'sm') + 'Free delivery across India</div><div>' + I('clock', 'sm') + 'Sarees in your bag aren\'t held for you: our store sells them too.</div></div></aside>';
+        $('alerts').innerHTML = '<div class="alert alert-warn">' + I('alert') + '<div><b class="alert-title">Some sarees changed since you added them</b>1 sold out · 1 with a new price. The total uses today\'s prices and stock.</div></div>' +
+          '<div class="alert alert-ok">' + I('check') + '<div><b class="alert-title">Welcome back, Priya. Your bags are joined</b>1 saree from your account was added.</div></div>' +
+          '<div class="alert">' + I('whatsapp') + '<div><b class="alert-title">Sent on WhatsApp?</b>Once your order is confirmed, you can clear the bag.</div></div>' +
+          '<div class="alert alert-bad">' + I('alertc') + '<div><b class="alert-title">We couldn\'t check your bag just now</b>Your sarees are safe here.</div></div>' +
+          '<div class="lnote">' + I('alert') + '<span>Only 2 left now. We changed it from 4 to 2.</span></div><div class="lnote info">' + I('info') + '<span>Price went up from ₹2,400 to ₹2,600 since you added it.</span></div><div class="lnote bad">' + I('alertc') + '<span>Sold out. It sold at our store.</span></div>';
+        $('toasts').innerHTML = '<div class="toast ok" style="animation:none">' + I('check') + '<span>Added to your bag</span><button class="act">View bag</button><button aria-label="Close message">' + I('x', 'sm') + '</button></div>' +
+          '<div class="toast ok" style="animation:none">' + I('check') + '<span>Removed Scallop Border Hand painted Saree</span><button class="act">Undo</button><button aria-label="Close message">' + I('x', 'sm') + '</button></div>' +
+          '<div class="toast bad" style="animation:none">' + I('alertc') + '<span>Your bag is full (20 sarees). Remove one to add another.</span><button aria-label="Close message">' + I('x', 'sm') + '</button></div>';
+        $('badges').innerHTML = '<span class="badge badge-gold">New</span><span class="badge">Set of 5</span><span class="badge">Sold out</span><span class="badge badge-ok">In your bag</span><span class="badge badge-warn">Fewer left</span><span class="bline" style="display:inline;border:0;padding:0;animation:none"><span class="from">From your account</span></span><span class="mock-tag">Sample</span><span class="mock-tag">Planned: W6</span>';
+        $('k3e').innerHTML = I('alertc', 'sm') + 'Enter all 6 digits of the pincode';
+        $('empty').innerHTML = '<div class="empty" style="border:1px solid var(--line)"><div class="ico-wrap">' + I('bag') + '</div><h3>Your bag is empty</h3><p>Every piece is handwoven in Mangalagiri. Start with what\'s new, or a set for the family.</p><div class="row-wrap" style="justify-content:center"><a class="btn btn-primary" href="site.html#/shop">New in</a><a class="btn" href="site.html#/shop">All collections</a></div></div>';
+        $('ic').innerHTML = Object.keys(window.ICONS).map(function (k) { return '<div>' + I(k, 'lg') + '<span>' + k + '</span></div>'; }).join('');
+      }
+      draw();
+      document.addEventListener('w5opts', draw);
+    })();
+  </script>
+</body>
+</html>

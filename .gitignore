@@ -54,3 +54,7 @@ frontend/customer-web/dist-test/
 
 # Scratch output from one-off render checks.
 backend/.tmp/
+
+# Firebase server keys never go in the repo (kept in ~/Documents/Nandam-Handlooms/firebase/)
+firebase/
+*firebase-adminsdk*.json

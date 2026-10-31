@@ -1,0 +1,92 @@
+/* Sets mock-up (one photo, several tags): only what is new on top of Module 4's m4.css. */
+
+/* A set, wherever it shows */
+.badge-set { background: var(--primary-soft); color: var(--primary); border-color: transparent; }
+[data-mode="dark"] .badge-set { color: var(--primary-strong); }
+.badge-set .icon { width: 13px; height: 13px; }
+
+/* Tag chips that can be taken off (✕) */
+.tchips { display: flex; flex-wrap: wrap; gap: .3rem; justify-content: center; }
+.tchips.left { justify-content: flex-start; }
+.tchip { padding-right: .15rem; }
+.tchip button { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; margin-left: .1rem; border: 0; border-radius: 5px; background: transparent; color: inherit; cursor: pointer; padding: 0; }
+.tchip button:hover, .tchip button:focus-visible { background: color-mix(in srgb, currentColor 16%, transparent); }
+.tchip button .icon { width: 12px; height: 12px; stroke-width: 2.6; }
+.scan-b .tchips .tagchip, .qcam .tchips .tagchip { font-size: 12.5px; }
+
+/* A: "Sarees in this photo" counter */
+.setbar { display: flex; align-items: center; gap: .6rem; padding: .45rem .5rem .45rem .75rem; border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--border); }
+.setbar .lbl { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; line-height: 1.25; }
+.setbar .lbl small { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+.stepper { display: inline-flex; align-items: center; gap: .15rem; flex: none; }
+.stepper button { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); font: inherit; font-size: 20px; font-weight: 700; line-height: 1; cursor: pointer; }
+.stepper button:disabled { opacity: .35; cursor: not-allowed; }
+.stepper b { min-width: 34px; text-align: center; font-size: 20px; font-variant-numeric: tabular-nums; }
+.setbar.dark { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.22); color: #fff; }
+.setbar.dark .lbl small { color: rgba(255,255,255,.75); }
+.setbar.dark .stepper button { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.35); color: #fff; }
+
+/* B: "One saree / A set" switch */
+.seg2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--border); }
+.seg2 button { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; min-height: 40px; border: 0; border-radius: calc(var(--r-md) - 3px); background: transparent; font: inherit; font-size: 14px; font-weight: 700; color: var(--text-2); cursor: pointer; }
+.seg2 button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow-1); }
+.seg2.dark { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.22); }
+.seg2.dark button { color: rgba(255,255,255,.8); }
+.seg2.dark button[aria-pressed="true"] { background: #fff; color: #111; }
+
+/* Scan screen: set flag on the photo card, count on strip thumbnails, Next photo */
+.setflag { position: absolute; right: 6px; top: 6px; z-index: 2; display: inline-flex; align-items: center; gap: .25rem; background: var(--primary); color: var(--on-primary); font-size: 11.5px; font-weight: 800; padding: .15rem .5rem; border-radius: 999px; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+.setflag .icon { width: 12px; height: 12px; }
+.qcam .shot .setflag { right: auto; left: 10px; top: 10px; }
+.strip button .st.cnt { width: auto; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--warning); font-size: 10px; font-weight: 800; line-height: 16px; }
+.strip button .st.cnt.ok { background: var(--success); }
+.next-photo { gap: .35rem; }
+
+/* Check screen */
+.rcell.short { border-color: var(--warning); }
+.rcell.is-set { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); }
+.rcell .setn { position: absolute; right: 4px; top: 4px; display: inline-flex; align-items: center; gap: .2rem; background: var(--primary); color: var(--on-primary); font-size: 11px; font-weight: 800; padding: .05rem .4rem; border-radius: 999px; }
+.rcell .setn .icon { width: 11px; height: 11px; }
+.rgrid.with-chips .rcell .t { flex-wrap: wrap; gap: .2rem; justify-content: center; }
+.rgrid.with-chips .rcell .t .tagchip { font-size: 10.5px; padding: .05rem .3rem; }
+.rgrid.with-chips .rcell .t .tagchip .icon { display: none; }
+.setchip .icon { width: 13px; height: 13px; }
+
+/* Saving list and the saree page */
+.qchips { display: flex; flex-wrap: wrap; gap: .25rem; }
+.add-tags { margin-top: .6rem; }
+
+/* The old app (for comparison): deliberately plainer, and clearly labelled */
+.oldapp .flow-body { background: color-mix(in srgb, var(--surface-2) 70%, var(--bg)); }
+.old-banner { display: flex; gap: .6rem; align-items: flex-start; padding: .7rem .8rem; margin-bottom: .8rem; border-radius: var(--r-md); border: 1.5px dashed color-mix(in srgb, var(--accent) 70%, transparent); background: var(--accent-soft); color: color-mix(in srgb, var(--accent) 45%, var(--text)); font-size: 13px; line-height: 1.45; }
+.old-banner .icon { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+.old-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: .75rem; margin-bottom: .6rem; }
+.old-sec { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin: .9rem .3rem .4rem; }
+.old-sec i, .old-label i, .old-row i { color: var(--danger); font-style: normal; }
+.old-label { display: block; font-weight: 750; font-size: 15px; }
+.old-help { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+.old-photo .ph { position: relative; margin-top: .6rem; width: 132px; aspect-ratio: 3 / 4; border-radius: 10px; overflow: hidden; background: var(--surface-3); display: flex; align-items: center; justify-content: center; }
+.old-photo .ph img { width: 100%; height: 100%; object-fit: cover; }
+.old-chip { position: absolute; left: 6px; bottom: 6px; background: rgba(0,0,0,.65); color: #fff; font-size: 11.5px; font-weight: 700; padding: .15rem .55rem; border-radius: 999px; }
+.old-row { display: flex; align-items: center; gap: .5rem; min-height: 44px; font-size: 14.5px; }
+.old-row + .old-row { border-top: 1px solid var(--border); }
+.old-row > span:first-child { flex: 1; font-weight: 650; }
+.old-row b { font-weight: 600; color: var(--text-2); max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.old-row .icon { color: var(--muted); }
+.old-input { display: flex; gap: .4rem; margin-top: .6rem; }
+.old-input .input { flex: 1; min-width: 0; }
+.old-scan { flex: none; width: 46px; border-radius: 10px; border: 0; background: var(--primary); color: var(--on-primary); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.old-codes { display: grid; gap: .35rem; margin-top: .6rem; }
+.old-code { display: flex; align-items: center; justify-content: space-between; padding: .45rem .6rem; border-radius: 8px; background: var(--surface-2); font-family: var(--font-mono); font-weight: 700; font-size: 14px; }
+.old-code button { width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.old-code button:hover { background: var(--danger-soft); color: var(--danger); }
+
+/* Start page: the three designs side by side */
+.ways { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.way { display: flex; flex-direction: column; gap: .5rem; }
+.way .letter { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--primary); color: var(--on-primary); font-weight: 800; }
+.way h3 { margin: .2rem 0 0; font-size: 1.1rem; }
+.way p { margin: 0; color: var(--text-2); font-size: .95rem; }
+.way ul { margin: 0; padding-left: 1.1rem; color: var(--text-2); font-size: .92rem; }
+.way .btn { margin-top: auto; align-self: flex-start; }
+@media (max-width: 860px) { .ways { grid-template-columns: 1fr; } }

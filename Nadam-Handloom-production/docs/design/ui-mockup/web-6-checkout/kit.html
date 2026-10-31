@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en-IN" data-mode="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Design kit · W6 checkout mock-up</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="img/logo-96.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&amp;family=Manrope:wght@400;600;700&amp;family=Instrument+Serif&amp;family=Hanken+Grotesk:wght@400;600;700&amp;display=swap">
+  <link rel="stylesheet" href="assets/fonts.css">
+  <link rel="stylesheet" href="assets/site/tokens.css">
+  <link rel="stylesheet" href="assets/site/base.css">
+  <link rel="stylesheet" href="assets/site/pages.css">
+  <link rel="stylesheet" href="assets/site/shop.css">
+  <link rel="stylesheet" href="assets/bag.css">
+  <link rel="stylesheet" href="assets/checkout.css">
+  <link rel="stylesheet" href="assets/mock.css">
+  <script src="assets/opts.js"></script>
+</head>
+<body>
+  <div class="mock-strip" role="note"><span class="mock-tag">Mock-up</span> Design kit for W6, checkout and payment · <a href="index.html">Start page</a> · <a href="site.html#/checkout?state=review">Website mock-up</a></div>
+  <main class="kit" id="main">
+    <header class="stack-sm"><span class="eyebrow">W6 · design kit</span><h1>The checkout's parts</h1><p class="lead">Everything new in W6, in the live website's design. Colours and fonts follow the "Design options" panel (A is the live website).</p></header>
+    <section><h2>Colours</h2><div class="swatches" id="sw"></div></section>
+    <section class="type-scale"><h2>Type</h2>
+      <p class="display" style="font-size:clamp(2.1rem,4.4vw,3.4rem)">Thank you, Priya <small class="muted small">confirmation title</small></p>
+      <p class="display" style="font-size:1.45rem">Delivery address <small class="muted small">step title</small></p>
+      <p>Body: Your sarees are held for you until 4:35 pm.</p>
+      <p class="small muted">Small: By paying you agree to our Terms, Shipping and Cancellation and refunds policies.</p>
+    </section>
+    <section><h2>Steps</h2><div class="stack" style="max-width:760px" id="steps"></div></section>
+    <section><h2>Progress bar (6.1 B)</h2><div style="max-width:760px" id="prog"></div></section>
+    <section><h2>Addresses (6.3)</h2><div class="stack" id="addrs"></div></section>
+    <section><h2>Sarees in review</h2><div style="max-width:760px" id="lines"></div></section>
+    <section><h2>Order summary and Pay</h2><div class="row" style="align-items:flex-start" id="sums"></div></section>
+    <section><h2>Buttons</h2><div class="row" id="btns"></div></section>
+    <section><h2>Every ending</h2><div class="stack" style="max-width:760px" id="ends"></div></section>
+    <section><h2>Razorpay's window (stand-in)</h2><div id="rzp" style="max-width:460px"></div></section>
+    <section><h2>Confirmation (6.6)</h2><div class="stack" id="conf"></div></section>
+    <section><h2>Policy pages</h2><div class="stack" style="max-width:760px"><span class="draft-note" id="draft"></span><div class="prose"><h2>Cancelling an order</h2><ul><li>Before it ships: message us on WhatsApp with your order number and we cancel it with a full refund.</li></ul></div></div></section>
+    <section><h2>Icons used</h2><div class="icons" id="ic"></div></section>
+  </main>
+  <script src="assets/icons.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/site.js"></script>
+  <script>
+    (function () {
+      var P = window.W5Parts, Q = window.W6Parts, I = P.icon, rs = P.rs, $ = function (id) { return document.getElementById(id); };
+      var o = Q.sampleOrder('NH48213097');
+      function draw() {
+        var cs = getComputedStyle(document.documentElement);
+        $('sw').innerHTML = ['bg', 'surface', 'surface-2', 'line-2', 'ink', 'muted', 'accent', 'accent-soft', 'gold', 'gold-soft', 'ok', 'warn', 'bad', 'info'].map(function (t) { return '<div class="swatch"><i style="background:var(--' + t + ')"></i><span>--' + t + '<br>' + cs.getPropertyValue('--' + t).trim() + '</span></div>'; }).join('');
+        $('steps').innerHTML = '<section class="co-step card is-done"><div class="co-head"><span class="co-n">' + I('check', 'sm') + '</span><p class="display" style="font-size:1.45rem;flex:1">Delivery address</p></div><div class="co-done"><div class="ad-card is-on">' + Q.addrBlock(Q.ADDRS0[0]) + '</div><button type="button" class="link small">Change</button></div></section>' +
+          '<section class="co-step card"><div class="co-head"><span class="co-n">2</span><p class="display" style="font-size:1.45rem;flex:1">Review and pay</p><a class="link small" href="site.html#/bag">Change my bag</a></div></section>' +
+          '<section class="co-step card is-later"><div class="co-head"><span class="co-n">2</span><p class="display" style="font-size:1.45rem;flex:1">Review and pay</p></div><p class="muted small">After you choose the address.</p></section>';
+        $('prog').innerHTML = '<ol class="co-prog"><li class="done"><span>' + I('check', 'sm') + '</span>Address</li><li class="on"><span>2</span>Review</li><li><span>3</span>Pay</li></ol>';
+        var cards = function (cls) { return '<div class="ad-list' + cls + '">' + Q.ADDRS0.concat([Q.OLD_ADDR]).map(function (a, i) { return '<label class="ad-card' + (i === 0 ? ' is-on' : '') + (a.bad ? ' is-bad' : '') + '"><input type="radio" name="k' + cls + '"' + (i === 0 ? ' checked' : '') + '><span class="ad-body">' + Q.addrBlock(a) + (a.bad ? '<span class="ad-warn">' + I('alert', 'sm') + 'Needs checking before use</span>' : '') + '</span></label>'; }).join('') + '</div>'; };
+        $('addrs').innerHTML = '<b class="small">A cards</b>' + cards('') + '<b class="small">B compact list</b><div style="max-width:620px">' + cards(' compact') + '</div><b class="small">C drop-down</b><div class="field" style="max-width:420px"><label for="kd">Deliver to</label><select id="kd" class="select"><option>Home: Priya Sharma, Hyderabad</option><option>Office: Priya Sharma, Vijayawada</option></select></div>';
+        $('lines').innerHTML = Q.orderLines(o);
+        var sum = function (state, igst, hold) {
+          var gst = Math.round((o.total - o.total / 1.05) * 100) / 100;
+          return '<aside class="sum card co-sum" style="position:static;width:360px;max-width:100%"><p class="display" style="font-size:1.6rem">Order summary</p><div class="sumrow"><span>Subtotal (' + P.pcs(o.pieces) + ')</span><span class="v">' + rs(o.total) + '</span></div><div class="sumrow"><span>Delivery</span><span class="free">Free</span></div><div class="sumrow total"><span>Total</span><span class="v">' + rs(o.total) + '</span></div><p class="tax">' + (igst ? 'Includes IGST 5% (' + rs(gst) + '): delivered to Telangana' : 'Includes GST 5% (' + rs(gst) + '): CGST 2.5% + SGST 2.5%') + '</p>' +
+            (hold === 'a' ? '<p class="hold-line">' + I('clock', 'sm') + '<span>Your sarees are held for you until <b>4:35 pm</b>.</span></p>' : hold === 'b' ? '<p class="hold-line">' + I('clock', 'sm') + '<span>Your sarees are held for you: <b class="tnum">14:59</b> left</span></p>' : '') +
+            '<div class="acts"><button type="button" class="btn btn-primary btn-lg btn-block' + (state === 'loading' ? ' is-loading' : '') + '"' + (state === 'off' ? ' disabled' : '') + '>' + I('lock', 'sm') + 'Pay ' + rs(o.total) + '</button><p class="soon pay-methods">' + I('shield', 'sm') + 'Secure payment by Razorpay · UPI, cards, net banking, wallets</p></div></aside>';
+        };
+        $('sums').innerHTML = sum('on', true, 'a') + sum('on', false, 'b') + sum('off', false, '');
+        $('btns').innerHTML = '<button class="btn btn-primary btn-lg">' + I('lock', 'sm') + 'Checkout</button><button class="btn btn-primary btn-lg">Deliver here</button><button class="btn btn-ghost">' + I('plus', 'sm') + 'Add a new address</button><button class="btn btn-primary btn-lg">Save and deliver here</button><button class="btn btn-primary btn-lg">Continue to payment</button><button class="btn btn-sm btn-primary">Pay now</button><button class="btn btn-sm">Change my bag</button><button class="btn btn-sm btn-primary">Try again</button><button class="btn btn-sm btn-primary">Check my bag again</button><button class="link small" style="border-left:0;border-right:0;border-top:0">' + I('whatsapp', 'sm') + 'Order on WhatsApp instead</button>';
+        var al = function (tone, ic, t, x) { return '<div class="alert alert-' + tone + '">' + I(ic) + '<div><b class="alert-title">' + t + '</b>' + x + '</div></div>'; };
+        $('ends').innerHTML = al('bad', 'alertc', 'Payment didn\'t go through. Nothing was taken.', 'Your sarees are still held until 4:35 pm.') + al('warn', 'alert', 'Payment not completed', 'Your sarees are held for you until 4:35 pm.') + al('warn', 'clock', 'The 15 minutes are over', 'Your sarees were released, so others could buy them. Check your bag again.') + al('warn', 'alert', 'Something changed before you paid', 'A saree sold at our store and one collection\'s price changed. Nothing was charged.') + al('warn', 'wifioff', 'You\'re offline', 'Nothing was charged. Pay works again when you\'re back online.') + '<div class="alert">' + I('info') + '<div><b class="alert-title">Payments don\'t open inside Instagram</b>Open the website in Chrome or Safari to pay.</div></div>' + al('ok', 'refresh', 'Your ₹13,800 is being refunded', 'To the same account you paid from, usually in 5 to 7 working days.');
+        $('rzp').innerHTML = '<div class="modal-box rzp" style="animation:none;position:static"><div class="rz-top"><div><b>Nandam Handlooms</b><span class="tnum">' + rs(o.total) + '</span></div><button type="button" class="btn btn-icon" aria-label="Close">' + I('x') + '</button></div><p class="rz-stand"><span class="mock-tag">Stand-in</span> The real window is Razorpay\'s own.</p><div class="rz-tabs"><button type="button" aria-selected="true">UPI</button><button type="button" aria-selected="false">Cards</button><button type="button" aria-selected="false">Net banking</button><button type="button" aria-selected="false">Wallets</button></div><div class="rz-body"><div class="field"><label for="kz">UPI ID</label><input id="kz" class="input" value="priya@okicici"></div></div></div>';
+        $('conf').innerHTML = '<div class="ord-hero" style="margin:0"><span class="ord-ic ok">' + I('check', 'lg') + '</span><span class="eyebrow">Order confirmed</span><p class="display" style="font-size:clamp(2.1rem,4.4vw,3.4rem)">Thank you, Priya</p><ol class="ord-next"><li class="on"><span>' + I('check', 'sm') + '</span><b>Paid</b><small>Just now</small></li><li><span>' + I('box', 'sm') + '</span><b>Packed</b><small>Within 2 working days</small></li><li><span>' + I('truck', 'sm') + '</span><b>Shipped by DTDC</b><small>Tracking in My orders</small></li><li><span>' + I('home', 'sm') + '</span><b>Delivered</b><small>Usually 3 to 7 days</small></li></ol></div>' +
+          '<div class="ord-receipt card"><div class="row-between"><div><span class="eyebrow">Order confirmed</span><p class="display h-md">Thank you, Priya</p></div><span class="ord-ic ok small">' + I('check') + '</span></div><dl class="rc"><dt>Order</dt><dd class="tnum">NH48213097</dd><dt>Paid</dt><dd>' + rs(o.total) + ' · UPI</dd></dl></div>';
+        $('draft').innerHTML = I('edit', 'sm') + 'Draft for the owner: not the shop\'s final text';
+        $('ic').innerHTML = ['lock', 'shield', 'clock', 'check', 'alert', 'alertc', 'info', 'wifioff', 'refresh', 'truck', 'box', 'home', 'phone', 'plus', 'copy', 'whatsapp', 'edit', 'x'].map(function (k) { return '<div>' + I(k, 'lg') + '<span>' + k + '</span></div>'; }).join('');
+      }
+      draw();
+      document.addEventListener('w5opts', draw);
+    })();
+  </script>
+</body>
+</html>

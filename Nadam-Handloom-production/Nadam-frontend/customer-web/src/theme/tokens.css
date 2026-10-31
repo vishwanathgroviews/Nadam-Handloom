@@ -1,0 +1,36 @@
+/* Nandam Handlooms website: the look the client picked on 26 Oct 2026 (mock-up
+   docs/design/ui-mockup/web-10-category-pages, look A): the wine and gold of design C "Utsav",
+   on white, Bodoni Moda + Figtree, soft corners. Night and gold in dark mode.
+   <html data-mode="light|dark"> is set before the page draws (index.html), from the visitor's
+   choice: Auto (follows the device), Light or Dark. */
+:root {
+  --bg: #FFFFFF; --surface: #FFFFFF; --surface-2: #F7F2EA; --surface-3: #EFE6D9; --line: #ECE3D7; --line-2: #D9CCBA;
+  --ink: #1D1317; --ink-2: #4F4047; --muted: #76666D;
+  --accent: #8C1A44; --accent-ink: #FFFFFF; --accent-hover: #701335; --accent-soft: #F8E8EE;
+  --gold: #7F5D15; --gold-soft: #F4EAD2; --gold-ink: #4A3507;
+  --mat: #F4EEE6; --scrim: rgba(15, 8, 12, .5);
+  --ok: #1E7A4A; --ok-soft: #E3F2E9; --warn: #9A5B0B; --warn-soft: #FBEFD9; --bad: #B3261E; --bad-soft: #FBE6E4; --info: #255D8F; --info-soft: #E4EEF7;
+  --shadow-1: 0 1px 2px rgba(34, 26, 23, .06), 0 2px 8px rgba(34, 26, 23, .05);
+  --shadow-2: 0 10px 30px rgba(34, 26, 23, .12), 0 2px 6px rgba(34, 26, 23, .06);
+  --shadow-3: 0 24px 60px rgba(34, 26, 23, .22);
+  --f-display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --f-body: "Figtree Variable", "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --display-weight: 400; --display-track: -0.01em; --eyebrow-track: .16em;
+  --r-xs: 4px; --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-pill: 999px; --r-card: 10px; --r-btn: 8px;
+  --ease: cubic-bezier(.2, .7, .2, 1); --ease-out: cubic-bezier(.16, 1, .3, 1); --ease-lux: cubic-bezier(.65, 0, .35, 1);
+  --dur: 200ms; --dur-slow: 700ms;
+  --gutter: max(16px, env(safe-area-inset-left, 0px)); --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --header-h: 72px; /* the header's first row; the category menu adds about 46px */
+  color-scheme: light;
+}
+:root[data-mode="dark"] {
+  --bg: #0E0A0D; --surface: #161015; --surface-2: #1E161C; --surface-3: #2A1F27; --line: #30242D; --line-2: #463541;
+  --ink: #F6EEE6; --ink-2: #D7C8BE; --muted: #A5949B;
+  --accent: #E6BC62; --accent-ink: #1B1205; --accent-hover: #F0CB7C; --accent-soft: #33280F;
+  --gold: #E6BC62; --gold-soft: #33280F; --gold-ink: #F7E4B8;
+  --mat: #EEE9E2; --scrim: rgba(6, 3, 5, .62);
+  --ok: #6FCF97; --ok-soft: #173326; --warn: #F0B35A; --warn-soft: #3A2A12; --bad: #F28B82; --bad-soft: #3D1C1A; --info: #8AB8E6; --info-soft: #182A3B;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .4); --shadow-2: 0 10px 30px rgba(0, 0, 0, .5); --shadow-3: 0 24px 60px rgba(0, 0, 0, .65);
+  color-scheme: dark;
+}
+@media (max-width: 900px) { :root { --header-h: 60px; } }

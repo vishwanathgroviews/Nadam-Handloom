@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en" data-palette="a" data-mode="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Website Design Kit</title>
+<meta name="description" content="The building blocks of the new Nandam Handlooms website in the design picked in Design options.">
+<link rel="icon" href="img/site/brand-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600;6..96,700&family=Figtree:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/premium.css">
+<script src="assets/data.js"></script>
+<script src="assets/opts.js"></script>
+<style>
+  .kit-top { border-bottom: 1px solid var(--line); background: var(--surface); }
+  .kit-top .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 64px; flex-wrap: wrap; }
+  .kit-top nav { display: flex; gap: .3rem; flex-wrap: wrap; }
+  .kit-top nav a { padding: .5rem .8rem; border-radius: var(--r-pill); font-size: .86rem; font-weight: 650; color: var(--ink-2); }
+  .kit-top nav a:hover { background: var(--surface-2); }
+  .kit-sec { padding-block: clamp(32px, 5vw, 56px); border-bottom: 1px solid var(--line); display: grid; gap: 1.2rem; }
+  .sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .sw div { border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; background: var(--surface); }
+  .sw i { display: block; height: 70px; }
+  .sw span { display: grid; padding: .55rem .7rem; font-size: .78rem; } .sw span b { font-size: .84rem; }
+  .row-wrap { display: flex; gap: .7rem; flex-wrap: wrap; align-items: center; }
+  .icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+  .icons div { display: grid; justify-items: center; gap: .4rem; padding: .9rem .4rem; border: 1px solid var(--line); border-radius: var(--r-sm); font-size: .72rem; color: var(--muted); background: var(--surface); }
+  .icons .ico { color: var(--ink); }
+  .type-row { display: grid; grid-template-columns: 120px 1fr; gap: 1rem; align-items: baseline; border-bottom: 1px dashed var(--line); padding-block: .6rem; }
+  .type-row small { color: var(--muted); font-size: .76rem; }
+  @media (max-width: 600px) { .type-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header class="kit-top"><div class="wrap"><b style="font-family:var(--f-display);font-size:1.3rem">Design kit <span class="muted" style="font-family:var(--f-body);font-size:.9rem;font-weight:500" id="kit-name"></span></b><nav><a href="index.html">Start</a><a href="site.html#/home">Website</a><a href="preview.html">Device preview</a></nav></div></header>
+<main class="wrap" id="kit"></main>
+<script>
+(function () {
+  var NH = window.NH, D = window.NH_DATA, icon = NH.icon, el = document.getElementById('kit');
+  var NAMES = { a: 'A Heritage', b: 'B Atelier', c: 'C Utsav' };
+  function paint() {
+    document.getElementById('kit-name').textContent = '· ' + NAMES[NH.opts.design] + ' · ' + document.documentElement.getAttribute('data-mode');
+    var cs = getComputedStyle(document.documentElement);
+    var tokens = [['--bg', 'Page'], ['--surface', 'Surface'], ['--surface-2', 'Band'], ['--line', 'Lines'], ['--ink', 'Text'], ['--ink-2', 'Text 2'], ['--muted', 'Muted'], ['--accent', 'Accent'], ['--gold', 'Zari gold'], ['--mat', 'Photo mat'], ['--ok', 'Success'], ['--warn', 'Warning'], ['--bad', 'Error'], ['--info', 'Info']];
+    var p = D.products.filter(function (x) { return x.avail > 1; })[0], p2 = D.products[20], c = D.collections[3];
+    el.innerHTML =
+      '<section class="kit-sec"><span class="eyebrow">Colours</span><h2>One set of colour tokens, light and dark</h2><div class="sw">' + tokens.map(function (t) { var v = cs.getPropertyValue(t[0]).trim(); return '<div><i style="background:var(' + t[0] + ')"></i><span><b>' + t[1] + '</b>' + t[0] + ' · ' + v + '</span></div>'; }).join('') + '</div><div class="zari"></div><p class="muted">The zari line above is the woven-border divider used between sections.</p></section>' +
+      '<section class="kit-sec"><span class="eyebrow">Type</span><h2>Type scale</h2>' + [['Display', '<h1>Woven in zari</h1>'], ['Heading 2', '<h2>New in this week</h2>'], ['Heading 3', '<h3>Order summary</h3>'], ['Lead', '<p class="lead">Pure Mangalagiri pattu sarees from our shop in Old Mangalagiri.</p>'], ['Body', '<p>Free delivery across India by DTDC, usually in 4 to 7 days.</p>'], ['Eyebrow', '<span class="eyebrow">Shop by craft</span>'], ['Price', '<span class="price" style="font-size:1.6rem">₹3,200</span>'], ['Small', '<p class="note">' + icon('info', 'ico-sm') + 'Prices include taxes.</p>']].map(function (r) { return '<div class="type-row"><small>' + r[0] + '</small><div>' + r[1] + '</div></div>'; }).join('') + '</section>' +
+      '<section class="kit-sec"><span class="eyebrow">Buttons</span><h2>Buttons</h2><div class="row-wrap"><button class="btn btn-primary btn-lg">' + icon('bag', 'ico-sm') + 'Add to bag</button><button class="btn btn-dark btn-lg">Buy now</button><button class="btn btn-lg">Explore collections</button><button class="btn btn-gold">Join</button><button class="btn btn-ghost">Ghost</button><button class="btn btn-sm">Small</button><button class="btn btn-primary is-loading">Loading</button><button class="btn btn-primary" disabled>Disabled</button><button class="btn btn-icon" aria-label="Wishlist">' + icon('heart') + '</button><a class="link" href="#">Text link ' + icon('arrow', 'ico-sm') + '</a></div><div style="background:#1a1210;padding:1rem;border-radius:var(--r-md)" class="row-wrap"><button class="btn btn-light">On a photo</button><button class="btn btn-outline-light">Outline on a photo</button></div></section>' +
+      '<section class="kit-sec"><span class="eyebrow">Forms</span><h2>Fields</h2><div class="grid-2" style="max-width:820px"><div class="field"><label for="k1">First name</label><input class="input" id="k1" placeholder="Priya"></div><div class="field has-error"><label for="k2">Pincode</label><input class="input" id="k2" value="5000"><p class="field-error">' + icon('alertc', 'ico-sm') + 'Enter a 6-digit pincode.</p></div><div class="field"><label for="k3">Mobile number</label><div class="input-group"><span class="pre">+91</span><input class="input" id="k3" placeholder="10-digit mobile"></div><p class="field-hint">We send order updates by SMS.</p></div><div class="field"><label for="k4">State</label><select class="select" id="k4"><option>Andhra Pradesh</option><option>Telangana</option></select></div></div>' +
+      '<div style="max-width:420px" class="field"><span class="label">6-digit PIN</span><div class="pin-row">' + [1, 2, 3, 4, 5, 6].map(function (n) { return '<input class="input" aria-label="Digit ' + n + '" value="' + (n < 4 ? '•' : '') + '">'; }).join('') + '</div></div><label class="check"><input type="checkbox" checked><span>Send me order updates by SMS</span></label><div class="row-wrap"><button class="chip" aria-pressed="true">Applique <span class="n">144</span></button><button class="chip">Kalamkari <span class="n">208</span></button><button class="chip">Checks</button></div></section>' +
+      '<section class="kit-sec"><span class="eyebrow">Status</span><h2>Badges and alerts</h2><div class="row-wrap"><span class="badge badge-accent">New</span><span class="badge badge-gold">Set of 4</span><span class="badge badge-ok">Delivered</span><span class="badge badge-info">Paid</span><span class="badge badge-warn">Payment pending</span><span class="badge badge-bad">Sold out</span><span class="badge">Home</span><span class="badge badge-sample">Sample</span><span class="mock-tag">Mock-up control</span></div>' +
+      '<div style="display:grid;gap:.7rem;max-width:760px"><div class="alert">' + icon('truck') + '<div><b>Free delivery by DTDC</b>Usually 4 to 7 days.</div></div><div class="alert alert-ok">' + icon('check') + '<div><b>Order placed</b>We sent the details by SMS.</div></div><div class="alert alert-warn">' + icon('alert') + '<div><b>Only 2 left</b>This design is a set of identical pieces.</div></div><div class="alert alert-bad">' + icon('alertc') + '<div><b>Payment didn’t go through</b>Nothing was taken from your account.</div></div></div></section>' +
+      '<section class="kit-sec"><span class="eyebrow">Cards</span><h2>Saree card (A/B/C in Design options), collection card, order row</h2><div class="pgrid" style="--cols:4">' + window.SiteKit.card(p) + window.SiteKit.card(p2) + '<a class="craft" href="site.html#/shop?col=' + c.id + '"><img src="' + c.img + '" alt=""><span class="t"><b>' + c.name + '</b><span>' + c.count + ' pieces</span></span></a><div class="stockline low" style="align-self:start"><span class="dot"></span>Only 3 left</div></div></section>' +
+      '<section class="kit-sec"><span class="eyebrow">Data</span><h2>Table (turns into cards on a phone)</h2><div class="table-wrap"><table class="table stack"><thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Total</th></tr></thead><tbody><tr><td data-label="Order">NH51204488</td><td data-label="Date">14 Oct 2026</td><td data-label="Status"><span class="badge badge-info">Packing</span></td><td data-label="Total" class="price">₹3,200</td></tr><tr><td data-label="Order">NH50937716</td><td data-label="Date">9 Oct 2026</td><td data-label="Status"><span class="badge badge-gold">Shipped</span></td><td data-label="Total" class="price">₹5,600</td></tr></tbody></table></div><p class="note">' + icon('info', 'ico-sm') + 'Sample orders.</p></section>' +
+      '<section class="kit-sec"><span class="eyebrow">Progress and loading</span><h2>Progress, loading placeholders, success</h2><div class="progress" style="max-width:320px"><i style="width:62%"></i></div><div class="pgrid" style="--cols:4">' + window.SiteKit.skel(2) + '</div><svg class="success-mark" viewBox="0 0 104 104" aria-hidden="true"><circle cx="52" cy="52" r="48"/><path d="M32 54l14 14 27-30"/></svg></section>' +
+      '<section class="kit-sec"><span class="eyebrow">Icons</span><h2>Icons (one line style)</h2><div class="icons">' + NH.iconNames.map(function (n) { return '<div>' + icon(n) + n + '</div>'; }).join('') + '</div></section>';
+  }
+  window.SiteKit = {
+    card: function (p) { var c = D.collections.filter(function (x) { return x.id === p.col; })[0]; return '<article class="pcard"><div class="phbox"><a class="ph" href="site.html#/p/' + p.slug + '"><img src="' + p.img + '" alt=""><span class="tags">' + (p.avail > 1 ? '<span class="badge badge-gold">Set of ' + p.avail + '</span>' : '<span class="badge badge-accent">New</span>') + '</span></a><button type="button" class="wish" aria-pressed="false" aria-label="Save">' + icon('heart', 'ico-sm') + '</button><div class="quick"><button type="button" class="btn btn-sm">' + icon('bag', 'ico-sm') + 'Add to bag</button></div></div><div class="info"><span class="col">' + c.name + '</span><a class="name" href="site.html#/p/' + p.slug + '">' + p.name + '</a><div class="row"><span class="price">₹' + new Intl.NumberFormat('en-IN').format(c.price) + '</span><span class="sku">' + p.sku + '</span></div></div></article>'; },
+    skel: function (n) { var h = ''; for (var i = 0; i < n; i++) h += '<div class="pcard"><div class="ph skel"></div><div class="skel" style="height:12px;width:60%"></div><div class="skel" style="height:18px;width:85%"></div></div>'; return h; }
+  };
+  paint(); document.addEventListener('nh:options', paint);
+})();
+</script>
+</body>
+</html>

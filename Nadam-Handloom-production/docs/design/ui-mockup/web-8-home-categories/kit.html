@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en-IN" data-mode="light" class="js-motion">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Design kit · home page without the carousel (mock-up)</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="img/logo-96.png">
+  <link rel="stylesheet" href="assets/live.css">
+  <link rel="stylesheet" href="assets/home-cats.css">
+  <link rel="stylesheet" href="assets/mock.css">
+  <script src="assets/opts.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    // The kit: the website's colours and type, then each new part in every state. The parts are
+    // the same code as the home page (assets/home.js), shown here one under the other.
+    window.HC_KIT = function () {
+      var HC = window.HC;
+      var k = 0;
+      // One main heading per page: the parts' headings become plain headings here, ids kept unique.
+      var part = function (html) { k += 1; return html.replace(/<h1 id="h-shop">/g, '<h3 class="kit-h1">').replace(/<\/h1>/g, '</h3>').replace(/id="(h-[^"]+)"/g, 'id="$1-' + k + '"').replace(/aria-labelledby="(h-[^"]+)"/g, 'aria-labelledby="$1-' + k + '"').replace(/id="(hc-[^"]+)"/g, 'id="$1-' + k + '"'); };
+      var sw = [['--bg', 'Page'], ['--surface', 'Surface'], ['--surface-2', 'Band'], ['--ink', 'Text'], ['--ink-2', 'Text, softer'], ['--muted', 'Muted'], ['--accent', 'Accent (wine)'], ['--gold', 'Gold'], ['--line-2', 'Lines']];
+      var icons = ['arrow', 'left', 'right', 'info', 'search', 'bag', 'whatsapp', 'thread'];
+      document.getElementById('app').innerHTML =
+        '<div class="mock-strip" role="note"><span class="mock-tag">Mock-up</span><span>Design kit: the new top of the home page</span><a href="index.html">Start page</a><a href="site.html">The home page</a></div>' +
+        '<main class="kit" id="main">' +
+        '<section><span class="eyebrow">Design kit · mock-up</span><h1>The new top of the home page</h1><p class="lead">Only the parts that are new. Everything else on the home page is the live website\'s, unchanged. Colours, type and icons are the live website\'s own; switch Light and Dark in the Design options.</p></section>' +
+        '<section><h2>Colours (live website)</h2><div class="swatches">' + sw.map(function (s) { return '<div class="swatch"><i style="background:var(' + s[0] + ')"></i><span>' + s[1] + ' <code>' + s[0] + '</code></span></div>'; }).join('') + '</div></section>' +
+        '<section><h2>Type and links</h2><div class="type-scale"><span class="eyebrow">Handwoven in Old Mangalagiri</span><p class="display" style="font-size:clamp(2rem,3.8vw,3.3rem)">Shop by category</p><p class="display" style="font-size:1.9rem">Mangalagiri pattu sarees</p><p class="lux-label">1,538 pieces · 62 collections</p><p><a class="lux-link" href="/collections">All 76 collections <svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + window.ICONS.arrow + '</svg></a></p><div class="chip-row"><a class="chip" href="/shop?craft=embroidery">Embroidery <small>387</small></a><a class="chip" href="/collections">All 76 collections</a></div></div></section>' +
+        '<section><h2>A · Four category tiles</h2>' + part(HC.topA('normal')) + '</section>' +
+        '<section><h2>A · Loading</h2>' + part(HC.topA('loading')) + '</section>' +
+        '<section><h2>A · Couldn\'t load</h2>' + part(HC.topA('error')) + '</section>' +
+        '<section><h2>B · Round photos and the largest collections</h2>' + part(HC.topB('normal')) + '</section>' +
+        '<section><h2>B · Loading</h2>' + part(HC.topB('loading')) + '</section>' +
+        '<section><h2>C · Each category with its collections</h2>' + part(HC.topC('normal')) + '</section>' +
+        '<section><h2>C · Loading</h2>' + part(HC.topC('loading')) + '</section>' +
+        '<section><h2>Icons (live website)</h2><div class="icons">' + icons.map(function (i) { return '<div><svg class="ico" viewBox="0 0 24 24" aria-hidden="true">' + window.ICONS[i] + '</svg>' + i + '</div>'; }).join('') + '</div></section>' +
+        '</main>';
+      document.title = 'Design kit · home page without the carousel (mock-up)';
+    };
+  </script>
+  <script src="assets/icons.js"></script>
+  <script src="assets/captured.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/home.js"></script>
+</body>
+</html>

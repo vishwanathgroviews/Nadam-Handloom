@@ -1,0 +1,34 @@
+/* Nandam Handlooms website: design C "Utsav" (owner's pick, 15 Oct 2026), from the approved
+   mock-up (docs/design/ui-mockup/web-0-design). Festive night & gold in dark mode, champagne
+   in light mode. <html data-mode="light|dark"> is set before the page draws (index.html), from
+   the visitor's choice: Auto (follows the device), Light or Dark. */
+:root {
+  --bg: #F6F0E7; --surface: #FFFDF9; --surface-2: #EFE5D6; --surface-3: #E5D8C4; --line: #E0D2BD; --line-2: #CDB99B;
+  --ink: #1D1317; --ink-2: #523F47; --muted: #6F5C64;
+  --accent: #8C1A44; --accent-ink: #FFFFFF; --accent-hover: #701335; --accent-soft: #F5E2E9;
+  --gold: #7F5D15; --gold-soft: #F2E6CB; --gold-ink: #4A3507;
+  --mat: #F2EDE5; --scrim: rgba(20, 8, 14, .55);
+  --ok: #1E7A4A; --ok-soft: #E3F2E9; --warn: #9A5B0B; --warn-soft: #FBEFD9; --bad: #B3261E; --bad-soft: #FBE6E4; --info: #255D8F; --info-soft: #E4EEF7;
+  --shadow-1: 0 1px 2px rgba(34, 26, 23, .06), 0 2px 8px rgba(34, 26, 23, .05);
+  --shadow-2: 0 10px 30px rgba(34, 26, 23, .10), 0 2px 6px rgba(34, 26, 23, .06);
+  --shadow-3: 0 24px 60px rgba(34, 26, 23, .18);
+  --f-display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --f-body: "Figtree Variable", "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --display-weight: 400; --display-track: -0.02em; --eyebrow-track: .32em;
+  --r-xs: 2px; --r-sm: 3px; --r-md: 4px; --r-lg: 6px; --r-pill: 999px;
+  --ease: cubic-bezier(.2, .7, .2, 1); --ease-out: cubic-bezier(.16, 1, .3, 1); --ease-lux: cubic-bezier(.65, 0, .35, 1);
+  --dur: 240ms; --dur-slow: 900ms;
+  --gutter: max(16px, env(safe-area-inset-left, 0px)); --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  --header-h: 84px;
+  color-scheme: light;
+}
+:root[data-mode="dark"] {
+  --bg: #0D090C; --surface: #161015; --surface-2: #1F161D; --surface-3: #2A1F28; --line: #32252F; --line-2: #463543;
+  --ink: #F7EFE6; --ink-2: #DACBC1; --muted: #A4939A;
+  --accent: #E6BC62; --accent-ink: #1B1205; --accent-hover: #F0CB7C; --accent-soft: #33280F;
+  --gold: #E6BC62; --gold-soft: #33280F; --gold-ink: #F7E4B8;
+  --mat: #EEE9E2; --scrim: rgba(6, 3, 5, .62);
+  --ok: #6FCF97; --ok-soft: #173326; --warn: #F0B35A; --warn-soft: #3A2A12; --bad: #F28B82; --bad-soft: #3D1C1A; --info: #8AB8E6; --info-soft: #182A3B;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .4); --shadow-2: 0 10px 30px rgba(0, 0, 0, .45); --shadow-3: 0 24px 60px rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}

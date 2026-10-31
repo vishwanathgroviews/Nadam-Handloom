@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en-IN" data-mode="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Device preview · W7 My orders mock-up</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="img/logo-96.png">
+  <link rel="stylesheet" href="assets/fonts.css">
+  <link rel="stylesheet" href="assets/site/tokens.css">
+  <link rel="stylesheet" href="assets/site/base.css">
+  <link rel="stylesheet" href="assets/site/pages.css">
+  <link rel="stylesheet" href="assets/site/shop.css">
+  <link rel="stylesheet" href="assets/bag.css">
+  <link rel="stylesheet" href="assets/mock.css">
+  <script src="assets/opts.js"></script>
+</head>
+<body>
+  <div class="mock-strip" role="note"><span class="mock-tag">Mock-up</span> Device preview · <a href="index.html">Start page</a> · the screens are live: click inside them</div>
+  <main class="pv" id="main">
+    <div class="bar">
+      <label class="label" for="scr">Screen</label>
+      <select id="scr" class="select" style="width:auto;min-width:260px"></select>
+      <div class="chip-row" role="group" aria-label="Device" style="padding:0">
+        <button type="button" class="chip" data-dev="phone" aria-pressed="false">Phone</button>
+        <button type="button" class="chip" data-dev="tablet" aria-pressed="false">Tablet</button>
+        <button type="button" class="chip" data-dev="laptop" aria-pressed="false">Laptop</button>
+        <button type="button" class="chip" data-dev="both" aria-pressed="true">Phone and laptop</button>
+      </div>
+    </div>
+    <div class="stage" id="stage"></div>
+  </main>
+  <script>
+    (function () {
+      var DEV = { phone: [390, 844, 'Phone · 390 × 844'], tablet: [820, 1180, 'Tablet · 820 × 1180'], laptop: [1440, 900, 'Laptop · 1440 × 900'] };
+      var sel = document.getElementById('scr'), stage = document.getElementById('stage');
+      var dev = 'both';
+      window.W5Opts.screens.forEach(function (g) {
+        if (g[0] === 'Mock-up pages') return;
+        var og = document.createElement('optgroup'); og.label = g[0];
+        g[1].forEach(function (s) { var o = document.createElement('option'); o.value = s[0]; o.textContent = s[1]; og.appendChild(o); });
+        sel.appendChild(og);
+      });
+      var want = new URLSearchParams(location.search).get('s');
+      sel.value = want && sel.querySelector('option[value="' + want + '"]') ? want : 'site.html#/account/orders?state=normal';
+      function frame(kind, avail) {
+        var d = DEV[kind], w = d[0], h = d[1];
+        // The frame adds 24 px around the screen; it must fit the space it has.
+        var scale = Math.max(.25, Math.min(1, (avail - 28) / w, (window.innerHeight - 170) / h));
+        return '<div class="dev ' + kind + '"><div class="frame"><div class="screen" style="width:' + Math.round(w * scale) + 'px;height:' + Math.round(h * scale) + 'px"><iframe title="' + d[2] + '" src="' + sel.value + '" width="' + w + '" height="' + h + '" style="transform:scale(' + scale + ');width:' + w + 'px;height:' + h + 'px"></iframe></div></div><small>' + d[2] + (scale < 1 ? ' · shown at ' + Math.round(scale * 100) + '%' : '') + '</small></div>';
+      }
+      function draw() {
+        var avail = stage.clientWidth || window.innerWidth;
+        if (dev === 'both' && avail < 900) stage.innerHTML = frame('phone', avail);
+        else if (dev === 'both') stage.innerHTML = frame('phone', Math.min(avail, 460)) + frame('laptop', Math.max(320, avail - 470));
+        else stage.innerHTML = frame(dev, avail);
+      }
+      document.querySelectorAll('[data-dev]').forEach(function (b) {
+        b.addEventListener('click', function () { dev = b.getAttribute('data-dev'); document.querySelectorAll('[data-dev]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); draw(); });
+      });
+      sel.addEventListener('change', function () { history.replaceState(null, '', '?s=' + encodeURIComponent(sel.value)); draw(); });
+      var t; window.addEventListener('resize', function () { clearTimeout(t); t = setTimeout(draw, 200); });
+      draw();
+    })();
+  </script>
+</body>
+</html>

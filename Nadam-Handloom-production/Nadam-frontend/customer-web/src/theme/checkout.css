@@ -1,0 +1,107 @@
+/* W6: checkout, payment and the order page (docs/modules/web-04-checkout.md), from the mock-up
+   docs/design/ui-mockup/web-6-checkout (the A designs). Uses tokens.css, base.css, bag.css. */
+
+/* ---------- Checkout page (6.1 A: two steps on one page, the summary on the right) ---------- */
+.co-page { padding-bottom: clamp(40px, 6vw, 80px); }
+.co-notes { display: grid; gap: .6rem; margin-bottom: 1.2rem; }
+.co-notes:empty { display: none; }
+.co-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: clamp(24px, 4vw, 56px); align-items: start; }
+.co-main { display: grid; gap: 1.1rem; min-width: 0; }
+.co-step { display: grid; gap: 1rem; min-width: 0; scroll-margin-top: calc(var(--header-h, 76px) + 16px); }
+.co-step.is-later { opacity: .6; }
+.co-step.is-done { background: var(--surface-2); border-color: transparent; }
+.co-head { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
+.co-head h2 { font-size: 1.45rem; flex: 1; }
+.co-n { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--ink); color: var(--bg); font-weight: 800; font-size: .86rem; flex: none; }
+.co-step.is-done .co-n { background: var(--ok); color: #fff; }
+.co-step.is-later .co-n { background: var(--surface-3); color: var(--muted); }
+.co-done { display: flex; gap: 1rem; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+.co-done .ad-card { flex: 1; min-width: 220px; border: 0; box-shadow: none; padding: 0; background: none; }
+.co-actions { justify-content: space-between; }
+.co-gate { text-align: center; justify-items: center; padding-block: clamp(32px, 5vw, 56px); }
+.co-gate .ico-wrap { width: 64px; height: 64px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; color: var(--gold); }
+.co-gate p { max-width: 46ch; color: var(--ink-2); }
+.co-left-out { font-size: .84rem; color: var(--muted); }
+
+/* ---------- Addresses (6.3 A: cards, the default already chosen) ---------- */
+.ad-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .8rem; border: 0; padding: 0; margin: 0; min-width: 0; }
+.ad-card { position: relative; display: flex; gap: .7rem; align-items: flex-start; padding: 1rem 1.1rem; border: 1px solid var(--line-2); border-radius: var(--r-md); background: var(--surface); cursor: pointer; transition: border-color var(--dur), box-shadow var(--dur); min-width: 0; }
+.ad-card:hover { border-color: var(--ink-2); }
+.ad-card.is-on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.ad-card.is-bad { border-style: dashed; }
+.ad-card input { width: 18px; height: 18px; accent-color: var(--accent); margin-top: 3px; flex: none; }
+.ad-card input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ad-card.static { display: grid; gap: .3rem; cursor: default; }
+.ad-card.static:hover { border-color: var(--line-2); }
+.ad-body { display: grid; gap: .3rem; min-width: 0; }
+.ad-name { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
+.ad-lines { font-size: .9rem; color: var(--ink-2); overflow-wrap: anywhere; }
+.ad-phone { display: inline-flex; gap: .4rem; align-items: center; font-size: .84rem; color: var(--muted); }
+.ad-warn { display: inline-flex; gap: .4rem; align-items: center; font-size: .8rem; font-weight: 700; color: var(--warn); }
+.ad-form { display: grid; gap: .8rem; padding-top: .2rem; }
+.ad-form .chips .chip { min-height: 38px; }
+.h-sm { font-size: 1.3rem; margin-bottom: .2rem; }
+
+/* ---------- Review: the sarees ---------- */
+.co-lines { list-style: none; margin: 0; padding: 0; display: grid; border-top: 1px solid var(--line); }
+.co-lines li { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: .9rem; align-items: center; padding-block: .8rem; border-bottom: 1px solid var(--line); }
+.co-lines img, .co-lines .ph { width: 52px; height: 68px; object-fit: cover; background: var(--mat); display: block; }
+.co-lines .t { display: grid; gap: .15rem; min-width: 0; }
+.co-lines .t b { font-family: var(--f-display); font-weight: var(--display-weight); font-size: 1.06rem; line-height: 1.25; overflow-wrap: anywhere; }
+.co-lines .price { font-weight: 600; font-variant-numeric: tabular-nums; }
+.co-lines .chg { color: var(--warn); font-weight: 700; }
+
+/* ---------- Summary and paying ---------- */
+.co-sum .agree { margin-top: .9rem; text-align: center; }
+.too-large { display: grid; gap: .6rem; margin-top: .6rem; padding: .7rem .8rem; border-radius: var(--r-sm); background: var(--gold-soft); font-size: .86rem; color: var(--ink-2); }
+.hold-line { display: flex; gap: .5rem; align-items: flex-start; font-size: .86rem; color: var(--ink-2); background: var(--gold-soft); border-radius: var(--r-sm); padding: .6rem .75rem; margin-top: .6rem; }
+.hold-line .ico { color: var(--gold); margin-top: 2px; flex: none; }
+.pay-bar { position: fixed; z-index: 55; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px rgba(0, 0, 0, .08); padding: .7rem var(--gutter-r) calc(.7rem + env(safe-area-inset-bottom, 0px)) var(--gutter); display: none; gap: .8rem; align-items: center; }
+.pay-bar .t { flex: 1; min-width: 0; display: grid; line-height: 1.25; }
+.pay-bar .t b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.pay-bar .t span { font-size: .76rem; color: var(--muted); }
+.pay-bar .btn { flex: none; }
+@media (max-width: 900px) {
+  .co-grid { grid-template-columns: minmax(0, 1fr); }
+  .co-sum { position: static; }
+  .pay-bar { display: flex; }
+  .co-page { padding-bottom: 96px; }
+}
+
+/* "Confirming your payment" over the page while our server checks with Razorpay. */
+.modal-box.conf { width: min(380px, 100%); justify-items: center; text-align: center; padding-block: 2rem; }
+.spin-ring { width: 46px; height: 46px; border-radius: 50%; border: 3px solid var(--line-2); border-top-color: var(--accent); animation: spin .9s linear infinite; }
+
+/* ---------- The order page (6.6 A) ---------- */
+.ord-page { padding-top: clamp(28px, 5vw, 56px); padding-bottom: clamp(40px, 6vw, 80px); }
+.ord-hero { display: grid; justify-items: center; text-align: center; gap: .9rem; max-width: 760px; margin: 0 auto clamp(28px, 4vw, 44px); }
+.ord-hero h1 { font-size: clamp(2.1rem, 4.4vw, 3.4rem); }
+.ord-hero .lead { margin-inline: auto; }
+.ord-hero .alert { text-align: left; max-width: 620px; width: 100%; }
+.ord-ic { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: var(--ok); color: #fff; animation: popIn .6s var(--ease-out) both; }
+.ord-ic .ico { width: 38px; height: 38px; stroke-width: 2.2; }
+.ord-ic.bad { background: var(--bad-soft); color: var(--bad); }
+.ord-ic.warn { background: var(--gold-soft); color: var(--gold); }
+.ord-ic.slow { background: var(--surface-2); }
+.ord-ic.slow i { width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--line-2); border-top-color: var(--accent); animation: spin .9s linear infinite; }
+@keyframes popIn { from { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.08); } }
+.ord-next { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; width: 100%; }
+.ord-next li { display: grid; justify-items: center; gap: .25rem; position: relative; font-size: .86rem; }
+.ord-next li::before { content: ""; position: absolute; top: 17px; left: -50%; right: 50%; height: 2px; background: var(--line-2); z-index: 0; }
+.ord-next li:first-child::before { display: none; }
+.ord-next li span { position: relative; z-index: 1; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--ink-2); border: 2px solid var(--line-2); }
+.ord-next li.on span { background: var(--ok); border-color: var(--ok); color: #fff; }
+.ord-next li small { color: var(--muted); font-size: .76rem; }
+@media (max-width: 560px) { .ord-next { grid-template-columns: 1fr 1fr; row-gap: 1.2rem; } .ord-next li::before { display: none; } }
+.ord-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 1.1rem; align-items: start; }
+.ord-grid .card { min-width: 0; }
+.ord-grid .sumrow { margin-top: .8rem; }
+.ord-grid .tax { font-size: .78rem; color: var(--muted); margin-top: .2rem; }
+.ord-pay { display: flex; gap: .45rem; align-items: flex-start; }
+.ord-pay .ico { color: var(--ok); margin-top: 3px; flex: none; }
+@media (max-width: 860px) { .ord-grid { grid-template-columns: minmax(0, 1fr); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ord-ic { animation: none; }
+  .spin-ring, .ord-ic.slow i { animation-duration: 2.4s; }
+}

@@ -1,0 +1,5 @@
+/* The live website's fonts (served with the site, as on nandamhandlooms.com): Bodoni Moda
+   400/500 and Figtree (variable). Copied from @fontsource by build/build-data.py. */
+@font-face { font-family: "Bodoni Moda"; font-style: normal; font-display: swap; font-weight: 400; src: url(fonts/bodoni-moda-latin-400-normal.woff2) format("woff2"); }
+@font-face { font-family: "Bodoni Moda"; font-style: normal; font-display: swap; font-weight: 500; src: url(fonts/bodoni-moda-latin-500-normal.woff2) format("woff2"); }
+@font-face { font-family: "Figtree Variable"; font-style: normal; font-display: swap; font-weight: 300 900; src: url(fonts/figtree-latin-wght-normal.woff2) format("woff2-variations"); }

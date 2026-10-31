@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Admin Device Preview</title>
+  <meta name="description" content="Any Module 5 screen of the Nandam Handlooms admin app in a phone frame, a tablet frame, or both side by side.">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../module-1-sign-in/assets/mock.css">
+  <link rel="stylesheet" href="../module-1-sign-in/assets/app.css">
+  <link rel="stylesheet" href="../module-2-team/assets/m2.css">
+  <link rel="stylesheet" href="../module-3-categories/assets/m3.css">
+  <link rel="stylesheet" href="../module-4-products/assets/m4.css">
+  <link rel="stylesheet" href="assets/m5.css">
+  <script src="../module-3-categories/assets/m3-data.js"></script>
+  <script src="../module-4-products/assets/m4-data.js"></script>
+  <script src="assets/m5-screens.js"></script>
+  <script src="assets/m5-options.js"></script>
+  <style>
+    .pv-bar { display: flex; flex-wrap: wrap; gap: .75rem 1rem; align-items: end; padding: 20px 0 12px; }
+    .pv-bar .field { margin: 0; min-width: 240px; }
+    .pv-bar select { min-height: 44px; font-size: 1rem; padding: 0 .75rem; }
+    .seg { display: flex; flex-wrap: wrap; gap: .35rem; }
+    .seg .btn[aria-pressed="true"] { --btn-bg: var(--primary); --btn-fg: var(--on-primary); --btn-bd: var(--primary); }
+    .pv-stage { display: flex; justify-content: center; align-items: flex-start; gap: 28px; padding: 12px 0 0; min-height: 300px; }
+    .pv-item { display: flex; flex-direction: column; align-items: center; gap: .6rem; }
+    .pv-item .cap { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+    .pv-fit { position: relative; }
+    .pv-fit > .device { position: absolute; top: 0; left: 0; transform-origin: top left; }
+    .device iframe { width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html"><img src="assets/logo.png" alt=""><span><b>Nandam Handlooms</b><small>Admin app mock-up · Module 5: Scan to sell</small></span></a>
+    <button class="menu-btn" type="button" data-menu-btn aria-expanded="false" aria-controls="site-nav" aria-label="Menu"><i data-icon="menu"></i></button>
+    <nav class="site-nav" id="site-nav" aria-label="Mock-up pages">
+      <a href="index.html">Start</a><a href="app.html#/scan?demo=1">Screens</a><a href="../module-1-sign-in/kit.html">Design kit</a><a href="preview.html" aria-current="page">Device preview</a>
+    </nav>
+  </div>
+</header>
+<main class="container" id="main">
+  <div class="pv-bar">
+    <div class="field"><label for="pv-screen">Screen</label><select class="input" id="pv-screen"></select></div>
+    <div><div class="field-label" style="margin-bottom:.4rem">Frame</div>
+      <div class="seg" role="group" aria-label="Frame">
+        <button type="button" class="btn btn-sm" data-frame="phone" aria-pressed="false"><i data-icon="phone" class="icon-sm"></i>Phone</button>
+        <button type="button" class="btn btn-sm" data-frame="tablet" aria-pressed="false"><i data-icon="tablet" class="icon-sm"></i>Tablet</button>
+        <button type="button" class="btn btn-sm" data-frame="landscape" aria-pressed="false"><i data-icon="tablet" class="icon-sm"></i>Tablet landscape</button>
+        <button type="button" class="btn btn-sm" data-frame="both" aria-pressed="false">Phone + tablet</button>
+        <button type="button" class="btn btn-sm" disabled title="The browser version was dropped for now"><i data-icon="laptop" class="icon-sm"></i>Laptop · not planned</button>
+      </div></div>
+    <div><div class="field-label" style="margin-bottom:.4rem">Phone type</div>
+      <div class="seg" role="group" aria-label="Phone type"><button type="button" class="btn btn-sm" data-plat="ios">iPhone / iPad</button><button type="button" class="btn btn-sm" data-plat="android">Android</button></div></div>
+  </div>
+  <p class="field-hint" style="margin:0 0 6px">Both frames run the same app and share the same sample data. Use Design options to change the look or the screen state in every frame at once.</p>
+  <div class="pv-stage" id="stage"></div>
+</main>
+<footer class="site-footer">
+  <div class="inner">
+    <div><a class="brand" href="index.html"><img src="assets/logo.png" alt=""><span><b>Nandam Handlooms</b><small>Admin app · Module 5 of 11</small></span></a>
+      <p style="margin-top:.75rem">Clickable mock-up of the new admin app's selling screens, with the shop's real sarees, tags, prices and photos. Not the real app: nothing you change leaves this browser.</p></div>
+    <div><h4>Mock-up</h4><ul><li><a href="index.html">Start page</a></li><li><a href="app.html#/scan?demo=1">All screens</a></li><li><a href="../module-1-sign-in/kit.html">Design kit</a></li><li><a href="preview.html">Device preview</a></li></ul></div>
+    <div><h4>Project docs</h4><ul><li><a href="../../../modules/module-05-scan-to-sell.md">Module 5 plan</a></li><li><a href="../module-4-products/index.html">Module 4 mock-up</a></li><li><a href="../../../current-system/admin-app-3-selling-orders-invoices.md">Old app: selling notes</a></li><li><a href="../../../README.md">Docs index</a></li></ul></div>
+    <div class="legal"><span>Customers, order numbers and today's sales are sample data. Sarees, tags, prices and photos are the shop's own.</span><span>Android and iOS · phone and tablet</span></div>
+  </div>
+</footer>
+<script>
+(function () {
+  var FR = {
+    phone: { w: 414, h: 868, cls: '', cap: 'Phone · about 390 × 844 (iPhone 15)' },
+    tablet: { w: 844, h: 1204, cls: 'tablet', cap: 'Tablet · about 808 × 1168 (iPad Air, portrait)' },
+    landscape: { w: 1204, h: 844, cls: 'tablet landscape', cap: 'Tablet · landscape' }
+  };
+  var sel = document.getElementById('pv-screen'), stage = document.getElementById('stage');
+  sel.innerHTML = NH_GROUPS.map(function (g) {
+    return '<optgroup label="' + g.title + '">' + NH_SCREENS.filter(function (s) { return s.group === g.id; }).map(function (s) { return '<option value="' + NH_ROUTE(s) + '">' + s.title + '</option>'; }).join('') + '</optgroup>';
+  }).join('');
+  var q = new URLSearchParams(location.search), route = q.get('screen') || 'scan?demo=1', frame = q.get('frame') || 'both';
+  if (![].some.call(sel.options, function (o) { return o.value === route; })) { var o = document.createElement('option'); o.value = route; o.textContent = route; sel.appendChild(o); }
+  sel.value = route;
+  function build() {
+    var kinds = frame === 'both' ? ['phone', 'tablet'] : [frame];
+    stage.innerHTML = kinds.map(function (k) {
+      var f = FR[k];
+      return '<div class="pv-item"><div class="pv-fit" data-kind="' + k + '"><div class="device ' + f.cls + (NH.flags().platform === 'android' ? ' is-android' : '') + '"><div class="device-screen"><div class="island"></div><div class="punch"></div>' +
+        '<iframe data-app title="' + f.cap + '" src="app.html?embed=1#/' + route + '"></iframe></div></div></div><span class="cap">' + f.cap + '</span></div>';
+    }).join('');
+    document.querySelectorAll('[data-frame]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.frame === frame)); });
+    fit();
+    NH.renderPanel && NH.renderPanel();
+  }
+  function fit() {
+    var items = stage.querySelectorAll('.pv-fit'); if (!items.length) return;
+    var gap = 28, totalW = 0, maxH = 0;
+    items.forEach(function (it) { var f = FR[it.dataset.kind]; totalW += f.w; maxH = Math.max(maxH, f.h); });
+    totalW += gap * (items.length - 1);
+    var availW = stage.clientWidth, availH = Math.max(380, window.innerHeight - stage.getBoundingClientRect().top - window.scrollY - 44);
+    var s = Math.min(1, availW / totalW, availH / maxH);
+    items.forEach(function (it) {
+      var f = FR[it.dataset.kind];
+      it.style.width = (f.w * s) + 'px'; it.style.height = (f.h * s) + 'px';
+      var d = it.querySelector('.device'); d.style.transform = 'scale(' + s + ')';
+    });
+  }
+  sel.addEventListener('change', function () { route = sel.value; stage.querySelectorAll('iframe').forEach(function (f) { f.contentWindow.location.hash = '#/' + route; }); history.replaceState(null, '', '?screen=' + encodeURIComponent(route) + '&frame=' + frame); });
+  document.querySelectorAll('[data-frame]').forEach(function (b) { b.addEventListener('click', function () { frame = b.dataset.frame; history.replaceState(null, '', '?screen=' + encodeURIComponent(route) + '&frame=' + frame); build(); }); });
+  document.querySelectorAll('[data-plat]').forEach(function (b) { b.addEventListener('click', function () { NH.setFlag('platform', b.dataset.plat); }); });
+  function syncPlat() {
+    var p = NH.flags().platform;
+    document.querySelectorAll('[data-plat]').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.plat === p)); b.classList.toggle('btn-primary', b.dataset.plat === p); });
+    stage.querySelectorAll('.device').forEach(function (d) { d.classList.toggle('is-android', p === 'android'); });
+  }
+  document.addEventListener('nh:flags', syncPlat);
+  NH.onGoScreen = function (r) { sel.value = r; route = r; sel.dispatchEvent(new Event('change')); };
+  window.addEventListener('resize', fit);
+  build(); syncPlat();
+})();
+</script>
+</body>
+</html>

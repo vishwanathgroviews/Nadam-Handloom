@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" data-palette="a" data-mode="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Website Device Preview</title>
+<meta name="description" content="Any screen of the new Nandam Handlooms website on a phone, a tablet and a laptop, side by side.">
+<link rel="icon" href="img/site/brand-logo.png">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="stylesheet" href="assets/premium.css">
+<script src="assets/data.js"></script>
+<script src="assets/opts.js"></script>
+<style>
+  body { background: var(--surface-2); }
+  .pv-top { background: var(--surface); border-bottom: 1px solid var(--line); }
+  .pv-top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-block: .8rem; }
+  .pv-top .ctl { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .pv-top select { min-height: 42px; border: 1px solid var(--line-2); border-radius: var(--r-pill); padding: 0 1rem; background: var(--surface); color: var(--ink); font: inherit; font-size: .9rem; max-width: 100%; }
+  .pv-top nav a { padding: .45rem .7rem; border-radius: var(--r-pill); font-size: .86rem; font-weight: 650; color: var(--ink-2); }
+  .stage-wrap { display: flex; gap: 28px; justify-content: center; align-items: flex-start; padding: 28px 16px 90px; flex-wrap: wrap; }
+  .dev { display: grid; gap: .6rem; justify-items: center; }
+  .dev .frame { background: #111; border-radius: 34px; padding: 12px; box-shadow: 0 30px 70px rgba(0, 0, 0, .25); }
+  .dev.laptop .frame { border-radius: 14px 14px 4px 4px; padding: 14px 14px 22px; }
+  .dev.laptop::after { content: ""; width: 112%; height: 14px; background: #2a2a2e; border-radius: 0 0 14px 14px; margin-top: -.6rem; }
+  .dev iframe { border: 0; display: block; background: #fff; border-radius: 24px; }
+  .dev.laptop iframe { border-radius: 4px; }
+  .dev .cap { font-size: .82rem; color: var(--muted); font-weight: 600; }
+  .scale-box { overflow: hidden; }
+</style>
+</head>
+<body>
+<header class="pv-top"><div class="wrap"><b style="font-family:var(--f-display);font-size:1.3rem">Device preview</b>
+  <div class="ctl"><label class="sr-only" for="pv-s">Screen</label><select id="pv-s"></select>
+  <div class="density" role="group" aria-label="Devices"><button type="button" data-f="all" aria-pressed="true" aria-label="Phone, tablet and laptop">All</button><button type="button" data-f="phone" aria-label="Phone">Phone</button><button type="button" data-f="laptop" aria-label="Laptop">Laptop</button></div></div>
+  <nav><a href="index.html">Start</a><a href="site.html#/home">Website</a><a href="kit.html">Design kit</a></nav></div></header>
+<div class="stage-wrap" id="stage"></div>
+<script>
+(function () {
+  var NH = window.NH, sel = document.getElementById('pv-s'), stage = document.getElementById('stage');
+  var DEV = { phone: [390, 844, 'Phone · 390 × 844'], tablet: [820, 1180, 'Tablet · 820 × 1180'], laptop: [1440, 900, 'Laptop · 1440 × 900'] };
+  sel.innerHTML = NH.GROUPS.map(function (g) { return '<optgroup label="' + g.title + '">' + NH.SCREENS.filter(function (s) { return s.group === g.id; }).map(function (s) { return '<option value="' + NH.resolveRoute(s.route) + '">' + s.title + '</option>'; }).join('') + '</optgroup>'; }).join('');
+  var route = 'home', show = 'all';
+  try { var m = /[?&]s=([^&]+)/.exec(location.search); if (m) route = decodeURIComponent(m[1]); } catch (e) { }
+  sel.value = route;
+  function build() {
+    var kinds = show === 'all' ? ['phone', 'tablet', 'laptop'] : [show];
+    var avail = Math.min(window.innerWidth - 40, 1600), maxH = Math.max(420, window.innerHeight - 180);
+    stage.innerHTML = kinds.map(function (k) {
+      var d = DEV[k], target = show === 'all' ? (k === 'laptop' ? Math.min(1, (avail * .52) / d[0]) : Math.min(1, (avail * .24) / d[0])) : Math.min(1, (avail - 40) / d[0]);
+      var s = Math.min(target, maxH / d[1]);
+      return '<div class="dev ' + k + '"><div class="frame"><div class="scale-box" style="width:' + (d[0] * s) + 'px;height:' + (d[1] * s) + 'px"><iframe data-site title="' + d[2] + '" src="site.html?embed=1#/' + route + '" style="width:' + d[0] + 'px;height:' + d[1] + 'px;transform:scale(' + s + ');transform-origin:0 0"></iframe></div></div><span class="cap">' + d[2] + '</span></div>';
+    }).join('');
+    document.querySelectorAll('[data-f]').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.f === show); });
+  }
+  sel.addEventListener('change', function () { route = sel.value; stage.querySelectorAll('iframe').forEach(function (f) { f.contentWindow.location.hash = '#/' + route; }); });
+  document.querySelectorAll('[data-f]').forEach(function (b) { b.addEventListener('click', function () { show = b.dataset.f; build(); }); });
+  NH.onGoScreen = function (r) { route = r; sel.value = r; stage.querySelectorAll('iframe').forEach(function (f) { f.contentWindow.location.hash = '#/' + r; }); };
+  window.addEventListener('resize', function () { clearTimeout(window._pv); window._pv = setTimeout(build, 200); });
+  build();
+})();
+</script>
+</body>
+</html>

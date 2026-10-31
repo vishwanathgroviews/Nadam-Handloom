@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en-IN" data-mode="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Home page: categories as cards · mock-up · Nandam Handlooms</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="img/logo-96.png">
+  <link rel="stylesheet" href="assets/ecom.css">
+  <link rel="stylesheet" href="assets/mock.css">
+  <script src="assets/data.js"></script>
+  <script src="assets/opts.js"></script>
+  <style>
+    .looks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .looks .ph { display: grid; grid-template-columns: 1fr 34%; gap: 8px; align-items: start; }
+    .looks img { width: 100%; border: 1px solid var(--line); border-radius: var(--r-sm); }
+    @media (max-width: 900px) { .looks { grid-template-columns: 1fr; } }
+    .cat-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+    .cat-list a { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: .8rem; align-items: center; padding: 8px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--surface); }
+    .cat-list a:hover { border-color: var(--accent); }
+    .cat-list img { width: 72px; height: 54px; object-fit: cover; border-radius: var(--r-xs); background: var(--mat); }
+    .cat-list b { display: block; font-size: .92rem; }
+    .cat-list span { font-size: .8rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="mock-strip" role="note"><span class="mock-tag">Mock-up</span> Home page: the 6 categories as cards · nothing here changes the real website</div>
+  <main class="start" id="main">
+    <section class="hero">
+      <span class="eyebrow">Website · home page mock-up · 27 Oct 2026</span>
+      <h1 class="display">The 6 categories as cards: a photo and the name</h1>
+      <p class="lead">What the client asked for: a <b>Shop by category</b> section at the very top of the home page, with all 6 categories as cards, <b>3 in a row and 2 rows</b>, each card <b>only the photo and the category's name</b>, the photo the same tall shape as a saree card. Tapping a card opens that category's page with all its subcategories (collections). Under it, the home page stays as it is on the live website today: the latest collections, then every saree with filters and sort. Every category, collection and saree is real (live on <span data-at></span>).</p>
+      <div class="row-wrap">
+        <a class="btn btn-primary btn-lg" href="site.html#/">Open the home page</a>
+        <a class="btn btn-lg" href="preview.html">Phone and laptop</a>
+        <a class="btn btn-lg" href="kit.html">Design kit</a>
+      </div>
+      <p class="muted small">Only the top of the home page is new. A card opens that category's page (all its collections as photos), exactly as on the live website. The saree photos load from the shop's photo store, so this needs the internet.</p>
+    </section>
+
+    <section>
+      <h2>The cards (choice 1 A): a tall photo and the name</h2>
+      <div class="looks">
+        <div class="opt"><h3><b>A</b>3 in a row, 2 rows (as asked)</h3><div class="ph"><img src="img/look-a-laptop.jpg" alt="Laptop: six tall category photos with the name under each, three in a row, two rows." loading="lazy"><img src="img/look-a-phone.jpg" alt="Phone: the category cards two in a row, like the sarees." loading="lazy"></div><p>Big tall photos. On a laptop the first row fills the screen, so the names show after a short scroll.</p><a class="btn" href="site.html?catcard=a&amp;catcols=a#/">Open</a></div>
+        <div class="opt"><h3><b>B</b>6 in a row (the saree cards' size)</h3><div class="ph"><img src="img/look-a6-laptop.jpg" alt="Laptop: six tall category photos in one row, the size of the saree cards, the name under each." loading="lazy"><img src="img/look-a-phone.jpg" alt="Phone: the same, two in a row." loading="lazy"></div><p>Each card is about the size of a saree card, and all 6 fit on the first screen. Phones are the same as A (2 in a row, 3 rows).</p><a class="btn" href="site.html?catcard=a&amp;catcols=b#/">Open</a></div>
+        <div class="opt"><h3><b>Earlier</b>Wide photo, name on the photo</h3><div class="ph"><img src="img/look-b-laptop.jpg" alt="Laptop: six wide category photos with the name on each." loading="lazy"><img src="img/look-b-phone.jpg" alt="Phone: wide category photos two in a row." loading="lazy"></div><p>The first mock-up's card, kept as choice 1 B to compare.</p><a class="btn" href="site.html?catcard=b#/">Open</a></div>
+      </div>
+      <p class="muted small">On each card: only the photo and the name, no button, price or labels. The whole card opens the category's page: its subcategories as photos. The two without sarees yet open their "coming soon" page.</p>
+    </section>
+
+    <section>
+      <h2>Your choices</h2>
+      <table>
+        <thead><tr><th>Choice</th><th>A</th><th>B</th></tr></thead>
+        <tbody>
+          <tr><td><b>1. The category cards</b></td><td>A tall photo like the saree cards, the name under it (the client's request)</td><td>A wide photo, the name on it (the earlier mock-up)</td></tr>
+          <tr><td><b>2. On laptops</b></td><td>3 in a row, 2 rows (as asked)</td><td>6 in a row, the size of the saree cards</td></tr>
+          <tr><td><b>3. Under the cards</b></td><td>The crafts as small round photos (Embroidery, Applique…)</td><td>Nothing: the crafts stay in the filters and the menus</td></tr>
+          <tr><td><b>4. The card photos</b></td><td>The photo set in the admin app (what the website will show)</td><td>The category's newest saree (how a good tall photo looks)</td></tr>
+        </tbody>
+      </table>
+      <p class="muted small">Switch them with <b>Design options</b> (bottom left), then <b>Copy my choices</b> and send the text. The look (colours, fonts, corners, light and dark) is there too; A is the live website's.</p>
+    </section>
+
+    <section>
+      <h2>Every screen</h2>
+      <div data-screens style="display:grid;gap:22px"></div>
+    </section>
+
+    <section>
+      <h2>The 6 cards (live data)</h2>
+      <p class="muted">In this order: the categories with sarees first, the most pieces first, then the two coming soon. Each opens its category page.</p>
+      <div class="cat-list" data-cats></div>
+    </section>
+
+    <section class="two">
+      <div>
+        <h2>Real, sample, chosen</h2>
+        <ul class="plain">
+          <li><b>Real:</b> the 6 categories with their live counts, all <b data-total></b> sarees with photos, codes and prices, <span data-cols></span> collections, the crafts, the shop's address, hours and number (+91 73823 88565).</li>
+          <li><b>Photos:</b> every card shows the category's photo from the admin app (More → Catalogue → the category → Edit → Photo), as the website will. Change it there and the card changes. Choice 4 B shows the newest saree instead, to see the cards with good tall photos.</li>
+          <li><b>Sample:</b> the customer, orders and payment window, as in the earlier mock-ups (only for the pages after the home page).</li>
+        </ul>
+      </div>
+      <div>
+        <h2>For the shop</h2>
+        <ul class="plain">
+          <li><b>Cotton dress materials and Fabrics</b> have no sarees on the website yet (their only stock is test pieces). Their cards look like the others; tapping one opens a "coming soon" page. Add real pieces and they fill in by themselves.</li>
+          <li><b>Cotton sarees has only 2 pieces.</b> Its card looks thin next to Pattu sarees (1,499). Adding stock, or a photo upright like a saree, would help.</li>
+          <li><b>New photos needed in the admin app, upright like a saree photo (3:4):</b> Cotton sarees' photo is a <b>test picture</b> (a gift card, saved 27 Oct 11:56 to test the upload); it shows on the live website until a real one replaces it. Pattu sarees' is a poster with writing. Pattu dress materials, Lehanga sets and Cotton dress materials are small (400 × 225) and wide, so the tall card shows only their middle.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+  <script>
+    (function () {
+      var NH = window.NH, f = new Intl.NumberFormat('en-IN');
+      document.querySelector('[data-at]').textContent = new Date(NH.at).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }) + ' IST';
+      document.querySelector('[data-total]').textContent = f.format(NH.products.length);
+      document.querySelector('[data-cols]').textContent = NH.collections.length;
+      document.querySelector('[data-cats]').innerHTML = NH.categories.map(function (c) {
+        return '<a href="site.html#/c/' + c.slug + '"><img src="' + c.banner + '" alt="" loading="lazy"><span><b>' + c.short + '</b>' + (c.soon ? 'Coming soon' : f.format(c.count) + ' pieces · ' + c.collections + ' collection' + (c.collections === 1 ? '' : 's')) + '</span></a>';
+      }).join('');
+      document.querySelector('[data-screens]').innerHTML = window.W10Opts.screens().map(function (g) {
+        return '<div><h3 style="font-size:1rem;margin-bottom:.7rem">' + g[0] + '</h3><div class="grid-scr" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px">' + g[1].map(function (s) { return '<a class="scr" href="' + s[0] + '"><b>' + s[1] + '</b><span class="muted small" style="word-break:break-all">' + s[0].replace('site.html', '') + '</span></a>'; }).join('') + '</div></div>';
+      }).join('');
+    })();
+  </script>
+</body>
+</html>

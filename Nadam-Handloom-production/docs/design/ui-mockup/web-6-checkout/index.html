@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en-IN" data-mode="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>W6 checkout mock-up · Nandam Handlooms</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="img/logo-96.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&amp;family=Manrope:wght@400;600;700&amp;family=Instrument+Serif&amp;family=Hanken+Grotesk:wght@400;600;700&amp;display=swap">
+  <link rel="stylesheet" href="assets/fonts.css">
+  <link rel="stylesheet" href="assets/site/tokens.css">
+  <link rel="stylesheet" href="assets/site/base.css">
+  <link rel="stylesheet" href="assets/site/pages.css">
+  <link rel="stylesheet" href="assets/site/shop.css">
+  <link rel="stylesheet" href="assets/bag.css">
+  <link rel="stylesheet" href="assets/checkout.css">
+  <link rel="stylesheet" href="assets/mock.css">
+  <script src="assets/opts.js"></script>
+</head>
+<body>
+  <div class="mock-strip" role="note"><span class="mock-tag">Mock-up</span> Website module W6, checkout and payment · nothing here is the real website or a real payment</div>
+  <main class="start" id="main">
+    <section class="hero">
+      <span class="eyebrow">Website module W6 · mock-up</span>
+      <h1>Checkout and payment</h1>
+      <p class="lead">From the bag to a paid order: sign in, choose the address, review, pay with Razorpay (UPI, cards, net banking, wallets), and the confirmation. Every other ending too: payment failed, window closed, bank slow, the 15-minute hold ending, a saree selling meanwhile. Built in the live website's own look, with real sarees and prices.</p>
+      <div class="row-wrap">
+        <a class="btn btn-primary btn-lg" href="site.html#/bag?state=normal">Start from the bag</a>
+        <a class="btn btn-lg" href="kit.html">Design kit</a>
+        <a class="btn btn-lg" href="preview.html">Device preview</a>
+      </div>
+      <p class="muted small">The plan with every rule and decision: <code>docs/modules/web-04-checkout.md</code></p>
+    </section>
+
+    <section>
+      <h2>How to use it</h2>
+      <ol class="steps-list">
+        <li>Start from the bag and press <b>Checkout</b>. Sign in (a shortcut), choose an address, review, press <b>Pay</b>.</li>
+        <li>Razorpay's window is a <b>stand-in</b> drawn by us: its yellow box lets you choose what happens (succeeds, fails, bank slow, closed).</li>
+        <li>Press <b>Design options</b> (bottom left) to try the lettered choices; <b>A</b> is my recommendation. <b>Screen states</b> there jumps to every ending.</li>
+        <li>Press <b>Copy my choices</b> and send them. Nothing is built before your picks.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Screens</h2>
+      <div id="screens" class="stack-lg"></div>
+    </section>
+
+    <section>
+      <h2>Your decisions (plan section 6)</h2>
+      <div class="table-wrap"><table class="table stack">
+        <thead><tr><th>#</th><th>Question</th><th>Options</th><th>Recommended</th></tr></thead>
+        <tbody>
+          <tr><td data-label="#">6.1</td><td data-label="">Checkout layout</td><td data-label="Options">A two steps on one page · B three steps with a progress bar · C everything on one page</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.2</td><td data-label="">Signing in</td><td data-label="Options">A the sign-in page, then straight back · B inside the checkout</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.3</td><td data-label="">Choosing the address</td><td data-label="Options">A cards · B compact list · C drop-down</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.4</td><td data-label="">The bag's main button</td><td data-label="Options">A Checkout main, WhatsApp as a small link · B both the same · C WhatsApp main</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.5</td><td data-label="">Showing the hold</td><td data-label="Options">A "held until 4:35 pm" · B a countdown · C not shown</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.6</td><td data-label="">Confirmation page</td><td data-label="Options">A large tick and next steps · B compact receipt</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.7</td><td data-label="">Pay on phones</td><td data-label="Options">A a bar at the bottom · B only at the end</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.8</td><td data-label="">Payment methods</td><td data-label="Options">A everything on the account (UPI, cards, net banking, wallets) · B UPI and cards</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.9</td><td data-label="">Cash on delivery</td><td data-label="Options">A no · B yes, below an amount</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.10</td><td data-label="">Hold time</td><td data-label="Options">A 15 minutes · B 20 · C 30</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.11</td><td data-label="">Payment after the hold ended</td><td data-label="Options">A goes through if all still in stock, else refunded automatically · B always refund</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.12</td><td data-label="">GST outside Andhra Pradesh</td><td data-label="Options">A IGST (after the accountant confirms) · B CGST + SGST as today</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.13</td><td data-label="">Messages to the customer</td><td data-label="Options">A screen, web notification, My orders (SMS later) · B also email</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.14</td><td data-label="">The old server at go-live</td><td data-label="Options">A switch it off the same day · B keep it, move only Razorpay's notices</td><td data-label="Recommended"><b>A</b></td></tr>
+          <tr><td data-label="#">6.15</td><td data-label="">Refunds the shop decides</td><td data-label="Options">A in the Razorpay dashboard for now · B a Refund button in the admin app</td><td data-label="Recommended"><b>A</b></td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted small" style="margin-top:.6rem">6.8 to 6.15 are rules, not looks: they show in the screens (the methods in Razorpay's window, the refunded ending, the GST line) but have no switch.</p>
+    </section>
+
+    <section class="two">
+      <div>
+        <h2>What the old checkout got wrong (fixed in W6)</h2>
+        <ul class="plain">
+          <li>Any payment was marked paid, even for an order cancelled at the counter or paid after the hold: <b>a saree could sell twice</b>. Now a late payment goes through only if every saree is still there, otherwise it is refunded automatically.</li>
+          <li>The browser's word alone was trusted. Now the server also asks Razorpay that the money arrived, for this amount.</li>
+          <li>Paying again made a new order that blocked the customer's own sarees. Now "Pay now" reuses the order and its hold.</li>
+          <li>"Order Confirmed!" showed even for a cancelled order. Now each ending has its own page.</li>
+          <li>Razorpay's notices go to the old server. They move to the new one at go-live.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Facts (live data, 16 Oct)</h2>
+        <div class="facts">
+          <div class="fact"><b>18 of 20</b><span>old online orders started and never paid (4 accounts, 9–10 Oct)</span></div>
+          <div class="fact"><b>2 of 6</b><span>saved addresses have a broken state ("Dkrkgkv", "Ap"): checked before use</span></div>
+          <div class="fact"><b>15 min</b><span>hold; Razorpay's shortest capture window is 12</span></div>
+          <div class="fact"><b>5%</b><span>GST included in every price; delivery free</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="two">
+      <div>
+        <h2>Before going live</h2>
+        <ul class="plain">
+          <li><b>The owner, in the Razorpay dashboard:</b> live mode, registered website nandamhandlooms.com, a new webhook to the new server (and remove the old one).</li>
+          <li><b>The policy pages</b> (Shipping, Cancellation and refunds, Contact) with the owner's text: Razorpay checks them.</li>
+          <li><b>The website's security settings</b> allow Razorpay's window (tried in report-only mode first).</li>
+          <li><b>The old server</b> switched off (6.14 A).</li>
+          <li><b>One real payment</b> by the owner, then a refund, to see the whole path once.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Real, sample, planned</h2>
+        <ul class="plain">
+          <li><b>Real:</b> the sarees, codes, prices and photos; the shop's details; the website's look.</li>
+          <li><b>Sample:</b> the customer "Priya Sharma", her addresses, the order number, every payment ending. Marked <span class="mock-tag">Sample</span>.</li>
+          <li><b>Stand-in:</b> Razorpay's window. The real one is Razorpay's own, in the shop's colour.</li>
+          <li><b>Drafts for the owner:</b> the policy pages and the delivery times. Marked "Owner to confirm".</li>
+          <li><b>Planned:</b> My orders, tracking and the invoice download (W7).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Files</h2>
+      <p class="muted">This folder: <code>docs/design/ui-mockup/web-6-checkout/</code>. <code>site.html</code> is the website mock-up; <code>assets/checkout.css</code> holds the new checkout styles; <code>assets/site/</code> are the live website's styles, unchanged. See <code>README.md</code>.</p>
+    </section>
+  </main>
+  <script>
+    (function () {
+      var DESC = {
+        'site.html#/bag?state=normal': 'The bag as live, with Checkout now the main button.',
+        'site.html#/checkout?state=signedout': 'Checkout asks to sign in first; the bag stays.',
+        'site.html#/checkout?state=address': 'Saved addresses, the default already chosen, or add a new one.',
+        'site.html#/checkout?state=newaddr': 'No saved address yet: the form opens at once.',
+        'site.html#/checkout?state=fixaddr': 'An address saved on the old website with a broken state.',
+        'site.html#/checkout?state=review': 'The sarees, the address, the total with GST, and Pay.',
+        'site.html#/checkout?state=paying': 'Where Razorpay\'s window opens (a stand-in).',
+        'site.html#/checkout?state=confirming': 'The few seconds while the server checks with Razorpay.',
+        'site.html#/order/NH48213097?state=paid': 'Order confirmed: what happens next, the sarees, the address.',
+        'site.html#/checkout?state=failed': 'Nothing taken; try again while the sarees are held.',
+        'site.html#/checkout?state=closed': 'Window closed: Pay now, or change the bag.',
+        'site.html#/checkout?state=expired': 'The 15 minutes are over: check the bag again.',
+        'site.html#/checkout?state=changed': 'A saree sold and a price changed just before paying.',
+        'site.html#/order/NH48213097?state=bankslow': 'Payment received, the bank is slow: confirming.',
+        'site.html#/order/NH48213097?state=refunded': 'Paid after the hold, a saree sold: refunded automatically.',
+        'site.html#/checkout?state=offline': 'No internet when pressing Pay: nothing charged.',
+        'site.html#/checkout?state=inapp': 'Opened inside Instagram: payments need Chrome or Safari.',
+        'site.html#/checkout?state=empty': 'Everything in the bag sold.',
+        'site.html#/shipping': 'Draft shipping policy (Razorpay asks for it).',
+        'site.html#/refunds': 'Draft cancellation and refunds policy.',
+        'site.html#/contact': 'Contact us, with the store\'s real details.',
+        'index.html': 'This page.', 'kit.html': 'The checkout\'s parts: steps, addresses, summary, endings.', 'preview.html': 'Any screen on a phone, tablet or laptop.'
+      };
+      var html = '';
+      window.W5Opts.screens.forEach(function (g) {
+        html += '<div><h3 style="margin-bottom:.8rem">' + g[0] + '</h3><div class="grid">' + g[1].map(function (s) {
+          var tag = /shipping|refunds/.test(s[0]) ? '<span class="mock-tag">Draft for the owner</span>' : /state=(failed|closed|expired|changed|bankslow|refunded|offline|inapp|empty|fixaddr)/.test(s[0]) ? '<span class="mock-tag">Sample state</span>' : /state=paying/.test(s[0]) ? '<span class="mock-tag">Stand-in</span>' : '';
+          return '<a class="scr" href="' + s[0] + '"><b>' + s[1] + '</b><span>' + (DESC[s[0]] || '') + '</span>' + tag + '</a>';
+        }).join('') + '</div></div>';
+      });
+      document.getElementById('screens').innerHTML = html;
+    })();
+  </script>
+</body>
+</html>

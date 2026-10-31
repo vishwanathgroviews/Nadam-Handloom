@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en-IN" data-mode="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Design kit · W7 My orders mock-up</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/png" href="img/logo-96.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&amp;family=Manrope:wght@400;600;700&amp;family=Instrument+Serif&amp;family=Hanken+Grotesk:wght@400;600;700&amp;display=swap">
+  <link rel="stylesheet" href="assets/fonts.css">
+  <link rel="stylesheet" href="assets/site/tokens.css">
+  <link rel="stylesheet" href="assets/site/base.css">
+  <link rel="stylesheet" href="assets/site/pages.css">
+  <link rel="stylesheet" href="assets/site/shop.css">
+  <link rel="stylesheet" href="assets/bag.css">
+  <link rel="stylesheet" href="assets/checkout.css">
+  <link rel="stylesheet" href="assets/orders.css">
+  <link rel="stylesheet" href="assets/mock.css">
+  <script src="assets/opts.js"></script>
+</head>
+<body>
+  <div class="mock-strip" role="note"><span class="mock-tag">Mock-up</span> Design kit for W7, My orders · <a href="index.html">Start page</a> · <a href="site.html#/account/orders?state=normal">Website mock-up</a></div>
+  <main class="kit" id="main">
+    <header class="stack-sm"><span class="eyebrow">W7 · design kit</span><h1>My orders: the parts</h1><p class="lead">Everything new in W7, in the live website's design. Colours and fonts follow the "Design options" panel (A is the live website). The orders are samples; the sarees and prices are real.</p></header>
+    <section><h2>Colours</h2><div class="swatches" id="sw"></div></section>
+    <section class="type-scale"><h2>Type</h2>
+      <p class="display" style="font-size:clamp(1.9rem,3.6vw,2.8rem)">Order NH48213097 <small class="muted small">order title</small></p>
+      <p class="display" style="font-size:1.12rem">Pure Pattu 350K Butta Saree and 1 more <small class="muted small">order card title</small></p>
+      <p>Body: Paid 17 Oct. We pack within 2 working days.</p>
+      <p class="small muted">Small: Only orders you paid for show here (and one you're paying for now).</p>
+    </section>
+    <section><h2>Status badges</h2><div class="row" id="badges"></div></section>
+    <section><h2>Order cards (7.2 A)</h2><div class="olist" style="max-width:820px" id="cards"></div></section>
+    <section><h2>Compact rows (7.2 B)</h2><div style="max-width:820px" id="rows"></div></section>
+    <section><h2>Shop bill (7.5 B, only if picked)</h2><div style="max-width:820px" id="bill"></div></section>
+    <section><h2>Progress line</h2><div class="stack" style="max-width:820px" id="prog"></div></section>
+    <section><h2>Tracking (7.4)</h2><div class="stack" style="max-width:820px" id="trk"></div></section>
+    <section><h2>Notes on one order</h2><div class="stack" style="max-width:820px" id="alerts"></div></section>
+    <section><h2>Buttons</h2><div class="row" id="btns"></div></section>
+    <section><h2>Phone notification (7.8)</h2><div id="notif" style="position:relative;min-height:90px;max-width:420px"></div></section>
+    <section><h2>Icons used</h2><div class="icons" id="ic"></div></section>
+  </main>
+  <script src="assets/icons.js"></script>
+  <script src="assets/data.js"></script>
+  <script src="assets/site.js"></script>
+  <script>
+    (function () {
+      var P = window.W5Parts, Q = window.W7Parts, I = P.icon, $ = function (id) { return document.getElementById(id); };
+      function by(n) { return Q.orders.filter(function (o) { return o.number === n; })[0]; }
+      function draw() {
+        var cs = getComputedStyle(document.documentElement);
+        $('sw').innerHTML = ['bg', 'surface', 'surface-2', 'line-2', 'ink', 'muted', 'accent', 'accent-soft', 'gold', 'gold-soft', 'ok', 'warn', 'bad', 'info'].map(function (t) { return '<div class="swatch"><i style="background:var(--' + t + ')"></i><span>--' + t + '<br>' + cs.getPropertyValue('--' + t).trim() + '</span></div>'; }).join('');
+        $('badges').innerHTML = ['held', 'packing', 'shipped', 'delivered', 'refunded', 'shopcancel'].map(Q.badge).join('');
+        $('cards').innerHTML = ['NH48213097', 'NH47106255', 'NH49011876', 'NH44871203'].map(function (n, i) { return Q.card(by(n), i); }).join('');
+        $('rows').innerHTML = '<div class="orows">' + Q.orders.slice(0, 4).map(Q.row).join('') + '</div>';
+        $('bill').innerHTML = Q.bill();
+        $('prog').innerHTML = ['NH48213097', 'NH47106255', 'NH46339810'].map(function (n) { return Q.progress(by(n)); }).join('');
+        $('trk').innerHTML = Q.track(by('NH47106255'));
+        $('alerts').innerHTML = ['NH49011876', 'NH45902114', 'NH44871203'].map(function (n) { return Q.alert(by(n)); }).join('');
+        $('btns').innerHTML = '<button class="btn">' + I('download', 'sm') + 'Download invoice</button><button class="btn">' + I('bag', 'sm') + 'Buy again</button><button class="btn btn-wa">' + I('whatsapp', 'sm') + 'Help on WhatsApp</button><button class="btn btn-sm btn-primary">' + I('external', 'sm') + 'Track on DTDC</button><button class="btn btn-sm">' + I('copy', 'sm') + 'Copy</button><button class="btn btn-block">Show more</button>';
+        $('notif').innerHTML = Q.notif().replace('class="notif-demo"', 'class="notif-demo" style="position:static;animation:none"');
+        $('ic').innerHTML = ['box', 'truck', 'home', 'check', 'clock', 'refresh', 'copy', 'external', 'download', 'bag', 'whatsapp', 'lock', 'store', 'info', 'alertc', 'right'].map(function (k) { return '<div>' + I(k, 'lg') + '<span>' + k + '</span></div>'; }).join('');
+      }
+      draw();
+      document.addEventListener('w5opts', draw);
+      document.addEventListener('click', function (e) { var a = e.target.closest('main a[href^="#"], main button'); if (a && !a.closest('.mock-strip')) e.preventDefault(); }, true);
+    })();
+  </script>
+</body>
+</html>

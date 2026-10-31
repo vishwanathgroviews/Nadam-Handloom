@@ -1,0 +1,7 @@
+{
+  "name": "nandam-biometrics",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "description": "Hardware-backed Face ID / Touch ID / fingerprint signing keys for the Nandam Handlooms admin app"
+}

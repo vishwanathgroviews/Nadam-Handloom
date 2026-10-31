@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Admin Design Kit</title>
+  <meta name="description" content="Colours, type, buttons, fields, badges, alerts, cards, tables, progress, loading placeholders and icons for the Nandam Handlooms admin app.">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/mock.css">
+  <link rel="stylesheet" href="assets/app.css">
+  <script src="assets/screens.js"></script>
+  <script src="assets/options.js"></script>
+  <style>
+    .kit-hero { padding: 44px 0 8px; }
+    .kit-hero h1 { font-size: clamp(2rem, 4vw, 2.8rem); margin: .4rem 0 .6rem; }
+    .kit-hero p { color: var(--text-2); max-width: 64ch; }
+    .kit-nav { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1rem; }
+    .kit-nav a { font-size: .85rem; padding: .35rem .7rem; border-radius: var(--r-pill); border: 1px solid var(--border); text-decoration: none; color: var(--text-2); background: var(--surface); }
+    .kit-sec { padding-top: 3rem; scroll-margin-top: 80px; }
+    .kit-sec > h2 { font-size: 1.6rem; margin-bottom: .2rem; }
+    .kit-sec > p.use { color: var(--text-2); margin-bottom: 1.1rem; max-width: 70ch; }
+    .grid { display: grid; gap: 14px; }
+    .g-swatch { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .sw { border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--border); background: var(--surface); }
+    .sw .chip { height: 72px; border-bottom: 1px solid var(--border); }
+    .sw .lab { padding: .55rem .7rem; font-size: .8rem; }
+    .sw .lab b { display: block; font-size: .85rem; }
+    .sw .lab code { font-family: var(--font-mono); font-size: .72rem; color: var(--muted); }
+    .palettes { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .pal { border-radius: var(--r-lg); border: 1px solid var(--border); background: var(--surface); padding: .9rem; }
+    .pal .strip { display: flex; height: 44px; border-radius: var(--r-md); overflow: hidden; margin: .5rem 0; }
+    .pal .strip span { flex: 1; }
+    .type-row { display: grid; grid-template-columns: 120px 1fr; gap: 1rem; align-items: baseline; padding: .7rem 0; border-bottom: 1px solid var(--border); }
+    .type-row code { font-family: var(--font-mono); font-size: .75rem; color: var(--muted); }
+    .row-wrap { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+    .demo-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 1.25rem; }
+    .g-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .g-icons { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+    .ico { display: flex; flex-direction: column; align-items: center; gap: .45rem; padding: .9rem .4rem; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); font-family: var(--font-mono); font-size: .7rem; color: var(--muted); }
+    .ico .icon { width: 26px; height: 26px; color: var(--text); }
+    .app-sample { position: relative; height: 380px; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--border); }
+    @media (max-width: 560px) { .type-row { grid-template-columns: 1fr; gap: .2rem; } }
+  </style>
+</head>
+<body>
+<header class="site-header">
+  <div class="inner">
+    <a class="brand" href="index.html"><img src="assets/logo.png" alt=""><span><b>Nandam Handlooms</b><small>Admin app mock-up · Module 1: Sign in</small></span></a>
+    <button class="menu-btn" type="button" data-menu-btn aria-expanded="false" aria-controls="site-nav" aria-label="Menu"><i data-icon="menu"></i></button>
+    <nav class="site-nav" id="site-nav" aria-label="Mock-up pages">
+      <a href="index.html">Start</a><a href="app.html#/splash">Screens</a><a href="kit.html" aria-current="page">Design kit</a><a href="preview.html">Device preview</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container" id="main">
+  <div class="kit-hero reveal">
+    <span class="eyebrow">Design kit · new design for every module</span>
+    <h1>The building blocks</h1>
+    <p>One set of colour tokens drives light and dark mode. Change the palette, font, corners or theme in Design options and every block below updates. These are the pieces every later module will reuse.</p>
+    <nav class="kit-nav" aria-label="Kit sections"><a href="#colours">Colours</a><a href="#type">Type</a><a href="#buttons">Buttons</a><a href="#fields">Fields</a><a href="#pin">PIN and code</a><a href="#badges">Badges</a><a href="#alerts">Alerts</a><a href="#cards">Cards and lists</a><a href="#tables">Tables</a><a href="#progress">Progress</a><a href="#loading">Loading</a><a href="#dialogs">Dialogs and toasts</a><a href="#icons">Icons</a></nav>
+  </div>
+
+  <section class="kit-sec" id="colours">
+    <h2>Colours</h2><p class="use">Tokens for the palette you have picked, in the current theme. Text colours pass contrast on their backgrounds; accent colours are used for highlights, not long text.</p>
+    <div class="grid g-swatch" id="swatches"></div>
+    <h3 style="margin-top:1.75rem;font-size:1.15rem">The three palettes</h3>
+    <div class="grid palettes">
+      <div class="pal" data-palette="a"><b>A · Indigo Loom</b><div class="strip"><span style="background:#1A245F"></span><span style="background:#273587"></span><span style="background:#E7EAF8"></span><span style="background:#D99A1E"></span><span style="background:#F5F4EF"></span></div><small style="color:var(--muted)">Indigo dye with turmeric thread. Calm, trustworthy, classic handloom colours.</small></div>
+      <div class="pal" data-palette="b"><b>B · Peacock</b><div class="strip"><span style="background:#073F43"></span><span style="background:#0D5C61"></span><span style="background:#E0F0EE"></span><span style="background:#C46A35"></span><span style="background:#F3F6F4"></span></div><small style="color:var(--muted)">Peacock teal with copper. Fresh and distinctive.</small></div>
+      <div class="pal" data-palette="c"><b>C · Rani &amp; Charcoal</b><div class="strip"><span style="background:#121017"></span><span style="background:#24212E"></span><span style="background:#ECEAF1"></span><span style="background:#C22B6C"></span><span style="background:#F6F5F7"></span></div><small style="color:var(--muted)">Charcoal with rani pink. Modern and bold.</small></div>
+    </div>
+  </section>
+
+  <section class="kit-sec" id="type">
+    <h2>Type scale</h2><p class="use">Headings use the display font; everything else the body font. The monospace is for small labels, codes and numbers.</p>
+    <div class="demo-box">
+      <div class="type-row"><code>48 · Display</code><span style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:3rem;line-height:1.05;letter-spacing:var(--display-track)">0:59</span></div>
+      <div class="type-row"><code>36 · H1</code><span style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:2.25rem;letter-spacing:var(--display-track)">Sign in</span></div>
+      <div class="type-row"><code>28 · Screen title</code><span style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:1.75rem;letter-spacing:var(--display-track)">Create your PIN</span></div>
+      <div class="type-row"><code>22 · Section</code><span style="font-family:var(--font-display);font-weight:var(--display-weight);font-size:1.375rem">Welcome back</span></div>
+      <div class="type-row"><code>18 · Bar title</code><span style="font-weight:750;font-size:1.125rem">My account</span></div>
+      <div class="type-row"><code>16 · Body</code><span>We sent a 6-digit code to +91 90000 00003.</span></div>
+      <div class="type-row"><code>14 · Small</code><span style="font-size:.875rem;color:var(--text-2)">Only numbers invited by the owner can be set up.</span></div>
+      <div class="type-row"><code>12 · Label</code><span class="eyebrow">Sign-in and security</span></div>
+    </div>
+  </section>
+
+  <section class="kit-sec" id="buttons">
+    <h2>Buttons</h2><p class="use">At least 48 px tall for thumbs. One primary button per screen, kept at the bottom on phones.</p>
+    <div class="demo-box row-wrap">
+      <button class="btn btn-primary">Sign in</button><button class="btn">Secondary</button><button class="btn btn-accent">Accent</button><button class="btn btn-ghost">Ghost</button>
+      <button class="btn btn-danger"><i data-icon="logout"></i>Log out</button><button class="btn btn-danger-solid">Sign out</button>
+      <button class="btn btn-primary is-loading">Loading</button><button class="btn btn-primary" disabled>Disabled</button><button class="btn btn-sm">Small</button><button class="link-btn">Text link</button>
+    </div>
+  </section>
+
+  <section class="kit-sec" id="fields">
+    <h2>Form fields</h2><p class="use">Real labels above every field. Errors say what to do, in red, under the field.</p>
+    <div class="grid g-2">
+      <div class="demo-box"><div class="field"><label for="k1">Mobile number</label><div class="input-group"><span class="prefix">+91</span><input class="input" id="k1" type="tel" value="90000 00001"></div><p class="field-hint">Only numbers invited by the owner can be set up.</p></div></div>
+      <div class="demo-box"><div class="field has-error"><label for="k2">Mobile number</label><div class="input-group"><span class="prefix">+91</span><input class="input" id="k2" type="tel" value="50000 00003" aria-invalid="true"></div><p class="field-error"><i data-icon="alertc" class="icon-sm"></i>Mobile numbers start with 6, 7, 8 or 9.</p></div></div>
+      <div class="demo-box"><label class="check"><input type="checkbox"><span><b style="color:var(--text)">Also sign out my other devices</b><br>They'll need the new PIN and an SMS code.</span></label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1rem"><span style="font-weight:650">Sign in with Face ID</span><span class="switch"><input type="checkbox" checked aria-label="Sign in with Face ID"><span></span></span></div></div>
+    </div>
+  </section>
+
+  <section class="kit-sec" id="pin">
+    <h2>PIN and SMS code</h2><p class="use">Option A uses boxes and the phone's own number keyboard. Option B uses dots and a large on-screen keypad. The SMS code is always boxes, with the digits visible.</p>
+    <div class="grid g-2">
+      <div class="demo-box"><span class="eyebrow">A · Boxes</span><div class="pin-wrap" style="margin-top:.75rem"><div class="boxes"><div class="box filled">•</div><div class="box filled">•</div><div class="box filled">•</div><div class="box cur"></div><div class="box"></div><div class="box"></div></div></div></div>
+      <div class="demo-box"><span class="eyebrow">B · Dots and keypad</span><div class="pin-wrap"><div class="pin-dots"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
+        <div class="keypad" style="max-width:240px"><button>1</button><button>2</button><button>3</button><button class="k-ghost" aria-label="Face ID"><i data-icon="faceid" class="icon-lg"></i></button><button>0</button><button class="k-ghost" aria-label="Delete"><i data-icon="backspace" class="icon-lg"></i></button></div></div></div>
+      <div class="demo-box"><span class="eyebrow">SMS code · error</span><div class="otp is-error" style="margin-top:.75rem"><div class="boxes"><div class="box filled">4</div><div class="box filled">8</div><div class="box filled">2</div><div class="box filled">9</div><div class="box filled">1</div><div class="box filled">0</div></div></div>
+        <div class="otp-meta"><span style="color:var(--warning)">Code expires in 0:48</span><div class="progress is-warning"><span style="width:16%"></span></div></div>
+        <ul class="rules"><li class="ok"><i data-icon="check"></i>Exactly 6 digits</li><li class="bad"><i data-icon="x"></i>Not a straight run (like 123456)</li><li><i data-icon="more"></i>Not the last 6 digits of your mobile number</li></ul></div>
+    </div>
+  </section>
+
+  <section class="kit-sec" id="badges">
+    <h2>Badges</h2><p class="use">Short labels for roles and states. Never the only signal: always paired with text.</p>
+    <div class="demo-box row-wrap"><span class="badge badge-owner">Owner</span><span class="badge badge-staff">Staff</span><span class="badge badge-success">This device</span><span class="badge badge-info">Trusted</span><span class="badge badge-warning">1 try left</span><span class="badge badge-danger">Locked</span><span class="badge badge-new">New</span><span class="badge badge-planned">Module 2</span><span class="badge">Neutral</span></div>
+  </section>
+
+  <section class="kit-sec" id="alerts">
+    <h2>Alerts</h2><p class="use">Inline messages inside a screen. Title says what happened; the line under it says what to do.</p>
+    <div class="grid g-2">
+      <div class="alert alert-info"><i data-icon="info"></i><div><strong>For your safety</strong><p>Resetting your PIN signs out your other devices.</p></div></div>
+      <div class="alert alert-success"><i data-icon="check"></i><div><strong>You can try again now</strong><p>You have 5 fresh tries.</p></div></div>
+      <div class="alert alert-warning"><i data-icon="alert"></i><div><strong>1 try left</strong><p>After one more wrong try, sign-in is locked for 15 minutes.</p></div></div>
+      <div class="alert alert-error"><i data-icon="alertc"></i><div><strong>That mobile number and PIN don't match</strong><p>4 tries left.</p></div></div>
+    </div>
+  </section>
+
+  <section class="kit-sec" id="cards">
+    <h2>Cards and lists</h2><p class="use">Settings and device lists use rows with an icon tile, a title, one line of detail, and an action on the right.</p>
+    <div class="grid g-2">
+      <div class="list"><div class="profile-card"><span class="avatar lg">LA</span><div><b>Lakshmi</b><span>+91 90000 00001</span><div style="margin-top:.35rem"><span class="badge badge-owner">Owner</span></div></div></div></div>
+      <div class="list">
+        <div class="row"><span class="tile"><i data-icon="phone"></i></span><span class="grow"><b>Lakshmi's iPhone 15</b><span>iOS 18 · Active now</span></span><span class="badge badge-success">This device</span></div>
+        <div class="row"><span class="tile"><i data-icon="tablet"></i></span><span class="grow"><b>Counter iPad</b><span>iPadOS 18 · Last active 2 hours ago</span></span><button class="btn btn-sm btn-danger">Sign out</button></div>
+      </div>
+      <div class="card"><span class="eyebrow">Card</span><h3 style="font-size:1.1rem;margin-top:.4rem">Unsaved work is safe</h3><p style="color:var(--text-2);margin:0">A plain surface with a border and a soft shadow, used to group related content.</p></div>
+    </div>
+  </section>
+
+  <section class="kit-sec" id="tables">
+    <h2>Tables</h2><p class="use">On phones, each row turns into a card with labels, so nothing scrolls sideways.</p>
+    <div class="table-wrap"><table class="table"><thead><tr><th>Device</th><th>Type</th><th>Last active</th><th>Status</th></tr></thead><tbody>
+      <tr><td data-label="Device">Lakshmi's iPhone 15</td><td data-label="Type">Phone · iOS 18</td><td data-label="Last active">Now</td><td data-label="Status"><span class="badge badge-success">This device</span></td></tr>
+      <tr><td data-label="Device">Counter iPad</td><td data-label="Type">Tablet · iPadOS 18</td><td data-label="Last active">2 hours ago</td><td data-label="Status"><span class="badge badge-info">Trusted</span></td></tr>
+      <tr><td data-label="Device">iPhone 12 (home)</td><td data-label="Type">Phone · iOS 17</td><td data-label="Last active">5 days ago</td><td data-label="Status"><span class="badge badge-info">Trusted</span></td></tr>
+    </tbody></table></div>
+    <p class="field-hint" style="margin-top:.5rem">Sample data.</p>
+  </section>
+
+  <section class="kit-sec" id="progress">
+    <h2>Progress bars and steps</h2><p class="use">Used for code expiry, lock countdowns and multi-step setup.</p>
+    <div class="grid g-2">
+      <div class="demo-box"><div class="steps"><div class="bars"><span class="on"></span><span class="on"></span><span></span><span></span></div><small>Step 2 of 4</small></div>
+        <div class="progress" style="margin-top:1rem"><span style="width:72%"></span></div><div class="progress is-warning" style="margin-top:.75rem"><span style="width:20%"></span></div><div class="progress is-danger" style="margin-top:.75rem"><span style="width:55%"></span></div></div>
+      <div class="demo-box center-col"><div class="timer" style="font-size:2.4rem">14:21</div><div class="progress is-danger" style="width:200px"><span style="width:95%"></span></div><p class="field-hint" style="margin-top:.6rem">Lock countdown</p></div>
+    </div>
+  </section>
+
+  <section class="kit-sec" id="loading">
+    <h2>Loading placeholders</h2><p class="use">Grey shapes that shimmer while content loads, in the same layout as the real content.</p>
+    <div class="list" style="max-width:520px">
+      <div class="skel-row"><div class="skeleton" style="width:40px;height:40px;border-radius:var(--r-md)"></div><div style="flex:1"><div class="skeleton" style="height:14px;width:55%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:35%"></div></div></div>
+      <div class="skel-row"><div class="skeleton" style="width:40px;height:40px;border-radius:var(--r-md)"></div><div style="flex:1"><div class="skeleton" style="height:14px;width:45%;margin-bottom:6px"></div><div class="skeleton" style="height:11px;width:30%"></div></div></div>
+    </div>
+  </section>
+
+  <section class="kit-sec" id="dialogs">
+    <h2>Dialogs, toasts and success</h2><p class="use">Dialogs ask before anything that can't be undone. Toasts confirm small things. The success mark is used after setup and resets.</p>
+    <div class="grid g-2">
+      <div class="app-sample app-root" data-size="phone"><div class="dlg-backdrop" style="position:absolute"><div class="dlg is-danger"><div class="dlg-ico"><i data-icon="logout"></i></div><h2>Log out on this phone?</h2><p>You'll need your PIN or Face ID to sign in again. Anything unsaved stays on this phone.</p><div class="dlg-actions"><button class="btn btn-block btn-danger-solid">Log out</button><button class="btn btn-block">Cancel</button></div></div></div></div>
+      <div class="demo-box center-col" style="position:relative;min-height:380px;justify-content:center"><div class="success-mark" style="margin:0 auto 1rem"><svg viewBox="0 0 112 112"><circle cx="56" cy="56" r="50"/><path d="M36 58l13 13 27-29"/></svg></div><b>PIN changed</b>
+        <div class="app-toast ok" style="position:static;transform:none;margin-top:1.5rem"><i data-icon="check"></i>2 other devices signed out</div></div>
+    </div>
+  </section>
+
+  <section class="kit-sec" id="icons">
+    <h2>Icons</h2><p class="use">One line-icon style, 1.8 px stroke, drawn on a 24 px grid.</p>
+    <div class="grid g-icons" id="icons-grid"></div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="inner">
+    <div><a class="brand" href="index.html"><img src="assets/logo.png" alt=""><span><b>Nandam Handlooms</b><small>Admin app · Module 1 of 11</small></span></a>
+      <p style="margin-top:.75rem">Clickable mock-up of the new admin app's sign-in. Not the real app: nothing you type leaves this browser.</p></div>
+    <div><h4>Mock-up</h4><ul><li><a href="index.html">Start page</a></li><li><a href="app.html#/splash">All screens</a></li><li><a href="kit.html">Design kit</a></li><li><a href="preview.html">Device preview</a></li></ul></div>
+    <div><h4>Project docs</h4><ul><li><a href="../../../modules/module-01-sign-in.md">Module 1 plan</a></li><li><a href="../../../current-system/admin-app-1-login-team-settings.md">Old app: sign-in notes</a></li><li><a href="../../../README.md">Docs index</a></li></ul></div>
+    <div class="legal"><span>All names and mobile numbers are sample data.</span><span>Android and iOS · phone and tablet</span></div>
+  </div>
+</footer>
+<script>
+(function () {
+  var tokens = [['--bg', 'Background'], ['--surface', 'Surface'], ['--surface-2', 'Surface 2'], ['--text', 'Text'], ['--text-2', 'Text 2'], ['--muted', 'Muted'], ['--border', 'Border'],
+    ['--primary', 'Primary'], ['--primary-strong', 'Primary strong'], ['--primary-soft', 'Primary soft'], ['--accent', 'Accent'], ['--accent-soft', 'Accent soft'],
+    ['--success', 'Success'], ['--warning', 'Warning'], ['--danger', 'Danger'], ['--info', 'Info']];
+  function draw() {
+    var cs = getComputedStyle(document.documentElement);
+    document.getElementById('swatches').innerHTML = tokens.map(function (t) {
+      var v = cs.getPropertyValue(t[0]).trim();
+      return '<div class="sw"><div class="chip" style="background:var(' + t[0] + ')"></div><div class="lab"><b>' + t[1] + '</b><code>' + t[0] + ' ' + v + '</code></div></div>';
+    }).join('');
+  }
+  draw(); document.addEventListener('nh:options', draw);
+  document.getElementById('icons-grid').innerHTML = NH.iconNames.map(function (n) { return '<div class="ico">' + NH.icon(n) + n + '</div>'; }).join('');
+})();
+</script>
+</body>
+</html>
