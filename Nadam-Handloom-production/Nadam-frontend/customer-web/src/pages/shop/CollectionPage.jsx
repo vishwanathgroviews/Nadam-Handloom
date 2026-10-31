@@ -2,7 +2,7 @@
 // pieces and price, then all of its sarees with Sets only, sort, the grid size and Load more.
 import { Link, useParams } from 'react-router-dom';
 import Icon from '../../components/Icon.jsx';
-import { Crumbs } from '../../components/bits.jsx';
+import { BackRow, Crumbs } from '../../components/bits.jsx';
 import ShopList from './ShopList.jsx';
 import NotFoundPage from '../info/NotFoundPage.jsx';
 import { useCatalog } from '../../data/shop.js';
@@ -23,7 +23,7 @@ export default function CollectionPage() {
 
   if (catalog && !col) return <NotFoundPage title="This collection isn't on the website now" text="It may have sold out. See what's new instead." />;
   if (!catalog && status === 'error') {
-    return <div className="wrap narrow"><div className="empty" role="alert"><div className="ico-wrap"><Icon name="wifioff" /></div><h3>We couldn't load this collection</h3><p>Please check your connection and try again.</p><button type="button" className="btn btn-primary" onClick={reload}>Try again</button></div></div>;
+    return <div className="wrap narrow"><BackRow to="/shop" /><div className="empty" role="alert"><div className="ico-wrap"><Icon name="wifioff" /></div><h3>We couldn't load this collection</h3><p>Please check your connection and try again.</p><button type="button" className="btn btn-primary" onClick={reload}>Try again</button></div></div>;
   }
   return (
     <div className="wrap">

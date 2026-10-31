@@ -11,7 +11,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import Icon from '../../components/Icon.jsx';
 import Alert from '../../components/Alert.jsx';
 import Button from '../../components/Button.jsx';
-import { Crumbs, EmptyState, Skeleton } from '../../components/bits.jsx';
+import { BackRow, Crumbs, EmptyState, Skeleton } from '../../components/bits.jsx';
 import { AddressBlock, ConfirmingPayment, SareeLines } from '../checkout/parts.jsx';
 import { clock, gstText } from '../checkout/format.js';
 import { rememberCheckout, usePayment } from '../checkout/usePayment.js';
@@ -229,6 +229,7 @@ export default function OrderPage() {
   if (!valid || (data.status === 'error' && data.error?.code === 'ORDER_NOT_FOUND')) {
     return (
       <div className="wrap narrow ord-page">
+        <BackRow to="/account/orders" />
         <EmptyState icon="info" title="We couldn't find this order" text="Check the link, or sign in with the mobile number you ordered with.">
           <div className="row-wrap" style={{ justifyContent: 'center' }}><Link className="btn btn-primary" to="/account/orders">My orders</Link><Link className="btn" to="/shop">Continue shopping</Link></div>
         </EmptyState>
@@ -238,13 +239,14 @@ export default function OrderPage() {
   if (data.status === 'error') {
     return (
       <div className="wrap narrow ord-page">
+        <BackRow to="/account/orders" />
         <EmptyState icon="wifioff" title="Your order didn't load" text={data.error?.message}>
           <Button kind="primary" onClick={() => { setData({ status: 'loading', order: null, error: null }); load(); }}>Try again</Button>
         </EmptyState>
       </div>
     );
   }
-  if (!order) return <div className="wrap ord-page"><div className="ord-hero"><Skeleton h={84} style={{ width: 84, borderRadius: '50%' }} /><Skeleton h={48} style={{ width: 'min(520px, 90%)' }} /></div><Skeleton h={260} /></div>;
+  if (!order) return <div className="wrap ord-page"><BackRow to="/account/orders" /><div className="ord-hero"><Skeleton h={84} style={{ width: 84, borderRadius: '50%' }} /><Skeleton h={48} style={{ width: 'min(520px, 90%)' }} /></div><Skeleton h={260} /></div>;
 
   const first = firstName(customer?.fullName);
   const wa = whatsAppLink(config.store.whatsapp, `Hello Nandam Handlooms, about my order ${order.number}.`);

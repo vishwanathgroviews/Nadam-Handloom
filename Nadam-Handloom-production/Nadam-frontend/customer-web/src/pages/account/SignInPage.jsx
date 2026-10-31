@@ -6,6 +6,7 @@ import { useAuth } from '../../auth/useAuth.js';
 import { useConfig } from '../../config/useConfig.js';
 import { signedIn } from '../../auth/session.js';
 import { useToast } from '../../components/Toasts.jsx';
+import { BackRow } from '../../components/bits.jsx';
 import MobileStep from './signin/MobileStep.jsx';
 import CodeStep from './signin/CodeStep.jsx';
 import ProfileStep from './signin/ProfileStep.jsx';
@@ -86,6 +87,7 @@ export default function SignInPage() {
       </div>
       <div className="form">
         <div>
+          <BackRow />
           <div className="auth-steps" role="progressbar" aria-label="Sign-in steps" aria-valuemin={1} aria-valuemax={total} aria-valuenow={index} aria-valuetext={`Step ${index} of ${total}`}>
             {Array.from({ length: total }, (_, i) => <i key={i} className={i < index ? 'on' : ''} />)}
           </div>

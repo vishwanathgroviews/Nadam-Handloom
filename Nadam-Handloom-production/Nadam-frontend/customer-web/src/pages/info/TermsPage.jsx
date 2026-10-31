@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Crumbs } from '../../components/bits.jsx';
 import { useTitle } from '../../utils/useTitle.js';
 import { useConfig } from '../../config/useConfig.js';
 import { whatsappText } from '../../utils/format.js';
@@ -10,6 +11,7 @@ export default function TermsPage() {
   return (
     <div className="wrap narrow page-enter">
       <div className="page-head">
+        <Crumbs items={[['Home', '/'], ['Terms of use']]} />
         <span className="draft-note">Draft: to be reviewed by the shop</span>
         <h1>Terms of use</h1>
       </div>

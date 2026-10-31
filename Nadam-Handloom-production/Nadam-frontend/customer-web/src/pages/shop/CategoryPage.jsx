@@ -4,7 +4,7 @@
 import { useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Icon from '../../components/Icon.jsx';
-import { Crumbs } from '../../components/bits.jsx';
+import { BackRow, Crumbs } from '../../components/bits.jsx';
 import CategoryPhoto from '../../components/CategoryPhoto.jsx';
 import CollectionTile, { TileSkeletons } from '../../components/CollectionTile.jsx';
 import NotFoundPage from '../info/NotFoundPage.jsx';
@@ -47,7 +47,7 @@ export default function CategoryPage() {
 
   if (catalog && !cat) return <NotFoundPage title="This category isn't on the website now" />;
   if (!catalog && status === 'error') {
-    return <div className="wrap narrow"><div className="empty" role="alert"><div className="ico-wrap"><Icon name="wifioff" /></div><h3>We couldn't load the collections</h3><p>Please check your connection and try again.</p><button type="button" className="btn btn-primary" onClick={reload}>Try again</button></div></div>;
+    return <div className="wrap narrow"><BackRow /><div className="empty" role="alert"><div className="ico-wrap"><Icon name="wifioff" /></div><h3>We couldn't load the collections</h3><p>Please check your connection and try again.</p><button type="button" className="btn btn-primary" onClick={reload}>Try again</button></div></div>;
   }
   return (
     <div ref={box}>

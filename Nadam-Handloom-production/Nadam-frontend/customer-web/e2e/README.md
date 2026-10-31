@@ -67,3 +67,12 @@ Covered:
 Covered: see `docs/modules/web-05-my-orders.md` section 17.
 - **On the Android phone** (its own Chrome, over USB): `adb reverse tcp:5180 tcp:5180 && adb reverse tcp:4300 tcp:4300`, open Chrome on the phone, `adb forward tcp:9222 localabstract:chrome_devtools_remote`, then `NH_ENGINE=android node e2e/w7.e2e.cjs`. The server must send real notifications (`PUSH_PROVIDER=fcm` and the website's Firebase settings). Keep the phone unlocked. The test turns notifications on, checks "shipped" on the open page and "delivered" in the phone's notifications (and taps it), and at the end removes the website's data and the test invoice from the phone.
 
+# End-to-end test (the Back button)
+
+`back.e2e.cjs` checks the "‹ Back" button that starts every inner page's breadcrumb row (31 Oct 2026). It needs the same server and website as W6/W7 (server on `nandam_w5e2e` with `SMS_PROVIDER=console`); it signs up one test customer and adds one sample order for it, which it removes at the end (with the invoice the server makes when the order page opens).
+
+- `node e2e/back.e2e.cjs`: Chrome, 1440 light and 390 dark. Screenshots `e2e/out/back-*.png`.
+- Safari's engine: `WEBKIT_PATH=~/Library/Caches/ms-playwright/webkit-2359/pw_run.sh NH_ENGINE=webkit NH_ROUNDS=390-light,1440-dark node e2e/back.e2e.cjs`. Safari's Tab skips buttons unless "Press Tab to highlight each item" is on, so there the keyboard check focuses Back directly.
+
+Covered: All sarees → a saree → Back (the list at the same place, its cards showing); keyboard (Tab reaches Back with a focus ring, Enter goes back); a saree opened from a link goes up to its collection; the category page (Back white on the photo) goes home; category → collection → Back; All collections, search, the empty bag, the policy and contact pages, a saree that is gone and a page that doesn't exist; sign-in from a saree goes back to the saree; signed in: My account → My orders → an order and Back each time, an order that isn't found, the profile, the bag → checkout → Back. Each time: a button named "Back" that starts the breadcrumb row, on one line with the crumbs on computers, at least 40 px tall on phones, readable (contrast 4.5 or more), in view, no sideways scrolling, and no page or console errors.
+

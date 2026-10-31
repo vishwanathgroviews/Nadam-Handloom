@@ -6,7 +6,7 @@ import Icon from '../../components/Icon.jsx';
 import Alert from '../../components/Alert.jsx';
 import Button from '../../components/Button.jsx';
 import QtyStepper from '../../components/QtyStepper.jsx';
-import { Crumbs, Skeleton } from '../../components/bits.jsx';
+import { BackRow, Crumbs, Skeleton } from '../../components/bits.jsx';
 import SareeCard from '../../components/SareeCard.jsx';
 import { Rail, RailNav } from '../../components/Rail.jsx';
 import { useRail } from '../../components/useRail.js';
@@ -49,7 +49,7 @@ function CardRail({ id, eyebrow, title, cards }) {
 function Loading() {
   return (
     <div className="wrap" aria-busy="true" aria-label="Loading the saree">
-      <div className="page-head"><Skeleton h={14} style={{ width: 260 }} /></div>
+      <div className="page-head"><BackRow to="/shop"><Skeleton h={14} style={{ width: 260 }} /></BackRow></div>
       <div className="pdp">
         <Skeleton h={560} />
         <div className="stack"><Skeleton h={14} style={{ width: '40%' }} /><Skeleton h={44} /><Skeleton h={36} style={{ width: '50%' }} /><Skeleton h={54} /><Skeleton h={120} /></div>
@@ -98,6 +98,7 @@ export default function ProductPage() {
     }
     return (
       <div className="wrap narrow">
+        <BackRow to="/shop" />
         <div className="empty" role="alert">
           <div className="ico-wrap"><Icon name="wifioff" /></div>
           <h3>We couldn't load this saree</h3>
